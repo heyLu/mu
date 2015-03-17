@@ -241,6 +241,15 @@ func (d Db) Entid(key fressian.Key) (int, error) {
 	return -1, errors.New(fmt.Sprint("no such key ", key))
 }
 
+func (d Db) Ident(id int) (fressian.Key, error) {
+	for _, datom := range d.eavt.allDatoms() {
+		if datom.attribute == 10 && datom.entity == id {
+			return datom.value.(fressian.Key), nil
+		}
+	}
+	return fressian.Key{}, errors.New(fmt.Sprint("no such id ", id))
+}
+
 func (d Db) findEavt(entity, attribute int) []interface{} {
 	vals := make([]interface{}, 0, 1)
 	for _, datom := range d.eavt.allDatoms() {
@@ -260,8 +269,11 @@ func (e Entity) Keys() []fressian.Key {
 	keys := make([]fressian.Key, 0)
 	for _, datom := range e.db.eavt.allDatoms() {
 		if datom.entity == e.id {
-			attributeKeys := e.db.findEavt(datom.attribute, 10)
-			keys = append(keys, attributeKeys[0].(fressian.Key))
+			attributeKey, err := e.db.Ident(datom.attribute)
+			if err != nil {
+				log.Fatal(err)
+			}
+			keys = append(keys, attributeKey)
 		}
 	}
 	return keys
