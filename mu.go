@@ -209,7 +209,12 @@ func readDb(baseDir string) (*Db, error) {
 }
 
 func main() {
-	baseDir := "dbs/initial2"
+	if len(os.Args) != 2 {
+		fmt.Printf("Usage: %s <backup-dir>\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	baseDir := os.Args[1]
 	db, err := readDb(baseDir)
 	if err != nil {
 		log.Fatal(err)
