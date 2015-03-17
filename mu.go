@@ -220,4 +220,9 @@ func main() {
 	for _, datom := range db.eavt.allDatoms(baseDir) {
 		datom.prettyPrint()
 	}
+
+	fmt.Println("aevt:")
+	for _, datom := range db.aevt.allDatoms(baseDir) {
+		datom.prettyPrint()
+	}
 }
