@@ -209,22 +209,15 @@ func readDb(baseDir string) (*Db, error) {
 }
 
 func main() {
-	// given an index root uuid, get all the datoms in it, print them
 	baseDir := "dbs/initial2"
-	rootId := "5507037f-cbee-42ce-8339-c2a0edae286b"
-	root, err := readRootNode(baseDir, rootId)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(root)
-	for _, datom := range root.allDatoms(baseDir) {
-		datom.prettyPrint()
-	}
-
-	fmt.Println()
 	db, err := readDb(baseDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%#v\n", db)
+
+	fmt.Println("eavt:")
+	for _, datom := range db.eavt.allDatoms(baseDir) {
+		datom.prettyPrint()
+	}
 }
