@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -231,23 +230,26 @@ func readDb(baseDir string) (*Db, error) {
 	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
 }
 
-func (d Db) Entid(key fressian.Key) (int, error) {
+func (d Db) Entid(key fressian.Key) int {
 	for _, datom := range d.aevt.allDatoms() {
 		if datom.attribute == 10 && datom.value == key {
-			return datom.entity, nil
+			return datom.entity
 		}
 	}
 
-	return -1, errors.New(fmt.Sprint("no such key ", key))
+	log.Fatal("no such key", key)
+	return -1
 }
 
-func (d Db) Ident(id int) (fressian.Key, error) {
+func (d Db) Ident(id int) *fressian.Key {
 	for _, datom := range d.eavt.allDatoms() {
 		if datom.attribute == 10 && datom.entity == id {
-			return datom.value.(fressian.Key), nil
+			key := datom.value.(fressian.Key)
+			return &key
 		}
 	}
-	return fressian.Key{}, errors.New(fmt.Sprint("no such id ", id))
+	log.Fatal("no such id", id)
+	return nil
 }
 
 func (d Db) findEavt(entity, attribute int) []interface{} {
@@ -269,22 +271,14 @@ func (e Entity) Keys() []fressian.Key {
 	keys := make([]fressian.Key, 0)
 	for _, datom := range e.db.eavt.allDatoms() {
 		if datom.entity == e.id {
-			attributeKey, err := e.db.Ident(datom.attribute)
-			if err != nil {
-				log.Fatal(err)
-			}
-			keys = append(keys, attributeKey)
+			keys = append(keys, *e.db.Ident(datom.attribute))
 		}
 	}
 	return keys
 }
 
 func (e Entity) Get(key fressian.Key) []interface{} {
-	keyId, err := e.db.Entid(key)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return e.db.findEavt(e.id, keyId)
+	return e.db.findEavt(e.id, e.db.Entid(key))
 }
 
 var globalCache = make(map[string]interface{}, 100)
