@@ -163,6 +163,16 @@ func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
 	return &root, nil
 }
 
+type Db struct {
+	eavt IndexRootNode
+	aevt IndexRootNode
+	log  interface{}
+}
+
+func readDb(baseDir string) (*Db, error) {
+	return nil, nil
+}
+
 func main() {
 	// given an index root uuid, get all the datoms in it, print them
 	baseDir := "dbs/initial2"
