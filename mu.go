@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 )
 
 type IndexRootNode struct {
+	baseDir     string
 	tData       IndexTData
 	directories []interface{}
 }
@@ -35,7 +37,7 @@ var indexHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadObject()
 		segments, _ := r.ReadObject()
-		return IndexRootNode{tData.(IndexTData), segments.([]interface{})}
+		return IndexRootNode{"", tData.(IndexTData), segments.([]interface{})}
 	},
 	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		vs, _ := r.ReadObject()
@@ -130,15 +132,15 @@ func (dir IndexDirNode) allDatoms(baseDir string) []Datom {
 	return datoms
 }
 
-func (root IndexRootNode) allDatoms(baseDir string) []Datom {
+func (root IndexRootNode) allDatoms() []Datom {
 	datoms := make([]Datom, 0, 10000)
 	for _, dirNodeId := range root.directories {
-		dirNode, err := readDirNode(baseDir, dirNodeId.(string))
+		dirNode, err := readDirNode(root.baseDir, dirNodeId.(string))
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(dirNode)
-		datoms = append(datoms, dirNode.allDatoms(baseDir)...)
+		datoms = append(datoms, dirNode.allDatoms(root.baseDir)...)
 	}
 	return datoms
 }
@@ -177,6 +179,7 @@ func readRootNode(baseDir, rootId string) (*IndexRootNode, error) {
 		return nil, err
 	}
 	root := rawRoot.(IndexRootNode)
+	root.baseDir = baseDir
 	return &root, nil
 }
 
@@ -225,6 +228,26 @@ func readDb(baseDir string) (*Db, error) {
 	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
 }
 
+func (d Db) resolveAttribute(key fressian.Key) (int, error) {
+	for _, datom := range d.aevt.allDatoms() {
+		if datom.attribute == 10 && datom.value == key {
+			return datom.entity, nil
+		}
+	}
+
+	return -1, errors.New(fmt.Sprint("no such key ", key))
+}
+
+func (d Db) findEavt(entity, attribute int) []interface{} {
+	vals := make([]interface{}, 0, 1)
+	for _, datom := range d.eavt.allDatoms() {
+		if datom.entity == entity && datom.attribute == attribute {
+			vals = append(vals, datom.value)
+		}
+	}
+	return vals
+}
+
 type Entity struct {
 	db *Db
 	id int
@@ -234,10 +257,12 @@ func (e Entity) Keys() []fressian.Key {
 	return nil
 }
 
-func (e Entity) Get(key fressian.Key) interface{} {
-	//keyId := e.db.resolveAttribute(key)
-	//db.eavt.find(e.id, e.keyId)
-	return nil
+func (e Entity) Get(key fressian.Key) []interface{} {
+	keyId, err := e.db.resolveAttribute(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return e.db.findEavt(e.id, keyId)
 }
 
 func main() {
@@ -254,13 +279,17 @@ func main() {
 	fmt.Printf("%#v\n", db)
 
 	fmt.Println("eavt:")
-	for _, datom := range db.eavt.allDatoms(baseDir) {
+	for _, datom := range db.eavt.allDatoms() {
 		datom.prettyPrint()
 	}
 
 	fmt.Println()
 	fmt.Println("aevt:")
-	for _, datom := range db.aevt.allDatoms(baseDir) {
+	for _, datom := range db.aevt.allDatoms() {
 		datom.prettyPrint()
 	}
+
+	fmt.Println()
+	dbPart := Entity{db, 0}
+	fmt.Printf("%#v\n", dbPart.Get(fressian.Key{"db", "ident"}))
 }
