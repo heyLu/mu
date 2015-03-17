@@ -24,9 +24,10 @@ type IndexTData struct {
 }
 
 type IndexDirNode struct {
-	tData              IndexTData
-	segments           []interface{}
-	mystery1, mystery2 []int
+	tData    IndexTData
+	segments []interface{}
+	mystery1 []int
+	mystery2 []int // might be the number of entries in each segment
 }
 
 var indexHandlers = map[string]fressian.ReadHandler{
@@ -52,12 +53,12 @@ var indexHandlers = map[string]fressian.ReadHandler{
 	"index-dir-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadObject()
 		segments, _ := r.ReadObject()
-		r.ReadObject()
-		r.ReadObject()
+		mystery1, _ := r.ReadObject()
+		mystery2, _ := r.ReadObject()
 		return IndexDirNode{
 			tData.(IndexTData),
 			segments.([]interface{}),
-			nil, nil,
+			mystery1.([]int), mystery2.([]int),
 		}
 	},
 }
