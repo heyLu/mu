@@ -72,6 +72,22 @@ type Datom struct {
 	added       bool
 }
 
+func datomReadHandler(r *fressian.Reader, tag string, fieldCount int) interface{} {
+	added, _ := r.ReadObject()
+	r.ReadObject() // partition?
+	entity, _ := r.ReadObject()
+	attribute, _ := r.ReadObject()
+	value, _ := r.ReadObject()
+	transaction, _ := r.ReadObject()
+	return Datom{
+		entity.(int),
+		attribute.(int),
+		value,
+		3*(1<<42) + transaction.(int),
+		added.(bool),
+	}
+}
+
 func (d Datom) prettyPrint() {
 	fmt.Printf("#datom [%d %d %#v %d %t]\n",
 		d.entity, d.attribute, d.value, d.transaction, d.added)
@@ -188,7 +204,8 @@ func readDb(baseDir string) (*Db, error) {
 	root := rawRoot.(map[interface{}]interface{})
 	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
 	logTailRaw := root[fressian.Key{"log", "tail"}].([]byte)
-	logTail, _ := fressian.NewReader(bytes.NewBuffer(logTailRaw), nil).ReadObject()
+	logHandlers := map[string]fressian.ReadHandler{"datum": datomReadHandler}
+	logTail, _ := fressian.NewReader(bytes.NewBuffer(logTailRaw), logHandlers).ReadObject()
 	rawIndexRoot, err := readFile(baseDir, indexRootId)
 	if err != nil {
 		return nil, err
