@@ -231,7 +231,7 @@ func readDb(baseDir string) (*Db, error) {
 	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
 }
 
-func (d Db) resolveAttribute(key fressian.Key) (int, error) {
+func (d Db) Entid(key fressian.Key) (int, error) {
 	for _, datom := range d.aevt.allDatoms() {
 		if datom.attribute == 10 && datom.value == key {
 			return datom.entity, nil
@@ -268,7 +268,7 @@ func (e Entity) Keys() []fressian.Key {
 }
 
 func (e Entity) Get(key fressian.Key) []interface{} {
-	keyId, err := e.db.resolveAttribute(key)
+	keyId, err := e.db.Entid(key)
 	if err != nil {
 		log.Fatal(err)
 	}
