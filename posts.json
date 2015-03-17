@@ -1,5 +1,17 @@
 [
 	{
+		"id": "f2d9c94af966530ed1ac879569f95e43",
+		"title": "Sketching the API for 0.1.0",
+		"content": "```go\r\n// package mu\r\n\r\nfunc Connect(u *url.URL) (Connection, error) {}\r\nfunc Db(c Connection) Database {}\r\n\r\nfunc (db Database) Eavt() Index {}\r\nfunc (db Database) Aevt() Index {}\r\n\r\nfunc (i Index) Datoms(components... interface{}) Iterator {}\r\nfunc (i Index) Datoms(components... interface{}) Iterator {}\r\n\r\nfunc (it Iterator) Current() Datom {}\r\nfunc (it Iterator) Next() bool {}\r\n```",
+		"created": "2015-03-17T17:00:25.789669594+01:00"
+	},
+	{
+		"id": "f1b4267bdccd97224bc71c8b72f559cf",
+		"title": "Thinking about queries...",
+		"content": "- iterations through the datoms should not do allocations, so `index.Datoms()` should return an `Iterator`, or something similar\r\n- what should our equivalent to `datomic.api/datoms` look like? especially, the `components' part, which specify \"leading\" parts to narrow the result?\r\n\r\n    ```go\r\n    // direct translation\r\n    func (db Db) Datoms(index Keyword, components ...interface{})\r\n\r\n    // per-index\r\n    func (i Index) Datoms(components ...interface{})\r\n    ```\r\n- the segment/thing cache should be global, as an intermediate layer between storage and the rest of the system\r\n\r\n    ```go\r\n    type Store interface {\r\n        Get(id string) []byte    // or maybe `*fressian.Reader`?\r\n    }\r\n\r\n    // Cache would be just another store?\r\n    //   not really, it would just support `.Get`\r\n    ```\r\n\r\n    - when do we access the cache?  when querying the index, i.e. when using `.Datoms`.  it should be invisble to the user, though.",
+		"created": "2015-03-17T16:15:01.403505716+01:00"
+	},
+	{
 		"id": "01047148e2db0a90c18a1df6c5527b17",
 		"title": "So",
 		"content": "This morning has been a bit... surprising, because *we can read dbs now!*\r\n\r\nBut, what next?  Some ideas:\r\n\r\n- a simple http server to get the data from the indexes\r\n    - not so useful though, because attributes are not yet resolved \"back\"\r\n    - so maybe implement attribute resolution?  (would be an eavt lookup: find attribute 10 (`:db/ident`) of `\u003cattr-id\u003e`)\r\n- segment caching (in-memory, to prevent reading them with each `.allDatoms` call)\r\n    - would improve design of `.allDatoms`, because it would use the cache, removing the need for the `baseDir` argument)\r\n- pluggable backends (preparing for `sqlite://`, but starting with `backup://`.  hopefully has some good effects on the design as well)\r\n- think a bit about queries, how to execute them on raw indexes.  (e.g. `:db/ident` resolution above, maybe something à la `datomic.api/entity`?)\r\n- experiment with the log tail (seems to be `[{:id \"\u003cuuid\u003e\", data: \u003cdatoms\u003e}]`)\r\n- try adding new data to an index\r\n    - would need a type for UUIDs (at least a while later, in general anytime we want generate new segments)\r\n    - is there a different \"in-memory\" index type?\r\n    - the index is persistent, right?\r\n    - can we batch-add data?  (think of data from one transaction, we don't want the values in between, we want the index after the *complete* transaction)",
