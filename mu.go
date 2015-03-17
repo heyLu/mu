@@ -144,6 +144,10 @@ func (root IndexRootNode) allDatoms() []Datom {
 }
 
 func readFile(baseDir, id string) (interface{}, error) {
+	if val, ok := globalCache[id]; ok {
+		return val, nil
+	}
+
 	l := len(id)
 	p := path.Join(baseDir, "values", id[l-2:l], id)
 	f, err := os.Open(p)
@@ -159,6 +163,7 @@ func readFile(baseDir, id string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	globalCache[id] = obj
 	return obj, err
 }
 
@@ -269,6 +274,8 @@ func (e Entity) Get(key fressian.Key) []interface{} {
 	}
 	return e.db.findEavt(e.id, keyId)
 }
+
+var globalCache = make(map[string]interface{}, 100)
 
 func main() {
 	if len(os.Args) != 2 {
