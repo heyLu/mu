@@ -225,6 +225,21 @@ func readDb(baseDir string) (*Db, error) {
 	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
 }
 
+type Entity struct {
+	db *Db
+	id int
+}
+
+func (e Entity) Keys() []fressian.Key {
+	return nil
+}
+
+func (e Entity) Get(key fressian.Key) interface{} {
+	//keyId := e.db.resolveAttribute(key)
+	//db.eavt.find(e.id, e.keyId)
+	return nil
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage: %s <backup-dir>\n", os.Args[0])
