@@ -74,10 +74,10 @@ func (root IndexRootNode) allDatoms() []Datom {
 	return nil
 }
 
-func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
-	l := len(rootId)
-	rootPath := path.Join(baseDir, "values", rootId[l-2:l], rootId)
-	f, err := os.Open(rootPath)
+func readFile(baseDir, id string) (interface{}, error) {
+	l := len(id)
+	p := path.Join(baseDir, "values", id[l-2:l], id)
+	f, err := os.Open(p)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,15 @@ func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
 		return nil, err
 	}
 	r := fressian.NewReader(g, indexHandlers)
-	rawRoot, err := r.ReadObject()
+	obj, err := r.ReadObject()
+	if err != nil {
+		return nil, err
+	}
+	return obj, err
+}
+
+func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
+	rawRoot, err := readFile(baseDir, rootId)
 	if err != nil {
 		return nil, err
 	}
