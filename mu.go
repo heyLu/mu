@@ -12,8 +12,8 @@ import (
 )
 
 type IndexRootNode struct {
-	tData    IndexTData
-	segments []interface{}
+	tData       IndexTData
+	directories []interface{}
 }
 
 type IndexTData struct {
@@ -116,7 +116,7 @@ func (dir IndexDirNode) allDatoms(baseDir string) []Datom {
 
 func (root IndexRootNode) allDatoms(baseDir string) []Datom {
 	datoms := make([]Datom, 0, 10000)
-	for _, dirNodeId := range root.segments {
+	for _, dirNodeId := range root.directories {
 		dirNode, err := readDirNode(baseDir, dirNodeId.(string))
 		if err != nil {
 			log.Fatal(err)
