@@ -62,6 +62,18 @@ var indexHandlers = map[string]fressian.ReadHandler{
 	},
 }
 
+type Datom struct {
+	entity      int
+	attribute   int
+	value       interface{}
+	transaction int
+	added       bool
+}
+
+func (root IndexRootNode) allDatoms() []Datom {
+	return nil
+}
+
 func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
 	l := len(rootId)
 	rootPath := path.Join(baseDir, "values", rootId[l-2:l], rootId)
@@ -91,4 +103,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(root)
+	for _, datom := range root.allDatoms() {
+		fmt.Println(datom)
+	}
 }
