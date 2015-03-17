@@ -1,6 +1,12 @@
 package main
 
 import (
+	"compress/gzip"
+	"fmt"
+	"log"
+	"os"
+	"path"
+
 	fressian "github.com/heyLu/fressian"
 )
 
@@ -56,5 +62,33 @@ var indexHandlers = map[string]fressian.ReadHandler{
 	},
 }
 
+func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
+	l := len(rootId)
+	rootPath := path.Join(baseDir, "values", rootId[l-2:l], rootId)
+	f, err := os.Open(rootPath)
+	if err != nil {
+		return nil, err
+	}
+	g, err := gzip.NewReader(f)
+	if err != nil {
+		return nil, err
+	}
+	r := fressian.NewReader(g, indexHandlers)
+	rawRoot, err := r.ReadObject()
+	if err != nil {
+		return nil, err
+	}
+	root := rawRoot.(IndexRootNode)
+	return &root, nil
+}
+
 func main() {
+	// given an index root uuid, get all the datoms in it, print them
+	baseDir := "dbs/initial2"
+	rootId := "5507037f-cbee-42ce-8339-c2a0edae286b"
+	root, err := readRoot(baseDir, rootId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(root)
 }
