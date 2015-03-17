@@ -70,8 +70,16 @@ type Datom struct {
 	added       bool
 }
 
-func (root IndexRootNode) allDatoms() []Datom {
-	return nil
+func (root IndexRootNode) allDatoms(baseDir string) []Datom {
+	datoms := make([]Datom, 0, 100)
+	for _, dirNodeId := range root.segments {
+		dirNode, err := readDirNode(baseDir, dirNodeId.(string))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(dirNode)
+	}
+	return datoms
 }
 
 func readFile(baseDir, id string) (interface{}, error) {
@@ -93,6 +101,15 @@ func readFile(baseDir, id string) (interface{}, error) {
 	return obj, err
 }
 
+func readDirNode(baseDir, rootId string) (*IndexDirNode, error) {
+	rawDirNode, err := readFile(baseDir, rootId)
+	if err != nil {
+		return nil, err
+	}
+	dirNode := rawDirNode.(IndexDirNode)
+	return &dirNode, nil
+}
+
 func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
 	rawRoot, err := readFile(baseDir, rootId)
 	if err != nil {
@@ -111,7 +128,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(root)
-	for _, datom := range root.allDatoms() {
+	for _, datom := range root.allDatoms(baseDir) {
 		fmt.Println(datom)
 	}
 }
