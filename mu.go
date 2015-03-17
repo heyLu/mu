@@ -226,6 +226,7 @@ func main() {
 		datom.prettyPrint()
 	}
 
+	fmt.Println()
 	fmt.Println("aevt:")
 	for _, datom := range db.aevt.allDatoms(baseDir) {
 		datom.prettyPrint()
