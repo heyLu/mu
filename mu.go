@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"log"
@@ -164,13 +165,47 @@ func readRootNode(baseDir, rootId string) (*IndexRootNode, error) {
 }
 
 type Db struct {
-	eavt IndexRootNode
-	aevt IndexRootNode
-	log  interface{}
+	nextT   int
+	eavt    IndexRootNode
+	aevt    IndexRootNode
+	logTail []interface{}
 }
 
 func readDb(baseDir string) (*Db, error) {
-	return nil, nil
+	f, err := os.Open(path.Join(baseDir, "roots"))
+	if err != nil {
+		return nil, err
+	}
+	rootNames, err := f.Readdirnames(1)
+	if err != nil {
+		return nil, err
+	}
+	f, err = os.Open(path.Join(baseDir, "roots", rootNames[0]))
+	if err != nil {
+		return nil, err
+	}
+	rawRoot, err := fressian.NewReader(f, nil).ReadObject()
+	root := rawRoot.(map[interface{}]interface{})
+	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
+	logTailRaw := root[fressian.Key{"log", "tail"}].([]byte)
+	logTail, _ := fressian.NewReader(bytes.NewBuffer(logTailRaw), nil).ReadObject()
+	rawIndexRoot, err := readFile(baseDir, indexRootId)
+	if err != nil {
+		return nil, err
+	}
+	indexRoot := rawIndexRoot.(map[interface{}]interface{})
+	nextT := indexRoot[fressian.Key{"", "nextT"}].(int)
+	eavtId := indexRoot[fressian.Key{"", "eavt-main"}].(string)
+	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
+	eavt, err := readRootNode(baseDir, eavtId)
+	if err != nil {
+		return nil, err
+	}
+	aevt, err := readRootNode(baseDir, aevtId)
+	if err != nil {
+		return nil, err
+	}
+	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
 }
 
 func main() {
@@ -185,4 +220,11 @@ func main() {
 	for _, datom := range root.allDatoms(baseDir) {
 		datom.prettyPrint()
 	}
+
+	fmt.Println()
+	db, err := readDb(baseDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%#v\n", db)
 }
