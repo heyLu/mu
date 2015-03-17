@@ -254,7 +254,14 @@ type Entity struct {
 }
 
 func (e Entity) Keys() []fressian.Key {
-	return nil
+	keys := make([]fressian.Key, 0)
+	for _, datom := range e.db.eavt.allDatoms() {
+		if datom.entity == e.id {
+			attributeKeys := e.db.findEavt(datom.attribute, 10)
+			keys = append(keys, attributeKeys[0].(fressian.Key))
+		}
+	}
+	return keys
 }
 
 func (e Entity) Get(key fressian.Key) []interface{} {
@@ -291,5 +298,6 @@ func main() {
 
 	fmt.Println()
 	dbPart := Entity{db, 0}
-	fmt.Printf("%#v\n", dbPart.Get(fressian.Key{"db", "ident"}))
+	fmt.Printf("%#v\n", dbPart.Keys())
+	fmt.Printf("%#v\n", dbPart.Get(fressian.Key{"db.install", "attribute"}))
 }
