@@ -74,13 +74,13 @@ type Datom struct {
 
 func datomReadHandler(r *fressian.Reader, tag string, fieldCount int) interface{} {
 	added, _ := r.ReadObject()
-	r.ReadObject() // partition?
+	partition, _ := r.ReadObject()
 	entity, _ := r.ReadObject()
 	attribute, _ := r.ReadObject()
 	value, _ := r.ReadObject()
 	transaction, _ := r.ReadObject()
 	return Datom{
-		entity.(int),
+		partition.(int)*(1<<42) + entity.(int),
 		attribute.(int),
 		value,
 		3*(1<<42) + transaction.(int),
