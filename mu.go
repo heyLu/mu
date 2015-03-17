@@ -126,7 +126,6 @@ func (dir IndexDirNode) allDatoms(baseDir string) []Datom {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(segmentId)
 		datoms = append(datoms, tData.allDatoms(baseDir)...)
 	}
 	return datoms
@@ -139,7 +138,6 @@ func (root IndexRootNode) allDatoms() []Datom {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(dirNode)
 		datoms = append(datoms, dirNode.allDatoms(root.baseDir)...)
 	}
 	return datoms
