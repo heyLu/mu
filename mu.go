@@ -154,7 +154,7 @@ func readDirNode(baseDir, rootId string) (*IndexDirNode, error) {
 	return &dirNode, nil
 }
 
-func readRoot(baseDir, rootId string) (*IndexRootNode, error) {
+func readRootNode(baseDir, rootId string) (*IndexRootNode, error) {
 	rawRoot, err := readFile(baseDir, rootId)
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func main() {
 	// given an index root uuid, get all the datoms in it, print them
 	baseDir := "dbs/initial2"
 	rootId := "5507037f-cbee-42ce-8339-c2a0edae286b"
-	root, err := readRoot(baseDir, rootId)
+	root, err := readRootNode(baseDir, rootId)
 	if err != nil {
 		log.Fatal(err)
 	}
