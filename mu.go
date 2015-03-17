@@ -70,14 +70,57 @@ type Datom struct {
 	added       bool
 }
 
+func (d Datom) prettyPrint() {
+	fmt.Printf("#datom [%d %d %#v %d %t]\n",
+		d.entity, d.attribute, d.value, d.transaction, d.added)
+}
+
+func (tData IndexTData) allDatoms(baseDir string) []Datom {
+	datoms := make([]Datom, 0, 500)
+	for i, entityId := range tData.entities {
+		datom := Datom{
+			entityId,
+			tData.attributes[i],
+			tData.values[i],
+			3*(1<<42) + tData.transactions[i],
+			tData.addeds[i],
+		}
+		datoms = append(datoms, datom)
+	}
+	return datoms
+}
+
+func readTData(baseDir, id string) (*IndexTData, error) {
+	raw, err := readFile(baseDir, id)
+	if err != nil {
+		return nil, err
+	}
+	obj := raw.(IndexTData)
+	return &obj, nil
+}
+
+func (dir IndexDirNode) allDatoms(baseDir string) []Datom {
+	datoms := make([]Datom, 0, 1000)
+	for _, segmentId := range dir.segments {
+		tData, err := readTData(baseDir, segmentId.(string))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(segmentId)
+		datoms = append(datoms, tData.allDatoms(baseDir)...)
+	}
+	return datoms
+}
+
 func (root IndexRootNode) allDatoms(baseDir string) []Datom {
-	datoms := make([]Datom, 0, 100)
+	datoms := make([]Datom, 0, 10000)
 	for _, dirNodeId := range root.segments {
 		dirNode, err := readDirNode(baseDir, dirNodeId.(string))
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(dirNode)
+		datoms = append(datoms, dirNode.allDatoms(baseDir)...)
 	}
 	return datoms
 }
@@ -129,6 +172,6 @@ func main() {
 	}
 	fmt.Println(root)
 	for _, datom := range root.allDatoms(baseDir) {
-		fmt.Println(datom)
+		datom.prettyPrint()
 	}
 }
