@@ -189,6 +189,8 @@ type Db struct {
 	nextT   int
 	eavt    IndexRootNode
 	aevt    IndexRootNode
+	avet    IndexRootNode
+	vaet    IndexRootNode
 	logTail []interface{}
 }
 
@@ -218,16 +220,26 @@ func readDb(baseDir string) (*Db, error) {
 	indexRoot := rawIndexRoot.(map[interface{}]interface{})
 	nextT := indexRoot[fressian.Key{"", "nextT"}].(int)
 	eavtId := indexRoot[fressian.Key{"", "eavt-main"}].(string)
-	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
 	eavt, err := readRootNode(baseDir, eavtId)
 	if err != nil {
 		return nil, err
 	}
+	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
 	aevt, err := readRootNode(baseDir, aevtId)
 	if err != nil {
 		return nil, err
 	}
-	return &Db{nextT, *eavt, *aevt, logTail.([]interface{})}, nil
+	avetId := indexRoot[fressian.Key{"", "avet-main"}].(string)
+	avet, err := readRootNode(baseDir, avetId)
+	if err != nil {
+		return nil, err
+	}
+	vaetId := indexRoot[fressian.Key{"", "raet-main"}].(string)
+	vaet, err := readRootNode(baseDir, vaetId)
+	if err != nil {
+		return nil, err
+	}
+	return &Db{nextT, *eavt, *aevt, *avet, *vaet, logTail.([]interface{})}, nil
 }
 
 func (d Db) Entid(key fressian.Key) int {
