@@ -13,10 +13,6 @@ func Connect(u *url.URL) (*connection.Connection, error) {
 	return connection.New(u)
 }
 
-func Db(conn *connection.Connection) (*connection.Database, error) {
-	return conn.Db()
-}
-
 func main() {
 	u, err := url.Parse(os.Args[1])
 	if err != nil {
