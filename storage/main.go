@@ -10,6 +10,8 @@ import (
 	"path"
 )
 
+var objectCache = make(map[string]interface{}, 1000)
+
 type Store struct {
 	baseDir     string
 	indexRootId string
@@ -48,6 +50,10 @@ func Open(u *url.URL) (*Store, error) {
 }
 
 func Get(s *Store, id string, handlers map[string]fressian.ReadHandler) (interface{}, error) {
+	if val, ok := objectCache[id]; ok {
+		return val, nil
+	}
+
 	r, err := s.Get(id)
 	if err != nil {
 		return nil, err
@@ -57,5 +63,11 @@ func Get(s *Store, id string, handlers map[string]fressian.ReadHandler) (interfa
 	if err != nil {
 		return nil, err
 	}
-	return fressian.NewReader(g, handlers).ReadObject()
+
+	obj, err := fressian.NewReader(g, handlers).ReadObject()
+	if err != nil {
+		return nil, err
+	}
+	objectCache[id] = obj
+	return obj, nil
 }
