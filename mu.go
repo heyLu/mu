@@ -2,6 +2,7 @@ package main
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/heyLu/fressian"
 	"io"
@@ -26,10 +27,24 @@ func (s *Store) Get(id string) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func NewStore(baseDir string) (*Store, error) {
-	// read root node (= open file, read fressian map)
-	//   :index/root-id (= read entry for kw from map)
-	return &Store{baseDir, "5507037f-2f72-4c96-a1f0-96bdf8f61acf"}, nil
+func NewStore(u *url.URL) (*Store, error) {
+	baseDir := u.Path
+	rootId := u.Query().Get("root")
+	if rootId == "" {
+		return nil, errors.New("must specify a ?root=<root> parameter")
+	}
+	p := path.Join(baseDir, "roots", rootId)
+	f, err := os.Open(p)
+	if err != nil {
+		return nil, err
+	}
+	rootRaw, err := fressian.NewReader(f, nil).ReadObject()
+	if err != nil {
+		return nil, err
+	}
+	root := rootRaw.(map[interface{}]interface{})
+	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
+	return &Store{baseDir, indexRootId}, nil
 }
 
 func StorageGet(s *Store, id string) (interface{}, error) {
@@ -50,7 +65,7 @@ type Connection struct {
 }
 
 func NewConnection(u *url.URL) (*Connection, error) {
-	store, err := NewStore(u.Path)
+	store, err := NewStore(u)
 	if err != nil {
 		return nil, err
 	}
