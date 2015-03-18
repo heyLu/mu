@@ -73,6 +73,16 @@ type Datom struct {
 	added       bool
 }
 
+func (d Datom) Entity() int        { return d.entity }
+func (d Datom) E() int             { return d.entity }
+func (d Datom) Attribute() int     { return d.attribute }
+func (d Datom) A() int             { return d.attribute }
+func (d Datom) Value() interface{} { return d.value }
+func (d Datom) V() interface{}     { return d.value }
+func (d Datom) Transaction() int   { return d.transaction }
+func (d Datom) Tx() int            { return d.transaction }
+func (d Datom) Added() bool        { return d.added }
+
 func (root *IndexRootNode) Datoms() []Datom {
 	datoms := make([]Datom, 0, 1000)
 	store := root.store
