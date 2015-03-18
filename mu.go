@@ -2,52 +2,16 @@ package main
 
 import (
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"github.com/heyLu/fressian"
-	"io"
 	"log"
 	"net/url"
 	"os"
-	"path"
+
+	"./storage"
 )
 
-type Store struct {
-	baseDir     string
-	indexRootId string
-}
-
-func (s *Store) Get(id string) (io.ReadCloser, error) {
-	l := len(id)
-	p := path.Join(s.baseDir, "values", id[l-2:l], id)
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
-func NewStore(u *url.URL) (*Store, error) {
-	baseDir := u.Path
-	rootId := u.Query().Get("root")
-	if rootId == "" {
-		return nil, errors.New("must specify a ?root=<root> parameter")
-	}
-	p := path.Join(baseDir, "roots", rootId)
-	f, err := os.Open(p)
-	if err != nil {
-		return nil, err
-	}
-	rootRaw, err := fressian.NewReader(f, nil).ReadObject()
-	if err != nil {
-		return nil, err
-	}
-	root := rootRaw.(map[interface{}]interface{})
-	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
-	return &Store{baseDir, indexRootId}, nil
-}
-
-func StorageGet(s *Store, id string) (interface{}, error) {
+func StorageGet(s *storage.Store, id string) (interface{}, error) {
 	r, err := s.Get(id)
 	if err != nil {
 		return nil, err
@@ -61,11 +25,11 @@ func StorageGet(s *Store, id string) (interface{}, error) {
 }
 
 type Connection struct {
-	store *Store
+	store *storage.Store
 }
 
 func NewConnection(u *url.URL) (*Connection, error) {
-	store, err := NewStore(u)
+	store, err := storage.Open(u)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +75,7 @@ var readHandlers = map[string]fressian.ReadHandler{
 }
 
 type IndexRootNode struct {
-	store       *Store
+	store       *storage.Store
 	tData       IndexTData
 	directories []interface{}
 }
@@ -164,7 +128,7 @@ type Index interface {
 	Datoms() []Datom
 }
 
-func NewIndex(store *Store, id string) (Index, error) {
+func NewIndex(store *storage.Store, id string) (Index, error) {
 	indexRaw, err := StorageGet(store, id)
 	if err != nil {
 		return nil, err
@@ -187,7 +151,7 @@ type Database struct {
 }
 
 func (c *Connection) Db() (*Database, error) {
-	indexRootRaw, err := StorageGet(c.store, c.store.indexRootId)
+	indexRootRaw, err := StorageGet(c.store, c.store.IndexRootId())
 	if err != nil {
 		return nil, err
 	}
