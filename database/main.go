@@ -68,3 +68,27 @@ func (db *Database) Ident(entity int) *fressian.Key {
 
 	return nil
 }
+
+type Entity struct {
+	db *Database
+	id int
+}
+
+func (db *Database) Entity(id int) Entity {
+	return Entity{db, id}
+}
+
+func (e Entity) Get(key fressian.Key) interface{} {
+	attrId := e.db.Entid(key)
+	if attrId == -1 {
+		return nil
+	}
+
+	for _, datom := range e.db.eavt.Datoms() {
+		if datom.Entity() == e.id && datom.Attribute() == attrId {
+			return datom.Value()
+		}
+	}
+
+	return nil
+}
