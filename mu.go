@@ -26,6 +26,9 @@ func Connect(u *url.URL) (*Connection, error) {
 
 type Database struct {
 	eavt index.Index
+	aevt index.Index
+	avet index.Index
+	vaet index.Index
 }
 
 func (c *Connection) Db() (*Database, error) {
@@ -39,7 +42,22 @@ func (c *Connection) Db() (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Database{eavt}, nil
+	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
+	aevt, err := index.New(c.store, aevtId)
+	if err != nil {
+		return nil, err
+	}
+	avetId := indexRoot[fressian.Key{"", "avet-main"}].(string)
+	avet, err := index.New(c.store, avetId)
+	if err != nil {
+		return nil, err
+	}
+	vaetId := indexRoot[fressian.Key{"", "raet-main"}].(string)
+	vaet, err := index.New(c.store, vaetId)
+	if err != nil {
+		return nil, err
+	}
+	return &Database{eavt, aevt, avet, vaet}, nil
 }
 
 func main() {
