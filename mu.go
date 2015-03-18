@@ -28,7 +28,7 @@ type Connection struct {
 	store *storage.Store
 }
 
-func NewConnection(u *url.URL) (*Connection, error) {
+func Connect(u *url.URL) (*Connection, error) {
 	store, err := storage.Open(u)
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn, err := NewConnection(u)
+	conn, err := Connect(u)
 	if err != nil {
 		log.Fatal(err)
 	}
