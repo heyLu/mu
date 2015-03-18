@@ -1,7 +1,6 @@
 package main
 
 import (
-	"compress/gzip"
 	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
@@ -10,19 +9,6 @@ import (
 
 	"./storage"
 )
-
-func StorageGet(s *storage.Store, id string) (interface{}, error) {
-	r, err := s.Get(id)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	g, err := gzip.NewReader(r)
-	if err != nil {
-		return nil, err
-	}
-	return fressian.NewReader(g, readHandlers).ReadObject()
-}
 
 type Connection struct {
 	store *storage.Store
@@ -99,12 +85,12 @@ func (root *IndexRootNode) Datoms() []Datom {
 	datoms := make([]Datom, 0, 1000)
 	store := root.store
 	for _, dirId := range root.directories {
-		dir, err := StorageGet(store, dirId.(string))
+		dir, err := storage.Get(store, dirId.(string), readHandlers)
 		if err != nil {
 			log.Fatal(err)
 		}
 		for _, segmentId := range dir.(IndexDirNode).segments {
-			segmentRaw, err := StorageGet(store, segmentId.(string))
+			segmentRaw, err := storage.Get(store, segmentId.(string), readHandlers)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -129,7 +115,7 @@ type Index interface {
 }
 
 func NewIndex(store *storage.Store, id string) (Index, error) {
-	indexRaw, err := StorageGet(store, id)
+	indexRaw, err := storage.Get(store, id, readHandlers)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +137,7 @@ type Database struct {
 }
 
 func (c *Connection) Db() (*Database, error) {
-	indexRootRaw, err := StorageGet(c.store, c.store.IndexRootId())
+	indexRootRaw, err := storage.Get(c.store, c.store.IndexRootId(), nil)
 	if err != nil {
 		return nil, err
 	}

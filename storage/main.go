@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"compress/gzip"
 	"errors"
 	"github.com/heyLu/fressian"
 	"io"
@@ -44,4 +45,17 @@ func Open(u *url.URL) (*Store, error) {
 	root := rootRaw.(map[interface{}]interface{})
 	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
 	return &Store{baseDir, indexRootId}, nil
+}
+
+func Get(s *Store, id string, handlers map[string]fressian.ReadHandler) (interface{}, error) {
+	r, err := s.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	g, err := gzip.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return fressian.NewReader(g, handlers).ReadObject()
 }
