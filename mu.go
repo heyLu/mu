@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/heyLu/fressian"
 	"log"
 	"net/url"
 	"os"
@@ -33,4 +34,8 @@ func main() {
 	for _, datom := range db.Eavt().Datoms() {
 		fmt.Println(datom)
 	}
+
+	dbIdent := fressian.Key{"db", "ident"}
+	fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
+	fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
 }

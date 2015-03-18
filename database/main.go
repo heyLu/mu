@@ -47,3 +47,24 @@ func (db *Database) Eavt() index.Index { return db.eavt }
 func (db *Database) Aevt() index.Index { return db.aevt }
 func (db *Database) Avet() index.Index { return db.avet }
 func (db *Database) Vaet() index.Index { return db.vaet }
+
+func (db *Database) Entid(key fressian.Key) int {
+	for _, datom := range db.avet.Datoms() {
+		if datom.Attribute() == 10 && datom.Value() == key {
+			return datom.Entity()
+		}
+	}
+
+	return -1
+}
+
+func (db *Database) Ident(entity int) *fressian.Key {
+	for _, datom := range db.aevt.Datoms() {
+		if datom.Entity() == entity && datom.Attribute() == 10 {
+			key := datom.Value().(fressian.Key)
+			return &key
+		}
+	}
+
+	return nil
+}
