@@ -128,6 +128,9 @@ func (t *Tree) Keys() Iterator {
 	return newTreeIterator(t, true)
 }
 
+// KeysReverse returns an iterator for all the keys stored in the tree,
+// in reverse order. The ordering of the keys depends on the
+// implementation of `Ord`.
 func (t *Tree) KeysReverse() Iterator {
 	return newTreeIterator(t, false)
 }
