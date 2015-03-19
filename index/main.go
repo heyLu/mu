@@ -102,50 +102,56 @@ type Iterator struct {
 }
 
 func (root *IndexRootNode) Datoms() Iterator {
-	ch := root.datoms()
+	var (
+		dirIndex     = 0
+		dir          = getDir(root.store, root.directories[dirIndex].(string))
+		segmentIndex = 0
+		segment      = getSegment(root.store, dir.segments[segmentIndex].(string))
+		datomIndex   = -1
+	)
 
 	next := func() *Datom {
-		if datom, ok := <-ch; ok {
-			return &datom
+		if datomIndex < len(segment.entities)-1 {
+			datomIndex += 1
+		} else if segmentIndex < len(dir.segments)-1 {
+			segmentIndex += 1
+			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			datomIndex = 0
+		} else if dirIndex < len(root.directories)-1 {
+			dirIndex += 1
+			segmentIndex = 0
+			datomIndex = 0
+			dir = getDir(root.store, root.directories[dirIndex].(string))
+			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+		} else {
+			return nil
 		}
 
-		return nil
+		datom := Datom{
+			segment.entities[datomIndex],
+			segment.attributes[datomIndex],
+			segment.values[datomIndex],
+			3*(1<<42) + segment.transactions[datomIndex],
+			segment.addeds[datomIndex],
+		}
+		return &datom
 	}
 
 	return Iterator{next}
 }
 
-func (root *IndexRootNode) datoms() <-chan Datom {
-	ch := make(chan Datom, 10)
+func getDir(store *storage.Store, id string) IndexDirNode {
+	dirRaw, err := storage.Get(store, id, readHandlers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dirRaw.(IndexDirNode)
+}
 
-	go func() {
-		store := root.store
-		for _, dirId := range root.directories {
-			dir, err := storage.Get(store, dirId.(string), readHandlers)
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, segmentId := range dir.(IndexDirNode).segments {
-				segmentRaw, err := storage.Get(store, segmentId.(string), readHandlers)
-				if err != nil {
-					log.Fatal(err)
-				}
-				segment := segmentRaw.(IndexTData)
-				for i, _ := range segment.entities {
-					datom := Datom{
-						segment.entities[i],
-						segment.attributes[i],
-						segment.values[i],
-						3*(1<<42) + segment.transactions[i],
-						segment.addeds[i],
-					}
-					ch <- datom
-				}
-			}
-		}
-
-		close(ch)
-	}()
-
-	return ch
+func getSegment(store *storage.Store, id string) IndexTData {
+	segmentRaw, err := storage.Get(store, id, readHandlers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return segmentRaw.(IndexTData)
 }
