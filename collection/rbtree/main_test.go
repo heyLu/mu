@@ -51,6 +51,12 @@ func TestInsertStrings(t *testing.T) {
 	for v := keys.Next(); v != nil; v = keys.Next() {
 		fmt.Println(v)
 	}
+
+	fmt.Println()
+	keys = tree.KeysReverse()
+	for v := keys.Next(); v != nil; v = keys.Next() {
+		fmt.Println(v)
+	}
 }
 
 func printTree(indent string, t *Tree) {

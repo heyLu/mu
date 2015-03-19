@@ -86,10 +86,11 @@ type Iterator interface {
 
 type treeIterator struct {
 	stack []*Tree
+	asc   bool
 }
 
-func newTreeIterator(t *Tree) *treeIterator {
-	ti := treeIterator{}
+func newTreeIterator(t *Tree, asc bool) *treeIterator {
+	ti := treeIterator{[]*Tree{}, asc}
 	ti.push(t)
 	return &ti
 }
@@ -97,7 +98,11 @@ func newTreeIterator(t *Tree) *treeIterator {
 func (ti *treeIterator) push(t *Tree) {
 	for t != nil {
 		ti.stack = append(ti.stack, t)
-		t = t.l
+		if ti.asc {
+			t = t.l
+		} else {
+			t = t.r
+		}
 	}
 }
 
@@ -109,12 +114,20 @@ func (ti *treeIterator) Next() Ord {
 
 	t := ti.stack[l-1]
 	ti.stack = ti.stack[:l-1]
-	ti.push(t.r)
+	if ti.asc {
+		ti.push(t.r)
+	} else {
+		ti.push(t.l)
+	}
 	return t.v
 }
 
 // Keys returns an iterator for all keys stored in the tree. The
 // ordering of the keys depends on the implementation of `Ord`.
 func (t *Tree) Keys() Iterator {
-	return newTreeIterator(t)
+	return newTreeIterator(t, true)
+}
+
+func (t *Tree) KeysReverse() Iterator {
+	return newTreeIterator(t, false)
 }
