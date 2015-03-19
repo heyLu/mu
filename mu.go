@@ -15,6 +15,11 @@ func Connect(u *url.URL) (*connection.Connection, error) {
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Printf("Usage: %s <dir>\n", os.Args[0])
+		os.Exit(1)
+	}
+
 	u, err := url.Parse(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
