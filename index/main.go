@@ -66,7 +66,7 @@ type IndexTData struct {
 }
 
 type Index interface {
-	Datoms() []Datom
+	Datoms() Iterator
 }
 
 func New(store *storage.Store, id string) (Index, error) {
@@ -97,31 +97,55 @@ func (d Datom) Transaction() int   { return d.transaction }
 func (d Datom) Tx() int            { return d.transaction }
 func (d Datom) Added() bool        { return d.added }
 
-func (root *IndexRootNode) Datoms() []Datom {
-	datoms := make([]Datom, 0, 1000)
-	store := root.store
-	for _, dirId := range root.directories {
-		dir, err := storage.Get(store, dirId.(string), readHandlers)
-		if err != nil {
-			log.Fatal(err)
+type Iterator struct {
+	Next func() *Datom
+}
+
+func (root *IndexRootNode) Datoms() Iterator {
+	ch := root.datoms()
+
+	next := func() *Datom {
+		if datom, ok := <-ch; ok {
+			return &datom
 		}
-		for _, segmentId := range dir.(IndexDirNode).segments {
-			segmentRaw, err := storage.Get(store, segmentId.(string), readHandlers)
+
+		return nil
+	}
+
+	return Iterator{next}
+}
+
+func (root *IndexRootNode) datoms() <-chan Datom {
+	ch := make(chan Datom, 10)
+
+	go func() {
+		store := root.store
+		for _, dirId := range root.directories {
+			dir, err := storage.Get(store, dirId.(string), readHandlers)
 			if err != nil {
 				log.Fatal(err)
 			}
-			segment := segmentRaw.(IndexTData)
-			for i, _ := range segment.entities {
-				datom := Datom{
-					segment.entities[i],
-					segment.attributes[i],
-					segment.values[i],
-					3*(1<<42) + segment.transactions[i],
-					segment.addeds[i],
+			for _, segmentId := range dir.(IndexDirNode).segments {
+				segmentRaw, err := storage.Get(store, segmentId.(string), readHandlers)
+				if err != nil {
+					log.Fatal(err)
 				}
-				datoms = append(datoms, datom)
+				segment := segmentRaw.(IndexTData)
+				for i, _ := range segment.entities {
+					datom := Datom{
+						segment.entities[i],
+						segment.attributes[i],
+						segment.values[i],
+						3*(1<<42) + segment.transactions[i],
+						segment.addeds[i],
+					}
+					ch <- datom
+				}
 			}
 		}
-	}
-	return datoms
+
+		close(ch)
+	}()
+
+	return ch
 }

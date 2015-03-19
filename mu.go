@@ -31,7 +31,8 @@ func main() {
 	}
 	fmt.Println(db)
 
-	for _, datom := range db.Eavt().Datoms() {
+	datoms := db.Eavt().Datoms()
+	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		fmt.Println(datom)
 	}
 
