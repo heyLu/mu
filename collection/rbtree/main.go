@@ -1,5 +1,9 @@
+// Package rbtree implements immutable red-black trees à la okasaki.
+//
+// See Okasaki (JFP99) for a description of the algorithm.
 package rbtree
 
+// Ord must be implemented for values stored in the tree.
 type Ord interface {
 	Less(other Ord) bool
 	Equal(other Ord) bool
@@ -10,6 +14,7 @@ const (
 	red   = false
 )
 
+// An immutable red-black tree.
 type Tree struct {
 	c bool
 	l *Tree
@@ -17,10 +22,12 @@ type Tree struct {
 	r *Tree
 }
 
+// Empty creates an empty red-black tree.
 func Empty() *Tree {
 	return nil
 }
 
+// Contains checks if the tree contains a given value.
 func (t *Tree) Contains(val Ord) bool {
 	if t == nil {
 		return false
@@ -35,6 +42,7 @@ func (t *Tree) Contains(val Ord) bool {
 	}
 }
 
+// Add stores a new value in the tree.
 func (t *Tree) Add(val Ord) *Tree {
 	tt := t.insert(val)
 	return &Tree{black, tt.l, tt.v, tt.r}
