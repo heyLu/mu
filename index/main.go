@@ -65,6 +65,20 @@ type IndexTData struct {
 	addeds       []bool
 }
 
+type Index interface {
+	Datoms() []Datom
+}
+
+func New(store *storage.Store, id string) (Index, error) {
+	indexRaw, err := storage.Get(store, id, readHandlers)
+	if err != nil {
+		return nil, err
+	}
+	indexRoot := indexRaw.(IndexRootNode)
+	indexRoot.store = store
+	return Index(&indexRoot), nil
+}
+
 type Datom struct {
 	entity      int
 	attribute   int
@@ -110,18 +124,4 @@ func (root *IndexRootNode) Datoms() []Datom {
 		}
 	}
 	return datoms
-}
-
-type Index interface {
-	Datoms() []Datom
-}
-
-func New(store *storage.Store, id string) (Index, error) {
-	indexRaw, err := storage.Get(store, id, readHandlers)
-	if err != nil {
-		return nil, err
-	}
-	indexRoot := indexRaw.(IndexRootNode)
-	indexRoot.store = store
-	return Index(&indexRoot), nil
 }
