@@ -45,6 +45,12 @@ func TestInsertStrings(t *testing.T) {
 	}
 
 	printTree("", tree)
+
+	fmt.Println()
+	keys := tree.Keys()
+	for v := keys.Next(); v != nil; v = keys.Next() {
+		fmt.Println(v)
+	}
 }
 
 func printTree(indent string, t *Tree) {

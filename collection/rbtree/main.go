@@ -79,3 +79,42 @@ func balance(color bool, l *Tree, v Ord, r *Tree) *Tree {
 
 	return &Tree{color, l, v, r}
 }
+
+type Iterator interface {
+	Next() Ord
+}
+
+type treeIterator struct {
+	stack []*Tree
+}
+
+func newTreeIterator(t *Tree) *treeIterator {
+	ti := treeIterator{}
+	ti.push(t)
+	return &ti
+}
+
+func (ti *treeIterator) push(t *Tree) {
+	for t != nil {
+		ti.stack = append(ti.stack, t)
+		t = t.l
+	}
+}
+
+func (ti *treeIterator) Next() Ord {
+	l := len(ti.stack)
+	if l == 0 {
+		return nil
+	}
+
+	t := ti.stack[l-1]
+	ti.stack = ti.stack[:l-1]
+	ti.push(t.r)
+	return t.v
+}
+
+// Keys returns an iterator for all keys stored in the tree. The
+// ordering of the keys depends on the implementation of `Ord`.
+func (t *Tree) Keys() Iterator {
+	return newTreeIterator(t)
+}
