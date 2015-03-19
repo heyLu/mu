@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"./connection"
+	"./database"
+	"./index"
 )
 
 func Connect(u *url.URL) (*connection.Connection, error) {
@@ -42,8 +44,8 @@ func main() {
 	}
 
 	switch cmd {
-	case "eavt":
-		datoms := db.Eavt().Datoms()
+	case "eavt", "aevt", "avet", "vaet":
+		datoms := getIndex(db, cmd).Datoms()
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 			fmt.Println(datom)
 		}
@@ -60,5 +62,21 @@ func main() {
 	default:
 		fmt.Println("unknown command:", cmd)
 		os.Exit(1)
+	}
+}
+
+func getIndex(db *database.Database, indexName string) index.Index {
+	switch indexName {
+	case "eavt":
+		return db.Eavt()
+	case "aevt":
+		return db.Aevt()
+	case "avet":
+		return db.Avet()
+	case "vaet":
+		return db.Vaet()
+	default:
+		log.Fatal("unknown index:", indexName)
+		return db.Eavt()
 	}
 }
