@@ -36,16 +36,29 @@ func main() {
 	}
 	fmt.Println(db)
 
-	datoms := db.Eavt().Datoms()
-	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-		fmt.Println(datom)
+	cmd := "eavt"
+	if len(os.Args) == 3 {
+		cmd = os.Args[2]
 	}
 
-	dbIdent := fressian.Key{"db", "ident"}
-	fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
-	fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
+	switch cmd {
+	case "eavt":
+		datoms := db.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			fmt.Println(datom)
+		}
 
-	dbIdentEntity := db.Entity(10)
-	dbCardinality := fressian.Key{"db", "cardinality"}
-	fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
+	case "example":
+		dbIdent := fressian.Key{"db", "ident"}
+		fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
+		fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
+
+		dbIdentEntity := db.Entity(10)
+		dbCardinality := fressian.Key{"db", "cardinality"}
+		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
+
+	default:
+		fmt.Println("unknown command:", cmd)
+		os.Exit(1)
+	}
 }
