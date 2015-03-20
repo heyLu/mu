@@ -67,6 +67,7 @@ type IndexTData struct {
 
 type Index interface {
 	Datoms() Iterator
+	SeekDatoms(components ...interface{}) Iterator
 }
 
 func New(store *storage.Store, id string) (Index, error) {
@@ -138,6 +139,80 @@ func (root *IndexRootNode) Datoms() Iterator {
 	}
 
 	return Iterator{next}
+}
+
+func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
+	var (
+		dirIndex     = 0
+		dir          = getDir(root.store, root.directories[dirIndex].(string))
+		segmentIndex = 0
+		segment      = getSegment(root.store, dir.segments[segmentIndex].(string))
+		datomIndex   = -1
+	)
+
+	// if we have a leading component, find the first potential segment
+	if len(components) >= 1 {
+		dirIndex, dir, segmentIndex, segment, datomIndex = findStart(root, components[0].(int))
+	}
+
+	next := func() *Datom {
+		if datomIndex < len(segment.entities)-1 {
+			datomIndex += 1
+		} else if segmentIndex < len(dir.segments)-1 {
+			segmentIndex += 1
+			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			datomIndex = 0
+		} else if dirIndex < len(root.directories)-1 {
+			dirIndex += 1
+			segmentIndex = 0
+			datomIndex = 0
+			dir = getDir(root.store, root.directories[dirIndex].(string))
+			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+		} else {
+			return nil
+		}
+
+		datom := Datom{
+			segment.entities[datomIndex],
+			segment.attributes[datomIndex],
+			segment.values[datomIndex],
+			3*(1<<42) + segment.transactions[datomIndex],
+			segment.addeds[datomIndex],
+		}
+		return &datom
+	}
+
+	return Iterator{next}
+}
+
+func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
+	dirIndex := 0
+	for i, attr := range root.tData.attributes {
+		if attr > component {
+			break
+		}
+		dirIndex = i
+	}
+	dir := getDir(root.store, root.directories[dirIndex].(string))
+
+	segmentIndex := 0
+	for i, attr := range dir.tData.attributes {
+		if attr > component {
+			break
+		}
+		segmentIndex = i
+	}
+	segment := getSegment(root.store, dir.segments[segmentIndex].(string))
+
+	datomIndex := 0
+	for i, attr := range segment.attributes {
+		if attr > component {
+			break
+		}
+		datomIndex = i
+	}
+
+	return dirIndex, dir, segmentIndex, segment, datomIndex
 }
 
 func getDir(store *storage.Store, id string) IndexDirNode {

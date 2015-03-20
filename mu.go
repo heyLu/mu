@@ -50,6 +50,12 @@ func main() {
 			fmt.Println(datom)
 		}
 
+	case "seek-aevt":
+		datoms := db.Aevt().SeekDatoms(17)
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			fmt.Println(datom)
+		}
+
 	case "example":
 		dbIdent := fressian.Key{"db", "ident"}
 		fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
