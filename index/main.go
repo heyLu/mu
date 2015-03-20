@@ -205,6 +205,7 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 }
 
 func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
+	// TODO: fix `find` if it the component is too large (i.e. not in the index)
 	dirIndex := root.find(&root.tData, component)
 	dir := getDir(root.store, root.directories[dirIndex].(string))
 
