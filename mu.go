@@ -73,13 +73,13 @@ func main() {
 
 func getIndex(db *database.Database, indexName string) index.Index {
 	switch indexName {
-	case "eavt":
+	case index.Eavt:
 		return db.Eavt()
-	case "aevt":
+	case index.Aevt:
 		return db.Aevt()
-	case "avet":
+	case index.Avet:
 		return db.Avet()
-	case "vaet":
+	case index.Vaet:
 		return db.Vaet()
 	default:
 		log.Fatal("unknown index:", indexName)
