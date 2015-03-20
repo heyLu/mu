@@ -152,7 +152,7 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 
 	// if we have a leading component, find the first potential segment
 	if len(components) >= 1 {
-		dirIndex, dir, segmentIndex, segment, datomIndex = findStart(root, components[0].(int))
+		dirIndex, dir, segmentIndex, segment, datomIndex = findStart(root, findA, components[0].(int))
 	}
 
 	next := func() *Datom {
@@ -185,34 +185,49 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 	return Iterator{next}
 }
 
-func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
-	dirIndex := 0
-	for i, attr := range root.tData.attributes {
-		if attr > component {
-			break
-		}
-		dirIndex = i
-	}
+func findStart(root *IndexRootNode, find func(*IndexTData, int) int, component int) (int, IndexDirNode, int, IndexTData, int) {
+	dirIndex := find(&root.tData, component)
 	dir := getDir(root.store, root.directories[dirIndex].(string))
 
-	segmentIndex := 0
-	for i, attr := range dir.tData.attributes {
-		if attr > component {
-			break
-		}
-		segmentIndex = i
-	}
+	segmentIndex := find(&dir.tData, component)
 	segment := getSegment(root.store, dir.segments[segmentIndex].(string))
 
-	datomIndex := 0
-	for i, attr := range segment.attributes {
-		if attr > component {
-			break
-		}
-		datomIndex = i
-	}
+	datomIndex := find(&dir.tData, component)
 
 	return dirIndex, dir, segmentIndex, segment, datomIndex
+}
+
+func findE(td *IndexTData, value int) int {
+	idx := 0
+	for i, entity := range td.entities {
+		if entity > value {
+			break
+		}
+		idx = i
+	}
+	return idx
+}
+
+func findA(td *IndexTData, value int) int {
+	idx := 0
+	for i, attr := range td.attributes {
+		if attr > value {
+			break
+		}
+		idx = i
+	}
+	return idx
+}
+
+func findV(td *IndexTData, value int) int {
+	idx := 0
+	for i, val := range td.values {
+		if val.(int) > value {
+			break
+		}
+		idx = i
+	}
+	return idx
 }
 
 func getDir(store *storage.Store, id string) IndexDirNode {
