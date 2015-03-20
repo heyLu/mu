@@ -16,7 +16,7 @@ type Map interface {
 	Set(key Ord, val interface{}) Map
 	//Update(key Ord, f func(val interface{}) interface{}) Map
 	Keys() Iterator
-	//Values() Iterator
+	Values() Iterator
 }
 
 const (
@@ -105,7 +105,7 @@ func balance(color bool, l *tree, key Ord, val interface{}, r *tree) *tree {
 }
 
 type Iterator interface {
-	Next() Ord
+	Next() interface{}
 }
 
 type treeIterator struct {
@@ -130,7 +130,7 @@ func (ti *treeIterator) push(t *tree) {
 	}
 }
 
-func (ti *treeIterator) Next() Ord {
+func (ti *treeIterator) next() *tree {
 	l := len(ti.stack)
 	if l == 0 {
 		return nil
@@ -143,9 +143,29 @@ func (ti *treeIterator) Next() Ord {
 	} else {
 		ti.push(t.l)
 	}
-	return t.k
+	return t
+}
+
+type keyIterator struct {
+	iterator *treeIterator
+}
+
+func (ki *keyIterator) Next() interface{} {
+	return ki.iterator.next().k
 }
 
 func (t *tree) Keys() Iterator {
-	return newTreeIterator(t, true)
+	return &keyIterator{newTreeIterator(t, true)}
+}
+
+type valueIterator struct {
+	iterator *treeIterator
+}
+
+func (vi *valueIterator) Next() interface{} {
+	return vi.iterator.next().v
+}
+
+func (t *tree) Values() Iterator {
+	return &valueIterator{newTreeIterator(t, true)}
 }
