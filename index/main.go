@@ -13,6 +13,7 @@ var readHandlers = map[string]fressian.ReadHandler{
 		directories, _ := r.ReadObject()
 		return IndexRootNode{
 			nil,
+			nil,
 			tData.(IndexTData),
 			directories.([]interface{}),
 		}
@@ -46,6 +47,7 @@ var readHandlers = map[string]fressian.ReadHandler{
 
 type IndexRootNode struct {
 	store       *storage.Store
+	find        func(*IndexTData, int) int
 	tData       IndexTData
 	directories []interface{}
 }
@@ -70,13 +72,23 @@ type Index interface {
 	SeekDatoms(components ...interface{}) Iterator
 }
 
-func New(store *storage.Store, id string) (Index, error) {
+func New(store *storage.Store, type_ string, id string) (Index, error) {
 	indexRaw, err := storage.Get(store, id, readHandlers)
 	if err != nil {
 		return nil, err
 	}
 	indexRoot := indexRaw.(IndexRootNode)
 	indexRoot.store = store
+	switch type_ {
+	case "eavt":
+		indexRoot.find = findE
+	case "aevt", "avet":
+		indexRoot.find = findA
+	case "vaet":
+		indexRoot.find = findV
+	default:
+		log.Fatal("invalid index type:", type_)
+	}
 	return Index(&indexRoot), nil
 }
 
@@ -152,7 +164,7 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 
 	// if we have a leading component, find the first potential segment
 	if len(components) >= 1 {
-		dirIndex, dir, segmentIndex, segment, datomIndex = findStart(root, findA, components[0].(int))
+		dirIndex, dir, segmentIndex, segment, datomIndex = findStart(root, components[0].(int))
 	}
 
 	next := func() *Datom {
@@ -185,14 +197,14 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 	return Iterator{next}
 }
 
-func findStart(root *IndexRootNode, find func(*IndexTData, int) int, component int) (int, IndexDirNode, int, IndexTData, int) {
-	dirIndex := find(&root.tData, component)
+func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
+	dirIndex := root.find(&root.tData, component)
 	dir := getDir(root.store, root.directories[dirIndex].(string))
 
-	segmentIndex := find(&dir.tData, component)
+	segmentIndex := root.find(&dir.tData, component)
 	segment := getSegment(root.store, dir.segments[segmentIndex].(string))
 
-	datomIndex := find(&dir.tData, component)
+	datomIndex := root.find(&dir.tData, component)
 
 	return dirIndex, dir, segmentIndex, segment, datomIndex
 }

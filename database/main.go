@@ -21,22 +21,22 @@ func New(store *storage.Store) (*Database, error) {
 	}
 	indexRoot := indexRootRaw.(map[interface{}]interface{})
 	eavtId := indexRoot[fressian.Key{"", "eavt-main"}].(string)
-	eavt, err := index.New(store, eavtId)
+	eavt, err := index.New(store, "eavt", eavtId)
 	if err != nil {
 		return nil, err
 	}
 	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
-	aevt, err := index.New(store, aevtId)
+	aevt, err := index.New(store, "aevt", aevtId)
 	if err != nil {
 		return nil, err
 	}
 	avetId := indexRoot[fressian.Key{"", "avet-main"}].(string)
-	avet, err := index.New(store, avetId)
+	avet, err := index.New(store, "avet", avetId)
 	if err != nil {
 		return nil, err
 	}
 	vaetId := indexRoot[fressian.Key{"", "raet-main"}].(string)
-	vaet, err := index.New(store, vaetId)
+	vaet, err := index.New(store, "vaet", vaetId)
 	if err != nil {
 		return nil, err
 	}
