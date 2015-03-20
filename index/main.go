@@ -7,6 +7,13 @@ import (
 	"../storage"
 )
 
+const (
+	Eavt = "eavt"
+	Aevt = "aevt"
+	Avet = "avet"
+	Vaet = "vaet"
+)
+
 var readHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadObject()
@@ -80,11 +87,11 @@ func New(store *storage.Store, type_ string, id string) (Index, error) {
 	indexRoot := indexRaw.(IndexRootNode)
 	indexRoot.store = store
 	switch type_ {
-	case "eavt":
+	case Eavt:
 		indexRoot.find = findE
-	case "aevt", "avet":
+	case Aevt, Avet:
 		indexRoot.find = findA
-	case "vaet":
+	case Vaet:
 		indexRoot.find = findV
 	default:
 		log.Fatal("invalid index type:", type_)
