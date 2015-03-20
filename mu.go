@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 
 	"./connection"
 	"./database"
@@ -39,7 +40,7 @@ func main() {
 	fmt.Println(db)
 
 	cmd := "eavt"
-	if len(os.Args) == 3 {
+	if len(os.Args) >= 3 {
 		cmd = os.Args[2]
 	}
 
@@ -50,8 +51,16 @@ func main() {
 			fmt.Println(datom)
 		}
 
-	case "seek-aevt":
-		datoms := db.Aevt().SeekDatoms(17)
+	case "seek":
+		indexName := "eavt"
+		component := 0
+		if len(os.Args) >= 4 {
+			indexName = os.Args[3]
+			if len(os.Args) >= 5 {
+				component, _ = strconv.Atoi(os.Args[4])
+			}
+		}
+		datoms := getIndex(db, indexName).SeekDatoms(component)
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 			fmt.Println(datom)
 		}
