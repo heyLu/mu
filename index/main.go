@@ -23,6 +23,7 @@ var readHandlers = map[string]fressian.ReadHandler{
 			nil,
 			tData.(IndexTData),
 			directories.([]interface{}),
+			make([]*IndexDirNode, len(directories.([]interface{}))),
 		}
 	},
 	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
@@ -41,46 +42,59 @@ var readHandlers = map[string]fressian.ReadHandler{
 	},
 	"index-dir-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadObject()
-		segments, _ := r.ReadObject()
+		segmentIds, _ := r.ReadObject()
 		mystery1, _ := r.ReadObject()
 		mystery2, _ := r.ReadObject()
 		return IndexDirNode{
 			tData.(IndexTData),
-			segments.([]interface{}),
+			segmentIds.([]interface{}),
 			mystery1.([]int), mystery2.([]int),
+			make([]*IndexTData, len(segmentIds.([]interface{}))),
 		}
 	},
 }
 
 type IndexRootNode struct {
-	store       *storage.Store
-	find        func(*IndexTData, int) int
-	tData       IndexTData
-	directories []interface{}
+	store        *storage.Store
+	find         func(*IndexTData, int) int
+	tData        IndexTData
+	directoryIds []interface{}
+	directories  []*IndexDirNode
 }
 
 func (root *IndexRootNode) directory(idx int) *IndexDirNode {
-	dirRaw, err := storage.Get(root.store, root.directories[idx].(string), readHandlers)
+	if dir := root.directories[idx]; dir != nil {
+		return dir
+	}
+
+	dirRaw, err := storage.Get(root.store, root.directoryIds[idx].(string), readHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
 	dir := dirRaw.(IndexDirNode)
+	root.directories[idx] = &dir
 	return &dir
 }
 
 type IndexDirNode struct {
-	tData    IndexTData
-	segments []interface{}
-	mystery1 []int
-	mystery2 []int
+	tData      IndexTData
+	segmentIds []interface{}
+	mystery1   []int
+	mystery2   []int
+	segments   []*IndexTData
 }
 
-func (dir IndexDirNode) segment(store *storage.Store, idx int) *IndexTData {
-	segmentRaw, err := storage.Get(store, dir.segments[idx].(string), readHandlers)
+func (dir *IndexDirNode) segment(store *storage.Store, idx int) *IndexTData {
+	if segment := dir.segments[idx]; segment != nil {
+		return segment
+	}
+
+	segmentRaw, err := storage.Get(store, dir.segmentIds[idx].(string), readHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
 	segment := segmentRaw.(IndexTData)
+	dir.segments[idx] = &segment
 	return &segment
 }
 
