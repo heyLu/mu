@@ -59,12 +59,13 @@ type IndexRootNode struct {
 	directories []interface{}
 }
 
-func (root *IndexRootNode) directory(idx int) IndexDirNode {
+func (root *IndexRootNode) directory(idx int) *IndexDirNode {
 	dirRaw, err := storage.Get(root.store, root.directories[idx].(string), readHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return dirRaw.(IndexDirNode)
+	dir := dirRaw.(IndexDirNode)
+	return &dir
 }
 
 type IndexDirNode struct {
@@ -74,12 +75,13 @@ type IndexDirNode struct {
 	mystery2 []int
 }
 
-func (dir IndexDirNode) segment(store *storage.Store, idx int) IndexTData {
+func (dir IndexDirNode) segment(store *storage.Store, idx int) *IndexTData {
 	segmentRaw, err := storage.Get(store, dir.segments[idx].(string), readHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return segmentRaw.(IndexTData)
+	segment := segmentRaw.(IndexTData)
+	return &segment
 }
 
 type IndexTData struct {
@@ -220,7 +222,7 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 	return Iterator{next}
 }
 
-func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
+func findStart(root *IndexRootNode, component int) (int, *IndexDirNode, int, *IndexTData, int) {
 	// TODO: fix `find` if it the component is too large (i.e. not in the index)
 	dirIndex := root.find(&root.tData, component)
 	dir := root.directory(dirIndex)
