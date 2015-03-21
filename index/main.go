@@ -59,11 +59,27 @@ type IndexRootNode struct {
 	directories []interface{}
 }
 
+func (root *IndexRootNode) directory(id string) IndexDirNode {
+	dirRaw, err := storage.Get(root.store, id, readHandlers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dirRaw.(IndexDirNode)
+}
+
 type IndexDirNode struct {
 	tData    IndexTData
 	segments []interface{}
 	mystery1 []int
 	mystery2 []int
+}
+
+func (dir IndexDirNode) segment(store *storage.Store, id string) IndexTData {
+	segmentRaw, err := storage.Get(store, id, readHandlers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return segmentRaw.(IndexTData)
 }
 
 type IndexTData struct {
@@ -124,9 +140,9 @@ type Iterator struct {
 func (root *IndexRootNode) Datoms() Iterator {
 	var (
 		dirIndex     = 0
-		dir          = getDir(root.store, root.directories[dirIndex].(string))
+		dir          = root.directory(root.directories[dirIndex].(string))
 		segmentIndex = 0
-		segment      = getSegment(root.store, dir.segments[segmentIndex].(string))
+		segment      = dir.segment(root.store, dir.segments[segmentIndex].(string))
 		datomIndex   = -1
 	)
 
@@ -135,14 +151,14 @@ func (root *IndexRootNode) Datoms() Iterator {
 			datomIndex += 1
 		} else if segmentIndex < len(dir.segments)-1 {
 			segmentIndex += 1
-			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			segment = dir.segment(root.store, dir.segments[segmentIndex].(string))
 			datomIndex = 0
 		} else if dirIndex < len(root.directories)-1 {
 			dirIndex += 1
 			segmentIndex = 0
 			datomIndex = 0
-			dir = getDir(root.store, root.directories[dirIndex].(string))
-			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			dir = root.directory(root.directories[dirIndex].(string))
+			segment = dir.segment(root.store, dir.segments[segmentIndex].(string))
 		} else {
 			return nil
 		}
@@ -163,9 +179,9 @@ func (root *IndexRootNode) Datoms() Iterator {
 func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 	var (
 		dirIndex     = 0
-		dir          = getDir(root.store, root.directories[dirIndex].(string))
+		dir          = root.directory(root.directories[dirIndex].(string))
 		segmentIndex = 0
-		segment      = getSegment(root.store, dir.segments[segmentIndex].(string))
+		segment      = dir.segment(root.store, dir.segments[segmentIndex].(string))
 		datomIndex   = -1
 	)
 
@@ -179,14 +195,14 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 			datomIndex += 1
 		} else if segmentIndex < len(dir.segments)-1 {
 			segmentIndex += 1
-			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			segment = dir.segment(root.store, dir.segments[segmentIndex].(string))
 			datomIndex = 0
 		} else if dirIndex < len(root.directories)-1 {
 			dirIndex += 1
 			segmentIndex = 0
 			datomIndex = 0
-			dir = getDir(root.store, root.directories[dirIndex].(string))
-			segment = getSegment(root.store, dir.segments[segmentIndex].(string))
+			dir = root.directory(root.directories[dirIndex].(string))
+			segment = dir.segment(root.store, dir.segments[segmentIndex].(string))
 		} else {
 			return nil
 		}
@@ -207,10 +223,10 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 func findStart(root *IndexRootNode, component int) (int, IndexDirNode, int, IndexTData, int) {
 	// TODO: fix `find` if it the component is too large (i.e. not in the index)
 	dirIndex := root.find(&root.tData, component)
-	dir := getDir(root.store, root.directories[dirIndex].(string))
+	dir := root.directory(root.directories[dirIndex].(string))
 
 	segmentIndex := root.find(&dir.tData, component)
-	segment := getSegment(root.store, dir.segments[segmentIndex].(string))
+	segment := dir.segment(root.store, dir.segments[segmentIndex].(string))
 
 	datomIndex := root.find(&dir.tData, component)
 
@@ -248,20 +264,4 @@ func findV(td *IndexTData, value int) int {
 		idx = i
 	}
 	return idx
-}
-
-func getDir(store *storage.Store, id string) IndexDirNode {
-	dirRaw, err := storage.Get(store, id, readHandlers)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return dirRaw.(IndexDirNode)
-}
-
-func getSegment(store *storage.Store, id string) IndexTData {
-	segmentRaw, err := storage.Get(store, id, readHandlers)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return segmentRaw.(IndexTData)
 }
