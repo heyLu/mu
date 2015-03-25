@@ -22,12 +22,12 @@ func compare(a, b int) int {
 	return a - b
 }
 
-func pathGet(path, level uint) uint {
-	return pathMask & (path >> level)
+func pathGet(path, level int) int {
+	return pathMask & (path >> uint(level))
 }
 
-func pathSet(path, level, idx uint) uint {
-	return path | (idx << level)
+func pathSet(path, level, idx int) int {
+	return path | (idx << uint(level))
 }
 
 func eq(a, b int) bool {
@@ -593,6 +593,116 @@ func btsetDisj(set *Set, key int) *Set {
 	}
 }
 
+// iteration
+
+func keysFor(set *Set, path int) []int {
+	level := set.shift
+	node := set.root
+	for {
+		if level > 0 {
+			node = node.(*pointerNode).pointers[pathGet(path, level)]
+			level -= levelShift
+		} else {
+			return node.(*leafNode).keys
+		}
+	}
+}
+
+func nextPathNode(node anyNode, path int, level int) int {
+	idx := pathGet(path, level)
+	if level > 0 { // inner node
+		subPath := nextPathNode(node.(*pointerNode).pointers[idx], path, level-levelShift)
+		if -1 == subPath { // nested node overflow
+			if idx+1 < len(node.(*pointerNode).pointers) { // advance current node idx, reset subsequent indexes
+				return pathSet(emptyPath, level, idx+1)
+			} else { // current node overflow
+				return -1
+			}
+		} else { // keep current idx
+			return pathSet(subPath, level, idx)
+		}
+	} else { // leaf
+		if idx+1 < len(node.(*leafNode).keys) { // advance leaf idx
+			return pathSet(emptyPath, 0, idx+1)
+		} else { // leaf overflow
+			return -1
+		}
+	}
+
+	log.Fatal("unreachable")
+	return -1
+}
+
+func nextPath(set *Set, path int) int {
+	return nextPathNode(set.root, path, set.shift)
+}
+
+func rpath(node anyNode, level int) int {
+	path := emptyPath
+	for {
+		if level > 0 {
+			ps := node.(*pointerNode).pointers
+			node = ps[len(ps)-1]
+			path = pathSet(path, level, len(ps)-1)
+			level -= levelShift
+		} else {
+			return pathSet(path, 0, len(node.(*leafNode).keys)-1)
+		}
+	}
+}
+
+type setIter struct {
+	set         *Set
+	left, right int
+	keys        []int
+	idx         int
+}
+
+func (i *setIter) first() int {
+	if i.keys != nil {
+		return i.keys[i.idx]
+	} else {
+		return -1
+	}
+}
+
+func (i *setIter) next() *setIter {
+	if i.keys != nil {
+		if i.idx+1 < len(i.keys) { // can use cached array to move forward
+			if i.left+1 < i.right {
+				return &setIter{i.set, i.left + 1, i.right, i.keys, i.idx + 1}
+			} else {
+				return nil
+			}
+		} else {
+			left := nextPath(i.set, i.left)
+			if left != -1 && left < i.right {
+				return btsetIter(i.set, left, i.right)
+			} else {
+				return nil
+			}
+		}
+	} else {
+		return nil
+	}
+}
+
+func btsetIter(set *Set, left, right int) *setIter {
+	return &setIter{set, left, right, keysFor(set, left), pathGet(left, 0)}
+}
+
+func fullBtsetIter(set *Set) *setIter {
+	if len(set.root.getkeys()) > 0 {
+		left := emptyPath
+		right := rpath(set.root, set.shift) + 1
+		return btsetIter(set, left, right)
+	} else {
+		return nil
+	}
+}
+
+// public interface
+
 func alterSet(set *Set, root anyNode, shift, cnt int) *Set {
 	return &Set{root, shift, cnt, set.comparator}
 }
@@ -623,4 +733,8 @@ func (s *Set) disj(key int) *Set {
 
 func (s *Set) lookup(key int) int {
 	return s.root.lookup(key)
+}
+
+func (s *Set) iter() *setIter {
+	return fullBtsetIter(s)
 }

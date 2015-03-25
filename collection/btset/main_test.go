@@ -4,6 +4,7 @@ import (
 	tu "github.com/klingtnet/gol/util/testing"
 	"math/rand"
 	"testing"
+	"time"
 )
 
 func TestBinarySearchL(t *testing.T) {
@@ -57,6 +58,26 @@ func TestDisj(t *testing.T) {
 		tu.ExpectEqual(t, set.cnt, 1000-i-1)
 		tu.RequireEqual(t, set.lookup(i), -1)
 	}
+}
+
+func TestIter(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+
+	num := 1000
+	ns := make([]int, num)
+	set := New()
+	for i := 0; i < num; i++ {
+		ns[i] = rand.Intn(num * 1000)
+		set = set.conj(ns[i])
+	}
+
+	iter := set.iter()
+	i := 0
+	for iter != nil {
+		i += 1
+		iter = iter.next()
+	}
+	tu.ExpectEqual(t, i, set.cnt)
 }
 
 func BenchmarkConj(b *testing.B) {
