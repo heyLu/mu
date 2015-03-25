@@ -18,6 +18,10 @@ func TestConj(t *testing.T) {
 		tu.ExpectEqual(t, set.cnt, i+1)
 		tu.ExpectEqual(t, set.lookup(i), i)
 	}
+
+	for i := 0; i < 1000; i++ {
+		tu.ExpectEqual(t, set.lookup(i), i)
+	}
 }
 
 func TestConjImmutable(t *testing.T) {
