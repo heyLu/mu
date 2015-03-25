@@ -45,6 +45,20 @@ func TestConjRandom(t *testing.T) {
 	}
 }
 
+func TestDisj(t *testing.T) {
+	set := New()
+	for i := 0; i < 1000; i++ {
+		set = set.conj(i)
+	}
+
+	for i := 0; i < 1000; i++ {
+		tu.RequireEqual(t, set.lookup(i), i)
+		set = set.disj(i)
+		tu.ExpectEqual(t, set.cnt, 1000-i-1)
+		tu.RequireEqual(t, set.lookup(i), -1)
+	}
+}
+
 func BenchmarkConj(b *testing.B) {
 	set := New()
 	for i := 0; i < b.N; i++ {
