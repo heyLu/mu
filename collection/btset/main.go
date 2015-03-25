@@ -415,20 +415,6 @@ type pointerNode struct {
 func (n *pointerNode) length() int    { return len(n.keys) }
 func (n *pointerNode) getkeys() []int { return n.keys }
 
-func (n *pointerNode) merge(next anyNode) anyNode {
-	return &pointerNode{
-		aConcat(n.keys, next.(*pointerNode).keys),
-		aConcatNodes(n.pointers, next.(*pointerNode).pointers)}
-}
-
-func (n *pointerNode) mergeNSplit(next anyNode) []anyNode {
-	ks := mergeNSplit(n.keys, next.(*pointerNode).keys)
-	ps := mergeNSplitNodes(n.pointers, next.(*pointerNode).pointers)
-	return []anyNode{
-		&pointerNode{ks[0], ps[0]},
-		&pointerNode{ks[1], ps[1]}}
-}
-
 func (n *pointerNode) lookup(key int) int {
 	idx := lookupRange(n.keys, key)
 	if idx != -1 {
@@ -461,6 +447,20 @@ func (n *pointerNode) conj(key int) []anyNode {
 
 	log.Fatal("unreachable")
 	return nil
+}
+
+func (n *pointerNode) merge(next anyNode) anyNode {
+	return &pointerNode{
+		aConcat(n.keys, next.(*pointerNode).keys),
+		aConcatNodes(n.pointers, next.(*pointerNode).pointers)}
+}
+
+func (n *pointerNode) mergeNSplit(next anyNode) []anyNode {
+	ks := mergeNSplit(n.keys, next.(*pointerNode).keys)
+	ps := mergeNSplitNodes(n.pointers, next.(*pointerNode).pointers)
+	return []anyNode{
+		&pointerNode{ks[0], ps[0]},
+		&pointerNode{ks[1], ps[1]}}
 }
 
 func (n *pointerNode) disj(key int, isRoot bool, left, right anyNode) []anyNode {
@@ -509,15 +509,6 @@ type leafNode struct {
 func (n *leafNode) length() int    { return len(n.keys) }
 func (n *leafNode) getkeys() []int { return n.keys }
 
-func (n *leafNode) merge(next anyNode) anyNode {
-	return &leafNode{aConcat(n.keys, next.(*leafNode).keys)}
-}
-
-func (n *leafNode) mergeNSplit(next anyNode) []anyNode {
-	ks := mergeNSplit(n.keys, next.(*leafNode).keys)
-	return returnArray(&leafNode{ks[0]}, &leafNode{ks[1]}, nil)
-}
-
 func (n *leafNode) lookup(key int) int {
 	idx := lookupExact(n.keys, key)
 
@@ -553,6 +544,15 @@ func (n *leafNode) conj(key int) []anyNode {
 
 	log.Fatal("unreachable")
 	return nil
+}
+
+func (n *leafNode) merge(next anyNode) anyNode {
+	return &leafNode{aConcat(n.keys, next.(*leafNode).keys)}
+}
+
+func (n *leafNode) mergeNSplit(next anyNode) []anyNode {
+	ks := mergeNSplit(n.keys, next.(*leafNode).keys)
+	return returnArray(&leafNode{ks[0]}, &leafNode{ks[1]}, nil)
 }
 
 func (n *leafNode) disj(key int, isRoot bool, left, right anyNode) []anyNode {
