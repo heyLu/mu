@@ -369,24 +369,29 @@ func returnArray(a1, a2, a3 anyNode) []anyNode {
 				return []anyNode{a2}
 			}
 		} else {
-			return []anyNode{a3} // should be another if a3 != nil?
+			return []anyNode{a3}
+			/*if a3 != nil {
+				return []anyNode{a3}
+			} else {
+				return []anyNode{}
+			}*/
 		}
 	}
 }
 
 func rotate(node anyNode, isRoot bool, left, right anyNode) []anyNode {
-	if isRoot {
+	if isRoot { // root never merges
 		return []anyNode{node}
-	} else if node.length() > minLen {
+	} else if node.length() > minLen { // enough keys, nothing to merge
 		return returnArray(left, node, right)
-	} else if left != nil && left.length() <= minLen {
+	} else if left != nil && left.length() <= minLen { // left and this can be merged into one
 		return returnArray(nil, left.merge(node), right)
-	} else if right != nil && right.length() <= minLen {
+	} else if right != nil && right.length() <= minLen { // right and this can be merged into one
 		return returnArray(left, node.merge(right), nil)
-	} else if left != nil && (right == nil || left.length() < right.length()) {
+	} else if left != nil && (right == nil || left.length() < right.length()) { // left has fewer nodes, redistribute with it
 		nodes := left.mergeNSplit(node)
 		return returnArray(nodes[0], nodes[1], right)
-	} else {
+	} else { // right has fewer nodes, redistribute with it
 		nodes := node.mergeNSplit(right)
 		return returnArray(left, nodes[0], nodes[1])
 	}
