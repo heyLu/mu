@@ -80,6 +80,19 @@ func TestIter(t *testing.T) {
 	tu.ExpectEqual(t, i, set.cnt)
 }
 
+func TestSlice(t *testing.T) {
+	set := New()
+	for i := 0; i < 1000; i++ {
+		set = set.conj(rand.Intn(5000))
+	}
+
+	iter := slice(set, 300, 500)
+	for iter != nil {
+		tu.ExpectEqual(t, 300 <= iter.first() && iter.first() <= 500, true)
+		iter = iter.next()
+	}
+}
+
 func BenchmarkConj(b *testing.B) {
 	set := New()
 	for i := 0; i < b.N; i++ {

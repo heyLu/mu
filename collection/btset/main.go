@@ -701,6 +701,74 @@ func fullBtsetIter(set *Set) *setIter {
 	}
 }
 
+func internalSeek(set *Set, key int) int {
+	node := set.root
+	path := emptyPath
+	level := set.shift
+	for {
+		keys := node.getkeys()
+		keysL := len(keys)
+		if 0 == level {
+			idx := binarySearchL(keys, 0, keysL-1, key)
+			if keysL == idx {
+				return -1
+			} else {
+				return pathSet(path, 0, idx)
+			}
+		} else {
+			idx := binarySearchL(keys, 0, keysL-2, key)
+			node = node.(*pointerNode).pointers[idx]
+			path = pathSet(path, level, idx)
+			level -= levelShift
+		}
+	}
+}
+
+func internalRseek(set *Set, key int) int {
+	node := set.root
+	path := emptyPath
+	level := set.shift
+	for {
+		keys := node.getkeys()
+		keysL := len(keys)
+		if 0 == level {
+			idx := binarySearchR(keys, 0, keysL-1, key)
+			return pathSet(path, 0, idx)
+		} else {
+			idx := binarySearchR(keys, 0, keysL-2, key)
+			node = node.(*pointerNode).pointers[idx]
+			path = pathSet(path, level, idx)
+			level -= levelShift
+		}
+	}
+}
+
+func internalSlice(set *Set, keyFrom, keyTo int) *setIter {
+	path := internalSeek(set, keyFrom)
+	if path >= 0 {
+		tillPath := internalRseek(set, keyTo)
+		if tillPath > path {
+			return &setIter{set, path, tillPath, keysFor(set, path), pathGet(path, 0)}
+		} else {
+			return nil
+		}
+	} else {
+		return nil
+	}
+}
+
+func slice(set *Set, keys ...int) *setIter {
+	switch len(keys) {
+	case 1:
+		return slice(set, keys[0], keys[0])
+	case 2:
+		return internalSlice(set, keys[0], keys[1])
+	default:
+		log.Fatal("keys must be one or two integers")
+		return nil
+	}
+}
+
 // public interface
 
 func alterSet(set *Set, root anyNode, shift, cnt int) *Set {
