@@ -344,7 +344,7 @@ func returnArray(a1, a2, a3 anyNode) []anyNode {
 			if a3 != nil {
 				return []anyNode{a1, a2, a3}
 			} else {
-				return []anyNode{a2, a2}
+				return []anyNode{a1, a2}
 			}
 		} else {
 			if a3 != nil {
