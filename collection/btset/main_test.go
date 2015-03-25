@@ -2,6 +2,7 @@ package btset
 
 import (
 	tu "github.com/klingtnet/gol/util/testing"
+	"math/rand"
 	"testing"
 )
 
@@ -15,6 +16,25 @@ func TestConj(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		set = set.conj(i)
 		tu.ExpectEqual(t, set.lookup(i), i)
+	}
+}
+
+func TestConjImmutable(t *testing.T) {
+	set := New()
+	for i := 0; i < 1000; i++ {
+		newSet := set.conj(i)
+		tu.ExpectEqual(t, newSet.lookup(i), i)
+		tu.ExpectEqual(t, set.lookup(i), -1)
+		set = newSet
+	}
+}
+
+func TestConjRandom(t *testing.T) {
+	set := New()
+	for i := 0; i < 1000; i++ {
+		n := rand.Int()
+		set = set.conj(n)
+		tu.ExpectEqual(t, set.lookup(n), n)
 	}
 }
 
