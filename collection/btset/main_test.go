@@ -18,3 +18,22 @@ func TestConj(t *testing.T) {
 		fmt.Println(set.lookup(i))
 	}
 }
+
+func BenchmarkConj(b *testing.B) {
+	set := New()
+	for i := 0; i < b.N; i++ {
+		set = set.conj(i)
+	}
+}
+
+func BenchmarkLookup(b *testing.B) {
+	set := New()
+	for i := 0; i < 100000; i++ {
+		set = set.conj(i)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		set.lookup(i)
+	}
+}
