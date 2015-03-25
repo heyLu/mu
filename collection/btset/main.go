@@ -94,6 +94,10 @@ func aLast(arr []int) int {
 	return arr[len(arr)-1]
 }
 
+func aConcat(a1, a2 []int) []int {
+	return append(a1, a2...)
+}
+
 func cutNSplice(arr []int, cutFrom, cutTo, spliceFrom, spliceTo int, xs []int) []int {
 	var (
 		xsL    = len(xs)
@@ -166,6 +170,10 @@ func mergeNSplit(a1, a2 []int) *[2][]int {
 	}
 
 	return &[2][]int{r1, r2}
+}
+
+func aConcatNodes(a1, a2 []anyNode) []anyNode {
+	return append(a1, a2...)
 }
 
 func cutNSpliceNodes(arr []anyNode, cutFrom, cutTo, spliceFrom, spliceTo int, xs []anyNode) []anyNode {
@@ -366,7 +374,7 @@ func returnArray(a1, a2, a3 anyNode) []anyNode {
 	}
 }
 
-/*func rotate(node anyNode, isRoot bool, left, right anyNode) []anyNode {
+func rotate(node anyNode, isRoot bool, left, right anyNode) []anyNode {
 	if isRoot {
 		return []anyNode{node}
 	} else if node.length() > minLen {
@@ -382,15 +390,16 @@ func returnArray(a1, a2, a3 anyNode) []anyNode {
 		nodes := node.mergeNSplit(right)
 		return returnArray(left, nodes[0], nodes[1])
 	}
-}*/
+}
 
 type anyNode interface {
 	length() int
 	getkeys() []int
-	//merge(node anyNode) anyNode
-	//mergeNSplit(node anyNode) []anyNode
+	merge(node anyNode) anyNode
+	mergeNSplit(node anyNode) []anyNode
 	lookup(key int) int
 	conj(key int) []anyNode
+	disj(key int, isRoot bool, left, right anyNode) []anyNode
 }
 
 type pointerNode struct {
@@ -400,6 +409,20 @@ type pointerNode struct {
 
 func (n *pointerNode) length() int    { return len(n.keys) }
 func (n *pointerNode) getkeys() []int { return n.keys }
+
+func (n *pointerNode) merge(next anyNode) anyNode {
+	return &pointerNode{
+		aConcat(n.keys, next.(*pointerNode).keys),
+		aConcatNodes(n.pointers, next.(*pointerNode).pointers)}
+}
+
+func (n *pointerNode) mergeNSplit(next anyNode) []anyNode {
+	ks := mergeNSplit(n.keys, next.(*pointerNode).keys)
+	ps := mergeNSplitNodes(n.pointers, next.(*pointerNode).pointers)
+	return []anyNode{
+		&pointerNode{ks[0], ps[0]},
+		&pointerNode{ks[1], ps[1]}}
+}
 
 func (n *pointerNode) lookup(key int) int {
 	idx := lookupRange(n.keys, key)
@@ -435,12 +458,60 @@ func (n *pointerNode) conj(key int) []anyNode {
 	return nil
 }
 
+func (n *pointerNode) disj(key int, isRoot bool, left, right anyNode) []anyNode {
+	idx := lookupRange(n.keys, key)
+
+	if -1 == idx { // short-circuit, key not here
+		return nil
+	}
+
+	child := n.pointers[idx]
+	var (
+		leftChild  anyNode = nil
+		rightChild anyNode = nil
+	)
+	if idx-1 >= 0 {
+		leftChild = n.pointers[idx-1]
+	}
+	if idx+1 < len(n.pointers) {
+		rightChild = n.pointers[idx+1]
+	}
+	disjned := child.disj(key, false, leftChild, rightChild)
+
+	if disjned == nil {
+		return nil
+	}
+
+	leftIdx := idx
+	if leftChild != nil {
+		leftIdx = idx - 1
+	}
+	rightIdx := idx + 1
+	if rightChild != nil {
+		rightIdx = idx + 2
+	}
+
+	newKeys := checkNSplice(n.keys, leftIdx, rightIdx, arrMapNodes(limKey, disjned))
+	newPointers := spliceNodes(n.pointers, leftIdx, rightIdx, disjned)
+
+	return rotate(&pointerNode{newKeys, newPointers}, isRoot, left, right)
+}
+
 type leafNode struct {
 	keys []int // actually values
 }
 
 func (n *leafNode) length() int    { return len(n.keys) }
 func (n *leafNode) getkeys() []int { return n.keys }
+
+func (n *leafNode) merge(next anyNode) anyNode {
+	return &leafNode{aConcat(n.keys, next.(*leafNode).keys)}
+}
+
+func (n *leafNode) mergeNSplit(next anyNode) []anyNode {
+	ks := mergeNSplit(n.keys, next.(*leafNode).keys)
+	return returnArray(&leafNode{ks[0]}, &leafNode{ks[1]}, nil)
+}
 
 func (n *leafNode) lookup(key int) int {
 	idx := lookupExact(n.keys, key)
@@ -479,6 +550,17 @@ func (n *leafNode) conj(key int) []anyNode {
 	return nil
 }
 
+func (n *leafNode) disj(key int, isRoot bool, left, right anyNode) []anyNode {
+	idx := lookupExact(n.keys, key)
+
+	if -1 == idx {
+		return nil
+	}
+
+	newKeys := splice(n.keys, idx, idx+1, []int{})
+	return rotate(&leafNode{newKeys}, isRoot, left, right)
+}
+
 func btsetConj(set *Set, key int) *Set {
 	roots := set.root.conj(key)
 
@@ -488,6 +570,21 @@ func btsetConj(set *Set, key int) *Set {
 		return alterSet(set, roots[0], set.shift, set.cnt+1)
 	} else { // introducing new root
 		return alterSet(set, &pointerNode{arrMapNodes(limKey, roots), roots}, set.shift+levelShift, set.cnt+1)
+	}
+}
+
+func btsetDisj(set *Set, key int) *Set {
+	newRoots := set.root.disj(key, true, nil, nil)
+
+	if newRoots == nil { // nothing changed, key wasn't in set
+		return set
+	}
+
+	newRoot := newRoots[0]
+	if nr, ok := newRoot.(*pointerNode); ok && len(nr.pointers) == 1 { // root has one child, make it the new root
+		return alterSet(set, nr.pointers[0], set.shift-levelShift, set.cnt-1)
+	} else { // keeping root level
+		return alterSet(set, newRoot, set.shift, set.cnt-1)
 	}
 }
 
@@ -513,6 +610,10 @@ func New() *Set {
 
 func (s *Set) conj(key int) *Set {
 	return btsetConj(s, key)
+}
+
+func (s *Set) disj(key int) *Set {
+	return btsetDisj(s, key)
 }
 
 func (s *Set) lookup(key int) int {
