@@ -1,7 +1,6 @@
 package btset
 
 import (
-	"fmt"
 	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
 )
@@ -15,7 +14,7 @@ func TestConj(t *testing.T) {
 	set := New()
 	for i := 0; i < 1000; i++ {
 		set = set.conj(i)
-		fmt.Println(set.lookup(i))
+		tu.ExpectEqual(t, set.lookup(i), i)
 	}
 }
 
