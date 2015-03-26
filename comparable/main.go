@@ -16,3 +16,15 @@ type Int int
 func (i Int) Compare(c Comparable) int {
 	return int(i - c.(Int))
 }
+
+type String string
+
+func (s String) Compare(c Comparable) int {
+	if s == c.(String) {
+		return 0
+	} else if s < c.(String) {
+		return -1
+	} else {
+		return 1
+	}
+}
