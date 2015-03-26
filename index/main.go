@@ -98,7 +98,7 @@ func (dir *DirNode) segment(store *storage.Store, idx int) *TData {
 	return &segment
 }
 
-type TData struct {
+type TData struct { // "transposed data"?
 	values       []interface{}
 	entities     []int
 	attributes   []int
