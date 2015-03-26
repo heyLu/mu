@@ -73,8 +73,11 @@ func TestIter(t *testing.T) {
 
 	iter := set.iter()
 	i := 0
+	last := -1
 	for iter != nil {
 		i += 1
+		tu.ExpectEqual(t, last < iter.first(), true)
+		last = iter.first()
 		iter = iter.next()
 	}
 	tu.ExpectEqual(t, i, set.cnt)
@@ -93,8 +96,11 @@ func TestIterReverse(t *testing.T) {
 
 	iter := set.iter().reverse()
 	i := 0
+	last := num * 1000
 	for iter != nil {
 		i += 1
+		tu.ExpectEqual(t, last > iter.first(), true)
+		last = iter.first()
 		iter = iter.next()
 	}
 	tu.ExpectEqual(t, i, set.cnt)
