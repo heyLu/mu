@@ -651,11 +651,75 @@ func rpath(node anyNode, level int) int {
 	}
 }
 
+func internalPrevPath(node anyNode, path, level int) int {
+	idx := pathGet(path, level)
+	if level > 0 { // inner node
+		subLevel := level - levelShift
+		subPath := internalPrevPath(node.(*pointerNode).pointers[idx], path, subLevel)
+		if -1 == subPath { // nested node overflow
+			if idx-1 >= 0 { // advance current node idx, reset subsequent indexes
+				idx := idx - 1
+				subPath = rpath(node.(*pointerNode).pointers[idx], subLevel)
+				return pathSet(subPath, level, idx)
+			} else { // current node overflow
+				return -1
+			}
+		} else { // keep current idx
+			return pathSet(subPath, level, idx)
+		}
+	} else { // leaf
+		if idx-1 >= 0 { // advance leaf idx
+			return pathSet(emptyPath, 0, idx-1)
+		} else { // leaf overflow
+			return -1
+		}
+	}
+}
+
+func prevPath(set *Set, path int) int {
+	return internalPrevPath(set.root, path, set.shift)
+}
+
+func internalDistance(node anyNode, left, right, level int) int {
+	idxL := pathGet(left, level)
+	idxR := pathGet(right, level)
+	if level > 0 { // inner node
+		if idxL == idxR {
+			return internalDistance(node.(*pointerNode).pointers[idxL], left, right, level-levelShift)
+		} else {
+			res := idxR - idxL
+			if 0 == level {
+				return res
+			} else {
+				return res * avgLen
+			}
+		}
+	} else {
+		return idxR - idxL
+	}
+}
+
+func distance(set *Set, pathL, pathR int) int {
+	if pathL == pathR {
+		return 0
+	} else if pathL+1 == pathR {
+		return 1
+	} else if nextPath(set, pathL) == pathR {
+		return 1
+	} else {
+		return internalDistance(set.root, pathL, pathR, set.shift)
+	}
+}
+
 type setIter struct {
 	set         *Set
 	left, right int
 	keys        []int
 	idx         int
+}
+
+func (i *setIter) estimateCount() int {
+	return distance(i.set, i.left, i.right)
 }
 
 func (i *setIter) first() int {
@@ -687,8 +751,56 @@ func (i *setIter) next() *setIter {
 	}
 }
 
+func (i *setIter) reverse() *backwardsSetIter {
+	if i.keys != nil {
+		return btsetBackwardsIter(i.set, prevPath(i.set, i.left), prevPath(i.set, i.right))
+	} else {
+		return nil
+	}
+}
+
 func btsetIter(set *Set, left, right int) *setIter {
 	return &setIter{set, left, right, keysFor(set, left), pathGet(left, 0)}
+}
+
+type backwardsSetIter struct {
+	set         *Set
+	left, right int
+	keys        []int
+	idx         int
+}
+
+func (i *backwardsSetIter) first() int {
+	if i.keys != nil {
+		return i.keys[i.idx]
+	} else {
+		return -1
+	}
+}
+
+func (i *backwardsSetIter) next() *backwardsSetIter {
+	if i.keys != nil {
+		if i.idx-1 >= 0 { // can use cached array to advance
+			if i.right-1 > i.left {
+				return &backwardsSetIter{i.set, i.left, i.right - 1, i.keys, i.idx - 1}
+			} else {
+				return nil
+			}
+		} else {
+			right := prevPath(i.set, i.right)
+			if -1 != right && right > i.left {
+				return btsetBackwardsIter(i.set, i.left, right)
+			} else {
+				return nil
+			}
+		}
+	} else {
+		return nil
+	}
+}
+
+func btsetBackwardsIter(set *Set, left, right int) *backwardsSetIter {
+	return &backwardsSetIter{set, left, right, keysFor(set, right), pathGet(right, 0)}
 }
 
 func fullBtsetIter(set *Set) *setIter {

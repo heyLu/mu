@@ -80,6 +80,26 @@ func TestIter(t *testing.T) {
 	tu.ExpectEqual(t, i, set.cnt)
 }
 
+func TestIterReverse(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+
+	num := 1000
+	ns := make([]int, num)
+	set := New()
+	for i := 0; i < num; i++ {
+		ns[i] = rand.Intn(num * 1000)
+		set = set.conj(ns[i])
+	}
+
+	iter := set.iter().reverse()
+	i := 0
+	for iter != nil {
+		i += 1
+		iter = iter.next()
+	}
+	tu.ExpectEqual(t, i, set.cnt)
+}
+
 func TestSlice(t *testing.T) {
 	set := New()
 	for i := 0; i < 1000; i++ {
