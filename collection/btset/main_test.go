@@ -143,6 +143,13 @@ func BenchmarkConj(b *testing.B) {
 	}
 }
 
+func BenchmarkConjRandom(b *testing.B) {
+	set := New()
+	for i := 0; i < b.N; i++ {
+		set = set.conj(rand.Intn(b.N * 1000))
+	}
+}
+
 func BenchmarkLookup(b *testing.B) {
 	set := New()
 	for i := 0; i < 100000; i++ {
