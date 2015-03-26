@@ -3,6 +3,8 @@ package btset
 
 import (
 	"log"
+
+	c "../../comparable"
 )
 
 func half(x int) int { return x >> 1 }
@@ -16,12 +18,6 @@ const (
 	emptyPath  = 0
 )
 
-func compare(a, b interface{}) int {
-	return a.(int) - b.(int)
-}
-
-func eq(a, b interface{}) bool { return 0 == compare(a, b) }
-
 func pathGet(path, level int) int {
 	return pathMask & (path >> uint(level))
 }
@@ -30,12 +26,12 @@ func pathSet(path, level, idx int) int {
 	return path | (idx << uint(level))
 }
 
-func binarySearchL(arr []interface{}, l, r int, k interface{}) int {
+func binarySearchL(arr []c.Comparable, l, r int, k c.Comparable) int {
 	for {
 		if l <= r {
 			m := half(l + r)
 			mk := arr[m]
-			cmp := compare(mk, k)
+			cmp := mk.Compare(k)
 			if cmp < 0 {
 				l = m + 1
 			} else {
@@ -47,12 +43,12 @@ func binarySearchL(arr []interface{}, l, r int, k interface{}) int {
 	}
 }
 
-func binarySearchR(arr []interface{}, l, r int, k interface{}) int {
+func binarySearchR(arr []c.Comparable, l, r int, k c.Comparable) int {
 	for {
 		if l <= r {
 			m := half(l + r)
 			mk := arr[m]
-			cmp := compare(mk, k)
+			cmp := mk.Compare(k)
 			if cmp > 0 {
 				r = m - 1
 			} else {
@@ -64,17 +60,17 @@ func binarySearchR(arr []interface{}, l, r int, k interface{}) int {
 	}
 }
 
-func lookupExact(arr []interface{}, key interface{}) int {
+func lookupExact(arr []c.Comparable, key c.Comparable) int {
 	arrL := len(arr)
 	idx := binarySearchL(arr, 0, arrL-1, key)
-	if idx < arrL && eq(arr[idx], key) {
+	if idx < arrL && c.Eq(arr[idx], key) {
 		return idx
 	} else {
 		return -1
 	}
 }
 
-func lookupRange(arr []interface{}, key interface{}) int {
+func lookupRange(arr []c.Comparable, key c.Comparable) int {
 	arrL := len(arr)
 	idx := binarySearchL(arr, 0, arrL-1, key)
 	if idx == arrL {
@@ -86,21 +82,21 @@ func lookupRange(arr []interface{}, key interface{}) int {
 
 // Array operations
 
-func aLast(arr []interface{}) interface{} {
+func aLast(arr []c.Comparable) c.Comparable {
 	return arr[len(arr)-1]
 }
 
-func aConcat(a1, a2 []interface{}) []interface{} {
+func aConcat(a1, a2 []c.Comparable) []c.Comparable {
 	return append(a1, a2...)
 }
 
-func cutNSplice(arr []interface{}, cutFrom, cutTo, spliceFrom, spliceTo int, xs []interface{}) []interface{} {
+func cutNSplice(arr []c.Comparable, cutFrom, cutTo, spliceFrom, spliceTo int, xs []c.Comparable) []c.Comparable {
 	var (
 		xsL    = len(xs)
 		l1     = spliceFrom - cutFrom
 		l2     = cutTo - spliceTo
 		l1xs   = l1 + xsL
-		newArr = make([]interface{}, l1+xsL+l2)
+		newArr = make([]c.Comparable, l1+xsL+l2)
 	)
 
 	for i := 0; i < l1; i++ {
@@ -116,32 +112,32 @@ func cutNSplice(arr []interface{}, cutFrom, cutTo, spliceFrom, spliceTo int, xs 
 	return newArr
 }
 
-func cutAll(arr []interface{}, cutFrom int) []interface{} {
+func cutAll(arr []c.Comparable, cutFrom int) []c.Comparable {
 	return arr[cutFrom:]
 }
 
-func cut(arr []interface{}, cutFrom, cutTo int) []interface{} {
+func cut(arr []c.Comparable, cutFrom, cutTo int) []c.Comparable {
 	return arr[cutFrom:cutTo]
 }
 
-func splice(arr []interface{}, spliceFrom, spliceTo int, xs []interface{}) []interface{} {
+func splice(arr []c.Comparable, spliceFrom, spliceTo int, xs []c.Comparable) []c.Comparable {
 	return cutNSplice(arr, 0, len(arr), spliceFrom, spliceTo, xs)
 }
 
-func insert(arr []interface{}, idx int, xs []interface{}) []interface{} {
+func insert(arr []c.Comparable, idx int, xs []c.Comparable) []c.Comparable {
 	return cutNSplice(arr, 0, len(arr), idx, idx, xs)
 }
 
-func mergeNSplit(a1, a2 []interface{}) *[2][]interface{} {
+func mergeNSplit(a1, a2 []c.Comparable) *[2][]c.Comparable {
 	var (
 		a1L            = len(a1)
 		a2L            = len(a2)
 		totalL         = a1L + a2L
 		r1L            = half(totalL)
 		r2L            = totalL - r1L
-		r1             = make([]interface{}, r1L)
-		r2             = make([]interface{}, r2L)
-		toA, fromA     []interface{}
+		r1             = make([]c.Comparable, r1L)
+		r2             = make([]c.Comparable, r2L)
+		toA, fromA     []c.Comparable
 		toIdx, fromIdx int
 	)
 
@@ -165,7 +161,7 @@ func mergeNSplit(a1, a2 []interface{}) *[2][]interface{} {
 		toA[toIdx] = fromA[fromIdx]
 	}
 
-	return &[2][]interface{}{r1, r2}
+	return &[2][]c.Comparable{r1, r2}
 }
 
 func aConcatNodes(a1, a2 []anyNode) []anyNode {
@@ -246,7 +242,7 @@ func mergeNSplitNodes(a1, a2 []anyNode) *[2][]anyNode {
 	return &[2][]anyNode{r1, r2}
 }
 
-func eqArr(a1 []interface{}, a1From, a1To int, a2 []interface{}, a2From, a2To int, eq func(a, b interface{}) bool) bool {
+func eqArr(a1 []c.Comparable, a1From, a1To int, a2 []c.Comparable, a2From, a2To int, eq func(a, b c.Comparable) bool) bool {
 	l := a1To - a1From
 
 	if l != a2To-a2From {
@@ -267,17 +263,17 @@ func eqArr(a1 []interface{}, a1From, a1To int, a2 []interface{}, a2From, a2To in
 	return false
 }
 
-func checkNSplice(arr []interface{}, from, to int, newArr []interface{}) []interface{} {
-	if eqArr(arr, from, to, newArr, 0, len(newArr), eq) {
+func checkNSplice(arr []c.Comparable, from, to int, newArr []c.Comparable) []c.Comparable {
+	if eqArr(arr, from, to, newArr, 0, len(newArr), c.Eq) {
 		return arr
 	} else {
 		return splice(arr, from, to, newArr)
 	}
 }
 
-func arrMapNodes(f func(anyNode) interface{}, arr []anyNode) []interface{} {
+func arrMapNodes(f func(anyNode) c.Comparable, arr []anyNode) []c.Comparable {
 	l := len(arr)
-	newArr := make([]interface{}, l)
+	newArr := make([]c.Comparable, l)
 	for i := 0; i < l; i++ {
 		newArr[i] = f(arr[i])
 	}
@@ -292,11 +288,11 @@ func arrMapInplace(f func(int) int, arr []int) []int {
 	return arr
 }
 
-func arrPartitionApprox(minLen, maxLen int, arr []interface{}) [][]interface{} {
+func arrPartitionApprox(minLen, maxLen int, arr []c.Comparable) [][]c.Comparable {
 	var (
 		chunkLen = avgLen
 		l        = len(arr)
-		acc      = make([][]interface{}, 0)
+		acc      = make([][]c.Comparable, 0)
 	)
 
 	if l == 0 {
@@ -323,7 +319,7 @@ func arrPartitionApprox(minLen, maxLen int, arr []interface{}) [][]interface{} {
 	return acc
 }
 
-func arrDistinct(arr []interface{}, cmp func(a, b interface{}) int) []interface{} {
+func arrDistinct(arr []c.Comparable, cmp func(a, b c.Comparable) int) []c.Comparable {
 	i := 0
 	for {
 		if i >= len(arr) {
@@ -340,7 +336,7 @@ func arrDistinct(arr []interface{}, cmp func(a, b interface{}) int) []interface{
 
 //
 
-func limKey(node anyNode) interface{} { return aLast(node.getkeys()) }
+func limKey(node anyNode) c.Comparable { return aLast(node.getkeys()) }
 
 func returnArray(a1, a2, a3 anyNode) []anyNode {
 	if a1 != nil {
@@ -395,23 +391,23 @@ func rotate(node anyNode, isRoot bool, left, right anyNode) []anyNode {
 
 type anyNode interface {
 	length() int
-	getkeys() []interface{}
+	getkeys() []c.Comparable
 	merge(node anyNode) anyNode
 	mergeNSplit(node anyNode) []anyNode
-	lookup(key interface{}) interface{}
-	conj(key interface{}) []anyNode
-	disj(key interface{}, isRoot bool, left, right anyNode) []anyNode
+	lookup(key c.Comparable) c.Comparable
+	conj(key c.Comparable) []anyNode
+	disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode
 }
 
 type pointerNode struct {
-	keys     []interface{}
+	keys     []c.Comparable
 	pointers []anyNode
 }
 
-func (n *pointerNode) length() int            { return len(n.keys) }
-func (n *pointerNode) getkeys() []interface{} { return n.keys }
+func (n *pointerNode) length() int             { return len(n.keys) }
+func (n *pointerNode) getkeys() []c.Comparable { return n.keys }
 
-func (n *pointerNode) lookup(key interface{}) interface{} {
+func (n *pointerNode) lookup(key c.Comparable) c.Comparable {
 	idx := lookupRange(n.keys, key)
 	if idx != -1 {
 		return n.pointers[idx].lookup(key)
@@ -420,7 +416,7 @@ func (n *pointerNode) lookup(key interface{}) interface{} {
 	}
 }
 
-func (n *pointerNode) conj(key interface{}) []anyNode {
+func (n *pointerNode) conj(key c.Comparable) []anyNode {
 	idx := binarySearchL(n.keys, 0, len(n.keys)-2, key)
 	nodes := n.pointers[idx].conj(key)
 
@@ -459,7 +455,7 @@ func (n *pointerNode) mergeNSplit(next anyNode) []anyNode {
 		&pointerNode{ks[1], ps[1]}}
 }
 
-func (n *pointerNode) disj(key interface{}, isRoot bool, left, right anyNode) []anyNode {
+func (n *pointerNode) disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode {
 	idx := lookupRange(n.keys, key)
 
 	if -1 == idx { // short-circuit, key not here
@@ -499,13 +495,13 @@ func (n *pointerNode) disj(key interface{}, isRoot bool, left, right anyNode) []
 }
 
 type leafNode struct {
-	keys []interface{} // actually values
+	keys []c.Comparable // actually values
 }
 
-func (n *leafNode) length() int            { return len(n.keys) }
-func (n *leafNode) getkeys() []interface{} { return n.keys }
+func (n *leafNode) length() int             { return len(n.keys) }
+func (n *leafNode) getkeys() []c.Comparable { return n.keys }
 
-func (n *leafNode) lookup(key interface{}) interface{} {
+func (n *leafNode) lookup(key c.Comparable) c.Comparable {
 	idx := lookupExact(n.keys, key)
 
 	if -1 == idx {
@@ -515,27 +511,27 @@ func (n *leafNode) lookup(key interface{}) interface{} {
 	return n.keys[idx]
 }
 
-func (n *leafNode) conj(key interface{}) []anyNode {
+func (n *leafNode) conj(key c.Comparable) []anyNode {
 	idx := binarySearchL(n.keys, 0, len(n.keys)-1, key)
 	keysL := len(n.keys)
 
-	if idx < keysL && eq(key, n.keys[idx]) { // already there
+	if idx < keysL && c.Eq(key, n.keys[idx]) { // already there
 		return nil
 	} else if keysL == maxLen { // splitting
 		middle := half(keysL + 1)
 		if idx > middle { // new key goes to second half
 			return []anyNode{
 				&leafNode{cut(n.keys, 0, middle)},
-				&leafNode{cutNSplice(n.keys, middle, keysL, idx, idx, []interface{}{key})},
+				&leafNode{cutNSplice(n.keys, middle, keysL, idx, idx, []c.Comparable{key})},
 			}
 		} else { // new key goes to first half
 			return []anyNode{
-				&leafNode{cutNSplice(n.keys, 0, middle, idx, idx, []interface{}{key})},
+				&leafNode{cutNSplice(n.keys, 0, middle, idx, idx, []c.Comparable{key})},
 				&leafNode{cut(n.keys, middle, keysL)},
 			}
 		}
 	} else { // ok as is
-		return []anyNode{&leafNode{splice(n.keys, idx, idx, []interface{}{key})}}
+		return []anyNode{&leafNode{splice(n.keys, idx, idx, []c.Comparable{key})}}
 	}
 
 	log.Fatal("unreachable")
@@ -551,18 +547,18 @@ func (n *leafNode) mergeNSplit(next anyNode) []anyNode {
 	return returnArray(&leafNode{ks[0]}, &leafNode{ks[1]}, nil)
 }
 
-func (n *leafNode) disj(key interface{}, isRoot bool, left, right anyNode) []anyNode {
+func (n *leafNode) disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode {
 	idx := lookupExact(n.keys, key)
 
 	if -1 == idx {
 		return nil
 	}
 
-	newKeys := splice(n.keys, idx, idx+1, []interface{}{})
+	newKeys := splice(n.keys, idx, idx+1, []c.Comparable{})
 	return rotate(&leafNode{newKeys}, isRoot, left, right)
 }
 
-func btsetConj(set *Set, key interface{}) *Set {
+func btsetConj(set *Set, key c.Comparable) *Set {
 	roots := set.root.conj(key)
 
 	if roots == nil { // nothing changed
@@ -574,7 +570,7 @@ func btsetConj(set *Set, key interface{}) *Set {
 	}
 }
 
-func btsetDisj(set *Set, key interface{}) *Set {
+func btsetDisj(set *Set, key c.Comparable) *Set {
 	newRoots := set.root.disj(key, true, nil, nil)
 
 	if newRoots == nil { // nothing changed, key wasn't in set
@@ -591,7 +587,7 @@ func btsetDisj(set *Set, key interface{}) *Set {
 
 // iteration
 
-func keysFor(set *Set, path int) []interface{} {
+func keysFor(set *Set, path int) []c.Comparable {
 	level := set.shift
 	node := set.root
 	for {
@@ -710,7 +706,7 @@ func distance(set *Set, pathL, pathR int) int {
 type setIter struct {
 	set         *Set
 	left, right int
-	keys        []interface{}
+	keys        []c.Comparable
 	idx         int
 }
 
@@ -718,7 +714,7 @@ func (i *setIter) estimateCount() int {
 	return distance(i.set, i.left, i.right)
 }
 
-func (i *setIter) first() interface{} {
+func (i *setIter) first() c.Comparable {
 	if i.keys != nil {
 		return i.keys[i.idx]
 	} else {
@@ -762,11 +758,11 @@ func btsetIter(set *Set, left, right int) *setIter {
 type backwardsSetIter struct {
 	set         *Set
 	left, right int
-	keys        []interface{}
+	keys        []c.Comparable
 	idx         int
 }
 
-func (i *backwardsSetIter) first() interface{} {
+func (i *backwardsSetIter) first() c.Comparable {
 	if i.keys != nil {
 		return i.keys[i.idx]
 	} else {
@@ -829,7 +825,7 @@ func fullBtsetIter(set *Set) *setIter {
 	}
 }
 
-func internalSeek(set *Set, key interface{}) int {
+func internalSeek(set *Set, key c.Comparable) int {
 	node := set.root
 	path := emptyPath
 	level := set.shift
@@ -852,7 +848,7 @@ func internalSeek(set *Set, key interface{}) int {
 	}
 }
 
-func internalRseek(set *Set, key interface{}) int {
+func internalRseek(set *Set, key c.Comparable) int {
 	node := set.root
 	path := emptyPath
 	level := set.shift
@@ -871,7 +867,7 @@ func internalRseek(set *Set, key interface{}) int {
 	}
 }
 
-func internalSlice(set *Set, keyFrom, keyTo interface{}) *setIter {
+func internalSlice(set *Set, keyFrom, keyTo c.Comparable) *setIter {
 	path := internalSeek(set, keyFrom)
 	if path >= 0 {
 		tillPath := internalRseek(set, keyTo)
@@ -885,7 +881,7 @@ func internalSlice(set *Set, keyFrom, keyTo interface{}) *setIter {
 	}
 }
 
-func slice(set *Set, keys ...interface{}) *setIter {
+func slice(set *Set, keys ...c.Comparable) *setIter {
 	switch len(keys) {
 	case 1:
 		return slice(set, keys[0], keys[0])
@@ -911,21 +907,21 @@ type Set struct {
 
 func New() *Set {
 	return &Set{
-		&leafNode{make([]interface{}, 0)},
+		&leafNode{make([]c.Comparable, 0)},
 		0,
 		0,
 	}
 }
 
-func (s *Set) conj(key interface{}) *Set {
+func (s *Set) conj(key c.Comparable) *Set {
 	return btsetConj(s, key)
 }
 
-func (s *Set) disj(key interface{}) *Set {
+func (s *Set) disj(key c.Comparable) *Set {
 	return btsetDisj(s, key)
 }
 
-func (s *Set) lookup(key interface{}) interface{} {
+func (s *Set) lookup(key c.Comparable) c.Comparable {
 	return s.root.lookup(key)
 }
 
