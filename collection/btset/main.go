@@ -608,10 +608,10 @@ func keysFor(set *Set, path int) []int {
 	}
 }
 
-func nextPathNode(node anyNode, path int, level int) int {
+func internalNextPath(node anyNode, path int, level int) int {
 	idx := pathGet(path, level)
 	if level > 0 { // inner node
-		subPath := nextPathNode(node.(*pointerNode).pointers[idx], path, level-levelShift)
+		subPath := internalNextPath(node.(*pointerNode).pointers[idx], path, level-levelShift)
 		if -1 == subPath { // nested node overflow
 			if idx+1 < len(node.(*pointerNode).pointers) { // advance current node idx, reset subsequent indexes
 				return pathSet(emptyPath, level, idx+1)
@@ -634,7 +634,7 @@ func nextPathNode(node anyNode, path int, level int) int {
 }
 
 func nextPath(set *Set, path int) int {
-	return nextPathNode(set.root, path, set.shift)
+	return internalNextPath(set.root, path, set.shift)
 }
 
 func rpath(node anyNode, level int) int {
