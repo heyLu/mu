@@ -35,14 +35,15 @@ func TestConj(t *testing.T) {
 
 func TestConjStrings(t *testing.T) {
 	set := New()
+	num := 1000
 	buf := make([]byte, 10)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < num; i++ {
 		crypto_rand.Read(buf)
 		s := hex.EncodeToString(buf)
 		set = set.conj(c.String(s))
 	}
 
-	tu.ExpectEqual(t, set.cnt, 1000)
+	tu.ExpectEqual(t, set.cnt, num)
 }
 
 func TestConjImmutable(t *testing.T) {
