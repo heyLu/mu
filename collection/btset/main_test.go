@@ -106,6 +106,23 @@ func TestIterReverse(t *testing.T) {
 	tu.ExpectEqual(t, i, set.cnt)
 }
 
+func TestIterReverseTwice(t *testing.T) {
+	num := 1000
+	set := New()
+	for i := 0; i < num; i++ {
+		set = set.conj(rand.Intn(num * 1000))
+	}
+
+	iter1 := set.iter()
+	iter2 := iter1.reverse().reverse()
+	for iter1 != nil {
+		tu.ExpectNotNil(t, iter2)
+		tu.ExpectEqual(t, iter1.first(), iter2.first())
+		iter1 = iter1.next()
+		iter2 = iter2.next()
+	}
+}
+
 func TestSlice(t *testing.T) {
 	set := New()
 	for i := 0; i < 1000; i++ {

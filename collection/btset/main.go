@@ -799,6 +799,26 @@ func (i *backwardsSetIter) next() *backwardsSetIter {
 	}
 }
 
+func (i *backwardsSetIter) reverse() *setIter {
+	if i.keys != nil {
+		var newLeft int
+		if i.left == -1 {
+			newLeft = 0
+		} else {
+			newLeft = nextPath(i.set, i.left)
+		}
+
+		newRight := nextPath(i.set, i.right)
+		if newRight == -1 {
+			newRight = i.right + 1
+		}
+
+		return btsetIter(i.set, newLeft, newRight)
+	} else {
+		return nil
+	}
+}
+
 func btsetBackwardsIter(set *Set, left, right int) *backwardsSetIter {
 	return &backwardsSetIter{set, left, right, keysFor(set, right), pathGet(right, 0)}
 }
