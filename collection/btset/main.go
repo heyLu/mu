@@ -16,12 +16,6 @@ const (
 	emptyPath  = 0
 )
 
-// TODO: make it customizable, à la *cmp*
-// likely a Comparable interface, with a Less or Compare method
-func compare(a, b int) int {
-	return a - b
-}
-
 type comparable interface {
 	compare(comparable) int
 }
@@ -917,14 +911,13 @@ func slice(set *Set, keys ...comparable) *setIter {
 // public interface
 
 func alterSet(set *Set, root anyNode, shift, cnt int) *Set {
-	return &Set{root, shift, cnt, set.comparator}
+	return &Set{root, shift, cnt}
 }
 
 type Set struct {
-	root       anyNode
-	shift      int
-	cnt        int
-	comparator func(a, b int) int
+	root  anyNode
+	shift int
+	cnt   int
 }
 
 func New() *Set {
@@ -932,7 +925,6 @@ func New() *Set {
 		&leafNode{make([]comparable, 0)},
 		0,
 		0,
-		compare,
 	}
 }
 
