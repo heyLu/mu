@@ -1,6 +1,8 @@
 package btset
 
 import (
+	crypto_rand "crypto/rand"
+	"encoding/hex"
 	tu "github.com/klingtnet/gol/util/testing"
 	"math/rand"
 	"testing"
@@ -29,6 +31,18 @@ func TestConj(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		tu.ExpectEqual(t, set.lookup(c.Int(i)), c.Int(i))
 	}
+}
+
+func TestConjStrings(t *testing.T) {
+	set := New()
+	buf := make([]byte, 10)
+	for i := 0; i < 1000; i++ {
+		crypto_rand.Read(buf)
+		s := hex.EncodeToString(buf)
+		set = set.conj(c.String(s))
+	}
+
+	tu.ExpectEqual(t, set.cnt, 1000)
 }
 
 func TestConjImmutable(t *testing.T) {
