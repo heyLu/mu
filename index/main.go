@@ -18,12 +18,12 @@ var readHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadObject()
 		directories, _ := r.ReadObject()
-		return IndexRootNode{
+		return RootNode{
 			nil,
 			nil,
-			tData.(IndexTData),
+			tData.(TData),
 			directories.([]interface{}),
-			make([]*IndexDirNode, len(directories.([]interface{}))),
+			make([]*DirNode, len(directories.([]interface{}))),
 		}
 	},
 	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
@@ -32,7 +32,7 @@ var readHandlers = map[string]fressian.ReadHandler{
 		as, _ := r.ReadObject()
 		txs, _ := r.ReadObject()
 		addeds, _ := r.ReadObject()
-		return IndexTData{
+		return TData{
 			vs.([]interface{}),
 			es.([]int),
 			as.([]int),
@@ -45,24 +45,24 @@ var readHandlers = map[string]fressian.ReadHandler{
 		segmentIds, _ := r.ReadObject()
 		mystery1, _ := r.ReadObject()
 		mystery2, _ := r.ReadObject()
-		return IndexDirNode{
-			tData.(IndexTData),
+		return DirNode{
+			tData.(TData),
 			segmentIds.([]interface{}),
 			mystery1.([]int), mystery2.([]int),
-			make([]*IndexTData, len(segmentIds.([]interface{}))),
+			make([]*TData, len(segmentIds.([]interface{}))),
 		}
 	},
 }
 
-type IndexRootNode struct {
+type RootNode struct {
 	store        *storage.Store
-	find         func(*IndexTData, int) int
-	tData        IndexTData
+	find         func(*TData, int) int
+	tData        TData
 	directoryIds []interface{}
-	directories  []*IndexDirNode
+	directories  []*DirNode
 }
 
-func (root *IndexRootNode) directory(idx int) *IndexDirNode {
+func (root *RootNode) directory(idx int) *DirNode {
 	if dir := root.directories[idx]; dir != nil {
 		return dir
 	}
@@ -71,20 +71,20 @@ func (root *IndexRootNode) directory(idx int) *IndexDirNode {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dir := dirRaw.(IndexDirNode)
+	dir := dirRaw.(DirNode)
 	root.directories[idx] = &dir
 	return &dir
 }
 
-type IndexDirNode struct {
-	tData      IndexTData
+type DirNode struct {
+	tData      TData
 	segmentIds []interface{}
 	mystery1   []int
 	mystery2   []int
-	segments   []*IndexTData
+	segments   []*TData
 }
 
-func (dir *IndexDirNode) segment(store *storage.Store, idx int) *IndexTData {
+func (dir *DirNode) segment(store *storage.Store, idx int) *TData {
 	if segment := dir.segments[idx]; segment != nil {
 		return segment
 	}
@@ -93,12 +93,12 @@ func (dir *IndexDirNode) segment(store *storage.Store, idx int) *IndexTData {
 	if err != nil {
 		log.Fatal(err)
 	}
-	segment := segmentRaw.(IndexTData)
+	segment := segmentRaw.(TData)
 	dir.segments[idx] = &segment
 	return &segment
 }
 
-type IndexTData struct {
+type TData struct {
 	values       []interface{}
 	entities     []int
 	attributes   []int
@@ -116,7 +116,7 @@ func New(store *storage.Store, type_ string, id string) (Index, error) {
 	if err != nil {
 		return nil, err
 	}
-	indexRoot := indexRaw.(IndexRootNode)
+	indexRoot := indexRaw.(RootNode)
 	indexRoot.store = store
 	switch type_ {
 	case Eavt:
@@ -153,7 +153,7 @@ type Iterator struct {
 	Next func() *Datom
 }
 
-func (root *IndexRootNode) Datoms() Iterator {
+func (root *RootNode) Datoms() Iterator {
 	var (
 		dirIndex     = 0
 		dir          = root.directory(dirIndex)
@@ -192,7 +192,7 @@ func (root *IndexRootNode) Datoms() Iterator {
 	return Iterator{next}
 }
 
-func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
+func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 	var (
 		dirIndex     = 0
 		dir          = root.directory(dirIndex)
@@ -236,7 +236,7 @@ func (root *IndexRootNode) SeekDatoms(components ...interface{}) Iterator {
 	return Iterator{next}
 }
 
-func findStart(root *IndexRootNode, component int) (int, *IndexDirNode, int, *IndexTData, int) {
+func findStart(root *RootNode, component int) (int, *DirNode, int, *TData, int) {
 	// TODO: fix `find` if it the component is too large (i.e. not in the index)
 	dirIndex := root.find(&root.tData, component)
 	dir := root.directory(dirIndex)
@@ -249,7 +249,7 @@ func findStart(root *IndexRootNode, component int) (int, *IndexDirNode, int, *In
 	return dirIndex, dir, segmentIndex, segment, datomIndex
 }
 
-func findE(td *IndexTData, value int) int {
+func findE(td *TData, value int) int {
 	idx := 0
 	for i, entity := range td.entities {
 		if entity > value {
@@ -260,7 +260,7 @@ func findE(td *IndexTData, value int) int {
 	return idx
 }
 
-func findA(td *IndexTData, value int) int {
+func findA(td *TData, value int) int {
 	idx := 0
 	for i, attr := range td.attributes {
 		if attr > value {
@@ -271,7 +271,7 @@ func findA(td *IndexTData, value int) int {
 	return idx
 }
 
-func findV(td *IndexTData, value int) int {
+func findV(td *TData, value int) int {
 	idx := 0
 	for i, val := range td.values {
 		if val.(int) > value {
