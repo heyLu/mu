@@ -81,7 +81,7 @@ func main() {
 }
 
 func getIndex(db *database.Database, indexName string) index.Index {
-	switch indexName {
+	switch index.Type(indexName) {
 	case index.Eavt:
 		return db.Eavt()
 	case index.Aevt:

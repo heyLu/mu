@@ -8,11 +8,13 @@ import (
 )
 
 const (
-	Eavt = "eavt"
-	Aevt = "aevt"
-	Avet = "avet"
-	Vaet = "vaet"
+	Eavt = Type("eavt")
+	Aevt = Type("aevt")
+	Avet = Type("avet")
+	Vaet = Type("vaet")
 )
+
+type Type string
 
 var readHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
@@ -111,7 +113,7 @@ type Index interface {
 	SeekDatoms(components ...interface{}) Iterator
 }
 
-func New(store *storage.Store, type_ string, id string) (Index, error) {
+func New(store *storage.Store, type_ Type, id string) (Index, error) {
 	indexRaw, err := storage.Get(store, id, readHandlers)
 	if err != nil {
 		return nil, err
