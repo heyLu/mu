@@ -7,19 +7,23 @@ import (
 	"../storage"
 )
 
-type Connection struct {
+type Connection interface {
+	Db() (*database.Database, error)
+}
+
+type PersistentConnection struct {
 	store *storage.Store
 }
 
-func New(u *url.URL) (*Connection, error) {
+func New(u *url.URL) (Connection, error) {
 	store, err := storage.Open(u)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Connection{store}, nil
+	return &PersistentConnection{store}, nil
 }
 
-func (c *Connection) Db() (*database.Database, error) {
+func (c *PersistentConnection) Db() (*database.Database, error) {
 	return database.NewFromStore(c.store)
 }

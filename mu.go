@@ -13,7 +13,7 @@ import (
 	"./index"
 )
 
-func Connect(u *url.URL) (*connection.Connection, error) {
+func Connect(u *url.URL) (connection.Connection, error) {
 	return connection.New(u)
 }
 
