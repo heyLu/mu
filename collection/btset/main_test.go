@@ -152,7 +152,7 @@ func TestSlice(t *testing.T) {
 		set = set.Conj(c.Int(rand.Intn(5000)))
 	}
 
-	iter := slice(set, c.Int(300), c.Int(500))
+	iter := Slice(set, c.Int(300), c.Int(500))
 	for iter != nil {
 		tu.ExpectEqual(t, c.Int(300).Compare(iter.First()) <= 0 && iter.First().Compare(c.Int(500)) <= 0, true)
 		iter = iter.Next()
