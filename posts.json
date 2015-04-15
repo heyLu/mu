@@ -1,5 +1,11 @@
 [
 	{
+		"id": "e9b6a74a383307b45d6b92bb98da15a9",
+		"title": "An non-segmented in-memory variant",
+		"content": "To get started, able to experiment with an API and actually store some data with `mu`.\r\n\r\n- `mu`\r\n    - `Datoms(db, ...)`, `SeekDatoms(db, ...)`\r\n        - decides which index to use, calls `.Datoms` or `.SeekDatoms` on it\r\n    - `Db(conn)`\r\n    - `Transact(conn, txData)`\r\n- `Index`\r\n    - `Datoms(d Datom)`\r\n    - `SeekDatoms(d Datom)`\r\n- `Database`\r\n    - `Eavt()`, `Aevt()`, `Avet()`, `Vaet()`\r\n- `Connection`\r\n    - `Db()`\r\n    - `Transact(txData)` (should it return a map/info thing as well, or just an error?)",
+		"created": "2015-04-15T14:53:06.061671079+02:00"
+	},
+	{
 		"id": "538111cee1426b9fd7fedc89115d4604",
 		"title": "Navigating indexes",
 		"content": "Now that `index.Datoms` returns an `Iterator`, we can implement more efficient access to the index.  In fact, we could (and maybe should) implement `index.SeekDatoms` as well, and then build `.Datoms` on top of it.  (`.SeekDatoms` starts at an \"approximate\" match and only stops at the end of the index, `.Datoms` matches exactly.)\r\n\r\nGiven leading components, we need to find the index into the segment where the first relevant datom resides.  If there is no matching datom, the iterator will immediately return `nil`.\r\n\r\nI think this is a kind of bounds checking.  The default bounds will be `0, MaxInt` (or some equivalent, given that we have three indexes), but specifying leading components will narrow down those bounds.\r\n\r\nLet's say we have one leading component, `42`, and we're searching the `.Eavt` index.  Let's also assume that our root has two segments, with the following `tdata.entities`: `[0, 30]`.  By comparing our leading entity component, we know that we don't need to search the first segment.  (It may really be easier to implement `.SeekDatoms` first, as we don't have to check when to stop...)\r\n\r\nThen, given the dir node we just found, check it's `tdata.entities` and find the first segment that \"matches\".  Matching means `tdata.entities[i] \u003e= 42`, assuming we have started searching at the start.  The same is to be done for the `segment.entities`.\r\n\r\nWe probably could do this more efficiently by using binary search for the first entity.",
