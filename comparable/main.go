@@ -1,8 +1,10 @@
-package Comparable
+package comparable
 
 type Comparable interface {
 	Compare(Comparable) int
 }
+
+type CompareFn func(a, b interface{}) int
 
 func Lt(a, b Comparable) bool  { return a.Compare(b) < 0 }
 func Lte(a, b Comparable) bool { return a.Compare(b) <= 0 }

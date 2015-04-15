@@ -26,12 +26,12 @@ func pathSet(path, level, idx int) int {
 	return path | (idx << uint(level))
 }
 
-func binarySearchL(arr []c.Comparable, l, r int, k c.Comparable) int {
+func binarySearchL(arr []c.Comparable, l, r int, k c.Comparable, compare c.CompareFn) int {
 	for {
 		if l <= r {
 			m := half(l + r)
 			mk := arr[m]
-			cmp := mk.Compare(k)
+			cmp := compare(mk, k)
 			if cmp < 0 {
 				l = m + 1
 			} else {
@@ -43,12 +43,12 @@ func binarySearchL(arr []c.Comparable, l, r int, k c.Comparable) int {
 	}
 }
 
-func binarySearchR(arr []c.Comparable, l, r int, k c.Comparable) int {
+func binarySearchR(arr []c.Comparable, l, r int, k c.Comparable, compare c.CompareFn) int {
 	for {
 		if l <= r {
 			m := half(l + r)
 			mk := arr[m]
-			cmp := mk.Compare(k)
+			cmp := compare(mk, k)
 			if cmp > 0 {
 				r = m - 1
 			} else {
@@ -60,9 +60,9 @@ func binarySearchR(arr []c.Comparable, l, r int, k c.Comparable) int {
 	}
 }
 
-func lookupExact(arr []c.Comparable, key c.Comparable) int {
+func lookupExact(arr []c.Comparable, key c.Comparable, compare c.CompareFn) int {
 	arrL := len(arr)
-	idx := binarySearchL(arr, 0, arrL-1, key)
+	idx := binarySearchL(arr, 0, arrL-1, key, compare)
 	if idx < arrL && c.Eq(arr[idx], key) {
 		return idx
 	} else {
@@ -70,9 +70,9 @@ func lookupExact(arr []c.Comparable, key c.Comparable) int {
 	}
 }
 
-func lookupRange(arr []c.Comparable, key c.Comparable) int {
+func lookupRange(arr []c.Comparable, key c.Comparable, compare c.CompareFn) int {
 	arrL := len(arr)
-	idx := binarySearchL(arr, 0, arrL-1, key)
+	idx := binarySearchL(arr, 0, arrL-1, key, compare)
 	if idx == arrL {
 		return -1
 	} else {
@@ -394,9 +394,9 @@ type anyNode interface {
 	getkeys() []c.Comparable
 	merge(node anyNode) anyNode
 	mergeNSplit(node anyNode) []anyNode
-	lookup(key c.Comparable) c.Comparable
-	conj(key c.Comparable) []anyNode
-	disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode
+	lookup(key c.Comparable, compare c.CompareFn) c.Comparable
+	conj(key c.Comparable, compare c.CompareFn) []anyNode
+	disj(key c.Comparable, isRoot bool, left, right anyNode, compare c.CompareFn) []anyNode
 }
 
 type pointerNode struct {
@@ -407,18 +407,18 @@ type pointerNode struct {
 func (n *pointerNode) length() int             { return len(n.keys) }
 func (n *pointerNode) getkeys() []c.Comparable { return n.keys }
 
-func (n *pointerNode) lookup(key c.Comparable) c.Comparable {
-	idx := lookupRange(n.keys, key)
+func (n *pointerNode) lookup(key c.Comparable, compare c.CompareFn) c.Comparable {
+	idx := lookupRange(n.keys, key, compare)
 	if idx != -1 {
-		return n.pointers[idx].lookup(key)
+		return n.pointers[idx].lookup(key, compare)
 	} else {
 		return nil
 	}
 }
 
-func (n *pointerNode) conj(key c.Comparable) []anyNode {
-	idx := binarySearchL(n.keys, 0, len(n.keys)-2, key)
-	nodes := n.pointers[idx].conj(key)
+func (n *pointerNode) conj(key c.Comparable, compare c.CompareFn) []anyNode {
+	idx := binarySearchL(n.keys, 0, len(n.keys)-2, key, compare)
+	nodes := n.pointers[idx].conj(key, compare)
 
 	if nodes == nil {
 		return nil
@@ -455,8 +455,8 @@ func (n *pointerNode) mergeNSplit(next anyNode) []anyNode {
 		&pointerNode{ks[1], ps[1]}}
 }
 
-func (n *pointerNode) disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode {
-	idx := lookupRange(n.keys, key)
+func (n *pointerNode) disj(key c.Comparable, isRoot bool, left, right anyNode, compare c.CompareFn) []anyNode {
+	idx := lookupRange(n.keys, key, compare)
 
 	if -1 == idx { // short-circuit, key not here
 		return nil
@@ -473,7 +473,7 @@ func (n *pointerNode) disj(key c.Comparable, isRoot bool, left, right anyNode) [
 	if idx+1 < len(n.pointers) {
 		rightChild = n.pointers[idx+1]
 	}
-	disjned := child.disj(key, false, leftChild, rightChild)
+	disjned := child.disj(key, false, leftChild, rightChild, compare)
 
 	if disjned == nil {
 		return nil
@@ -501,8 +501,8 @@ type leafNode struct {
 func (n *leafNode) length() int             { return len(n.keys) }
 func (n *leafNode) getkeys() []c.Comparable { return n.keys }
 
-func (n *leafNode) lookup(key c.Comparable) c.Comparable {
-	idx := lookupExact(n.keys, key)
+func (n *leafNode) lookup(key c.Comparable, compare c.CompareFn) c.Comparable {
+	idx := lookupExact(n.keys, key, compare)
 
 	if -1 == idx {
 		return nil
@@ -511,8 +511,8 @@ func (n *leafNode) lookup(key c.Comparable) c.Comparable {
 	return n.keys[idx]
 }
 
-func (n *leafNode) conj(key c.Comparable) []anyNode {
-	idx := binarySearchL(n.keys, 0, len(n.keys)-1, key)
+func (n *leafNode) conj(key c.Comparable, compare c.CompareFn) []anyNode {
+	idx := binarySearchL(n.keys, 0, len(n.keys)-1, key, compare)
 	keysL := len(n.keys)
 
 	if idx < keysL && c.Eq(key, n.keys[idx]) { // already there
@@ -547,8 +547,8 @@ func (n *leafNode) mergeNSplit(next anyNode) []anyNode {
 	return returnArray(&leafNode{ks[0]}, &leafNode{ks[1]}, nil)
 }
 
-func (n *leafNode) disj(key c.Comparable, isRoot bool, left, right anyNode) []anyNode {
-	idx := lookupExact(n.keys, key)
+func (n *leafNode) disj(key c.Comparable, isRoot bool, left, right anyNode, compare c.CompareFn) []anyNode {
+	idx := lookupExact(n.keys, key, compare)
 
 	if -1 == idx {
 		return nil
@@ -559,7 +559,7 @@ func (n *leafNode) disj(key c.Comparable, isRoot bool, left, right anyNode) []an
 }
 
 func btsetConj(set *Set, key c.Comparable) *Set {
-	roots := set.root.conj(key)
+	roots := set.root.conj(key, set.cmp)
 
 	if roots == nil { // nothing changed
 		return set
@@ -571,7 +571,7 @@ func btsetConj(set *Set, key c.Comparable) *Set {
 }
 
 func btsetDisj(set *Set, key c.Comparable) *Set {
-	newRoots := set.root.disj(key, true, nil, nil)
+	newRoots := set.root.disj(key, true, nil, nil, set.cmp)
 
 	if newRoots == nil { // nothing changed, key wasn't in set
 		return set
@@ -833,14 +833,14 @@ func internalSeek(set *Set, key c.Comparable) int {
 		keys := node.getkeys()
 		keysL := len(keys)
 		if 0 == level {
-			idx := binarySearchL(keys, 0, keysL-1, key)
+			idx := binarySearchL(keys, 0, keysL-1, key, set.cmp)
 			if keysL == idx {
 				return -1
 			} else {
 				return pathSet(path, 0, idx)
 			}
 		} else {
-			idx := binarySearchL(keys, 0, keysL-2, key)
+			idx := binarySearchL(keys, 0, keysL-2, key, set.cmp)
 			node = node.(*pointerNode).pointers[idx]
 			path = pathSet(path, level, idx)
 			level -= levelShift
@@ -856,10 +856,10 @@ func internalRseek(set *Set, key c.Comparable) int {
 		keys := node.getkeys()
 		keysL := len(keys)
 		if 0 == level {
-			idx := binarySearchR(keys, 0, keysL-1, key)
+			idx := binarySearchR(keys, 0, keysL-1, key, set.cmp)
 			return pathSet(path, 0, idx)
 		} else {
-			idx := binarySearchR(keys, 0, keysL-2, key)
+			idx := binarySearchR(keys, 0, keysL-2, key, set.cmp)
 			node = node.(*pointerNode).pointers[idx]
 			path = pathSet(path, level, idx)
 			level -= levelShift
@@ -896,13 +896,14 @@ func Slice(set *Set, keys ...c.Comparable) *setIter {
 // public interface
 
 func alterSet(set *Set, root anyNode, shift, cnt int) *Set {
-	return &Set{root, shift, cnt}
+	return &Set{root, shift, cnt, set.cmp}
 }
 
 type Set struct {
 	root  anyNode
 	shift int
 	cnt   int
+	cmp   c.CompareFn
 }
 
 type SetIter interface {
@@ -910,12 +911,19 @@ type SetIter interface {
 	Next() SetIter
 }
 
-func New() *Set {
+func New(compare c.CompareFn) *Set {
 	return &Set{
 		&leafNode{make([]c.Comparable, 0)},
 		0,
 		0,
+		compare,
 	}
+}
+
+func NewComparable() *Set {
+	return New(func(a, b interface{}) int {
+		return a.(c.Comparable).Compare(b.(c.Comparable))
+	})
 }
 
 func (s *Set) Conj(key c.Comparable) *Set {
@@ -927,7 +935,7 @@ func (s *Set) Disj(key c.Comparable) *Set {
 }
 
 func (s *Set) Lookup(key c.Comparable) c.Comparable {
-	return s.root.lookup(key)
+	return s.root.lookup(key, s.cmp)
 }
 
 func (s *Set) Iter() *setIter {

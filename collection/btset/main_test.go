@@ -17,11 +17,14 @@ func TestCompare(t *testing.T) {
 
 func TestBinarySearchL(t *testing.T) {
 	xs := []c.Comparable{c.Int(1), c.Int(14), c.Int(37), c.Int(109), c.Int(110), c.Int(385), c.Int(583)}
-	tu.ExpectEqual(t, binarySearchL(xs, 0, len(xs), c.Int(10)), 1)
+	cmp := func(a, b interface{}) int {
+		return a.(c.Int).Compare(b.(c.Int))
+	}
+	tu.ExpectEqual(t, binarySearchL(xs, 0, len(xs), c.Int(10), cmp), 1)
 }
 
 func TestConj(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 1000; i++ {
 		set = set.Conj(c.Int(i))
 		tu.ExpectEqual(t, set.cnt, i+1)
@@ -34,7 +37,7 @@ func TestConj(t *testing.T) {
 }
 
 func TestConjStrings(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	num := 1000
 	buf := make([]byte, 10)
 	for i := 0; i < num; i++ {
@@ -47,7 +50,7 @@ func TestConjStrings(t *testing.T) {
 }
 
 func TestConjImmutable(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 1000; i++ {
 		v := c.Int(i)
 		newSet := set.Conj(v)
@@ -59,7 +62,7 @@ func TestConjImmutable(t *testing.T) {
 }
 
 func TestConjRandom(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 1000; i++ {
 		n := c.Int(rand.Int())
 		set = set.Conj(n)
@@ -69,7 +72,7 @@ func TestConjRandom(t *testing.T) {
 }
 
 func TestDisj(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 1000; i++ {
 		set = set.Conj(c.Int(i))
 	}
@@ -88,7 +91,7 @@ func TestIter(t *testing.T) {
 
 	num := 1000
 	ns := make([]c.Comparable, num)
-	set := New()
+	set := NewComparable()
 	for i := 0; i < num; i++ {
 		ns[i] = c.Int(rand.Intn(num * 1000))
 		set = set.Conj(ns[i])
@@ -111,7 +114,7 @@ func TestIterReverse(t *testing.T) {
 
 	num := 1000
 	ns := make([]c.Comparable, num)
-	set := New()
+	set := NewComparable()
 	for i := 0; i < num; i++ {
 		ns[i] = c.Int(rand.Intn(num * 1000))
 		set = set.Conj(ns[i])
@@ -131,7 +134,7 @@ func TestIterReverse(t *testing.T) {
 
 func TestIterReverseTwice(t *testing.T) {
 	num := 1000
-	set := New()
+	set := NewComparable()
 	for i := 0; i < num; i++ {
 		set = set.Conj(c.Int(rand.Intn(num * 1000)))
 	}
@@ -147,7 +150,7 @@ func TestIterReverseTwice(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 1000; i++ {
 		set = set.Conj(c.Int(rand.Intn(5000)))
 	}
@@ -160,21 +163,21 @@ func TestSlice(t *testing.T) {
 }
 
 func BenchmarkConj(b *testing.B) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < b.N; i++ {
 		set = set.Conj(c.Int(i))
 	}
 }
 
 func BenchmarkConjRandom(b *testing.B) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < b.N; i++ {
 		set = set.Conj(c.Int(rand.Intn(b.N * 1000)))
 	}
 }
 
 func BenchmarkLookup(b *testing.B) {
-	set := New()
+	set := NewComparable()
 	for i := 0; i < 100000; i++ {
 		set = set.Conj(c.Int(i))
 	}
