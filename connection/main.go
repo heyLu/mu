@@ -21,5 +21,5 @@ func New(u *url.URL) (*Connection, error) {
 }
 
 func (c *Connection) Db() (*database.Database, error) {
-	return database.New(c.store)
+	return database.NewFromStore(c.store)
 }

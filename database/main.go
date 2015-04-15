@@ -14,7 +14,11 @@ type Database struct {
 	vaet index.Index
 }
 
-func New(store *storage.Store) (*Database, error) {
+func New(eavt, aevt, avet, vaet index.Index) *Database {
+	return &Database{eavt, aevt, avet, vaet}
+}
+
+func NewFromStore(store *storage.Store) (*Database, error) {
 	indexRootRaw, err := storage.Get(store, store.IndexRootId(), nil)
 	if err != nil {
 		return nil, err
