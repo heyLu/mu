@@ -151,9 +151,15 @@ func (d Datom) Transaction() int   { return d.transaction }
 func (d Datom) Tx() int            { return d.transaction }
 func (d Datom) Added() bool        { return d.added }
 
-type Iterator struct {
-	Next func() *Datom
+type Iterator interface {
+	Next() *Datom
 }
+
+type iterator struct {
+	next func() *Datom
+}
+
+func (i iterator) Next() *Datom { return i.next() }
 
 func (root *RootNode) Datoms() Iterator {
 	var (
@@ -191,7 +197,7 @@ func (root *RootNode) Datoms() Iterator {
 		return &datom
 	}
 
-	return Iterator{next}
+	return iterator{next}
 }
 
 func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
@@ -235,7 +241,7 @@ func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 		return &datom
 	}
 
-	return Iterator{next}
+	return iterator{next}
 }
 
 func findStart(root *RootNode, component int) (int, *DirNode, int, *TData, int) {
