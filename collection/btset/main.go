@@ -714,7 +714,7 @@ func (i *setIter) estimateCount() int {
 	return distance(i.set, i.left, i.right)
 }
 
-func (i *setIter) first() c.Comparable {
+func (i *setIter) First() c.Comparable {
 	if i.keys != nil {
 		return i.keys[i.idx]
 	} else {
@@ -722,7 +722,7 @@ func (i *setIter) first() c.Comparable {
 	}
 }
 
-func (i *setIter) next() *setIter {
+func (i *setIter) Next() *setIter {
 	if i.keys != nil {
 		if i.idx+1 < len(i.keys) { // can use cached array to move forward
 			if i.left+1 < i.right {
@@ -881,10 +881,10 @@ func internalSlice(set *Set, keyFrom, keyTo c.Comparable) *setIter {
 	}
 }
 
-func slice(set *Set, keys ...c.Comparable) *setIter {
+func Slice(set *Set, keys ...c.Comparable) *setIter {
 	switch len(keys) {
 	case 1:
-		return slice(set, keys[0], keys[0])
+		return Slice(set, keys[0], keys[0])
 	case 2:
 		return internalSlice(set, keys[0], keys[1])
 	default:
@@ -905,6 +905,11 @@ type Set struct {
 	cnt   int
 }
 
+type SetIter interface {
+	First() c.Comparable
+	Next() SetIter
+}
+
 func New() *Set {
 	return &Set{
 		&leafNode{make([]c.Comparable, 0)},
@@ -913,18 +918,18 @@ func New() *Set {
 	}
 }
 
-func (s *Set) conj(key c.Comparable) *Set {
+func (s *Set) Conj(key c.Comparable) *Set {
 	return btsetConj(s, key)
 }
 
-func (s *Set) disj(key c.Comparable) *Set {
+func (s *Set) Disj(key c.Comparable) *Set {
 	return btsetDisj(s, key)
 }
 
-func (s *Set) lookup(key c.Comparable) c.Comparable {
+func (s *Set) Lookup(key c.Comparable) c.Comparable {
 	return s.root.lookup(key)
 }
 
-func (s *Set) iter() *setIter {
+func (s *Set) Iter() *setIter {
 	return fullBtsetIter(s)
 }
