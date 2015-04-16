@@ -942,3 +942,7 @@ func (s *Set) Lookup(key interface{}) interface{} {
 func (s *Set) Iter() SetIter {
 	return fullBtsetIter(s)
 }
+
+func (s *Set) Count() int {
+	return s.cnt
+}
