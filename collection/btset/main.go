@@ -722,7 +722,7 @@ func (i *setIter) First() interface{} {
 	}
 }
 
-func (i *setIter) Next() *setIter {
+func (i *setIter) Next() SetIter {
 	if i.keys != nil {
 		if i.idx+1 < len(i.keys) { // can use cached array to move forward
 			if i.left+1 < i.right {
@@ -743,7 +743,7 @@ func (i *setIter) Next() *setIter {
 	}
 }
 
-func (i *setIter) reverse() *backwardsSetIter {
+func (i *setIter) Reverse() SetIter {
 	if i.keys != nil {
 		return btsetBackwardsIter(i.set, prevPath(i.set, i.left), prevPath(i.set, i.right))
 	} else {
@@ -751,7 +751,7 @@ func (i *setIter) reverse() *backwardsSetIter {
 	}
 }
 
-func btsetIter(set *Set, left, right int) *setIter {
+func btsetIter(set *Set, left, right int) SetIter {
 	return &setIter{set, left, right, keysFor(set, left), pathGet(left, 0)}
 }
 
@@ -762,7 +762,7 @@ type backwardsSetIter struct {
 	idx         int
 }
 
-func (i *backwardsSetIter) first() interface{} {
+func (i *backwardsSetIter) First() interface{} {
 	if i.keys != nil {
 		return i.keys[i.idx]
 	} else {
@@ -770,7 +770,7 @@ func (i *backwardsSetIter) first() interface{} {
 	}
 }
 
-func (i *backwardsSetIter) next() *backwardsSetIter {
+func (i *backwardsSetIter) Next() SetIter {
 	if i.keys != nil {
 		if i.idx-1 >= 0 { // can use cached array to advance
 			if i.right-1 > i.left {
@@ -791,7 +791,7 @@ func (i *backwardsSetIter) next() *backwardsSetIter {
 	}
 }
 
-func (i *backwardsSetIter) reverse() *setIter {
+func (i *backwardsSetIter) Reverse() SetIter {
 	if i.keys != nil {
 		var newLeft int
 		if i.left == -1 {
@@ -815,7 +815,7 @@ func btsetBackwardsIter(set *Set, left, right int) *backwardsSetIter {
 	return &backwardsSetIter{set, left, right, keysFor(set, right), pathGet(right, 0)}
 }
 
-func fullBtsetIter(set *Set) *setIter {
+func fullBtsetIter(set *Set) SetIter {
 	if len(set.root.getkeys()) > 0 {
 		left := emptyPath
 		right := rpath(set.root, set.shift) + 1
@@ -881,7 +881,7 @@ func internalSlice(set *Set, keyFrom, keyTo interface{}) *setIter {
 	}
 }
 
-func Slice(set *Set, keys ...interface{}) *setIter {
+func Slice(set *Set, keys ...interface{}) SetIter {
 	switch len(keys) {
 	case 1:
 		return Slice(set, keys[0], keys[0])
@@ -909,6 +909,7 @@ type Set struct {
 type SetIter interface {
 	First() interface{}
 	Next() SetIter
+	Reverse() SetIter
 }
 
 func New(compare c.CompareFn) *Set {
@@ -938,6 +939,6 @@ func (s *Set) Lookup(key interface{}) interface{} {
 	return s.root.lookup(key, s.cmp)
 }
 
-func (s *Set) Iter() *setIter {
+func (s *Set) Iter() SetIter {
 	return fullBtsetIter(s)
 }

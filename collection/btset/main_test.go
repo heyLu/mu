@@ -120,14 +120,14 @@ func TestIterReverse(t *testing.T) {
 		set = set.Conj(ns[i])
 	}
 
-	iter := set.Iter().reverse()
+	iter := set.Iter().Reverse()
 	i := 0
 	var last c.Comparable = c.Int(num * 1000)
 	for iter != nil {
 		i += 1
-		tu.ExpectEqual(t, c.Gt(last, iter.first().(c.Comparable)), true)
-		last = iter.first().(c.Comparable)
-		iter = iter.next()
+		tu.ExpectEqual(t, c.Gt(last, iter.First().(c.Comparable)), true)
+		last = iter.First().(c.Comparable)
+		iter = iter.Next()
 	}
 	tu.ExpectEqual(t, i, set.cnt)
 }
@@ -140,7 +140,7 @@ func TestIterReverseTwice(t *testing.T) {
 	}
 
 	iter1 := set.Iter()
-	iter2 := iter1.reverse().reverse()
+	iter2 := iter1.Reverse().Reverse()
 	for iter1 != nil {
 		tu.ExpectNotNil(t, iter2)
 		tu.ExpectEqual(t, iter1.First(), iter2.First())
