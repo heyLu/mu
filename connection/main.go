@@ -7,6 +7,7 @@ import (
 	"../database"
 	"../index"
 	"../storage"
+	"./memory"
 )
 
 type Connection interface {
@@ -19,6 +20,10 @@ type PersistentConnection struct {
 }
 
 func New(u *url.URL) (Connection, error) {
+	if u.Scheme == "memory" {
+		return memory.New(), nil
+	}
+
 	store, err := storage.Open(u)
 	if err != nil {
 		return nil, err
