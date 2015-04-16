@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"../comparable"
 	"../storage"
 )
 
@@ -170,7 +171,8 @@ func NewValue(val interface{}) Value {
 func (v Value) Type() ValueType  { return v.ty }
 func (v Value) Val() interface{} { return v.val }
 
-func (v Value) Compare(ov Value) int {
+func (v Value) Compare(ovc comparable.Comparable) int {
+	ov := ovc.(Value)
 	if v.ty == ov.ty {
 		switch v.ty {
 		case Bool:
