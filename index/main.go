@@ -176,11 +176,11 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 	if v.ty == ov.ty {
 		switch v.ty {
 		case Bool:
-			vb := v.val.(bool)
-			ovb := ov.val.(bool)
-			if vb == ovb {
+			v := v.val.(bool)
+			ov := ov.val.(bool)
+			if v == ov {
 				return 0
-			} else if !vb && ovb {
+			} else if !v && ov {
 				return -1
 			} else {
 				return 1
@@ -198,19 +198,19 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 				return 1
 			}
 		case String:
-			vs := v.val.(string)
-			ovs := ov.val.(string)
-			if vs < ovs {
+			v := v.val.(string)
+			ov := ov.val.(string)
+			if v < ov {
 				return -1
-			} else if vs == ovs {
+			} else if v == ov {
 				return 0
 			} else {
 				return 1
 			}
 		case Date:
-			vt := v.val.(time.Time)
-			ovt := ov.val.(time.Time)
-			return int(vt.Unix() - ovt.Unix())
+			v := v.val.(time.Time)
+			ov := ov.val.(time.Time)
+			return int(v.Unix() - ov.Unix())
 		default:
 			log.Fatal("invalid values: ", v, ", ", ov)
 			return 0
