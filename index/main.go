@@ -230,6 +230,28 @@ func (d Datom) Transaction() int { return d.transaction }
 func (d Datom) Tx() int          { return d.transaction }
 func (d Datom) Added() bool      { return d.added }
 
+func CompareEavt(ai, bi interface{}) int {
+	a := ai.(Datom)
+	b := bi.(Datom)
+
+	if a.entity < b.entity {
+		return -1
+	} else if a.attribute < b.attribute {
+		return -1
+	} else if comparable.Lt(a.value, b.value) {
+		return -1
+	} else if a.transaction < b.transaction {
+		return -1
+	} else if a.entity == b.entity &&
+		a.attribute == b.attribute &&
+		comparable.Eq(a.value, b.value) &&
+		a.transaction == b.transaction {
+		return 0
+	} else {
+		return 1
+	}
+}
+
 type Iterator interface {
 	Next() *Datom
 }
