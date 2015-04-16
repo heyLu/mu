@@ -241,8 +241,8 @@ func (d Datom) Tx() int          { return d.transaction }
 func (d Datom) Added() bool      { return d.added }
 
 func CompareEavt(ai, bi interface{}) int {
-	a := ai.(Datom)
-	b := bi.(Datom)
+	a := ai.(*Datom)
+	b := bi.(*Datom)
 
 	if a.entity < b.entity {
 		return -1
