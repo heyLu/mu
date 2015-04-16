@@ -1,5 +1,11 @@
 [
 	{
+		"id": "eb4136774a202c7a084f0735f731a811",
+		"title": "An initial in-memory backend",
+		"content": "Aka: **success**, we got something working.\r\n\r\nWhat works?\r\n\r\n- `eavt` and `aevt` indexes\r\n- `.TransactDatoms`, without *any* checks whatsoever\r\n    - no new entity ids\r\n    - no value type checking (i.e. you can store whatever you want)\r\n    - no attribute checking (i.e. no schema)\r\n    - it's just for straight-up imports from a datomic database\r\n\r\nWhat's missing?  (For certain values of \"missing\".  A more precise question would be \"What's missing before we can use this to store data at all?\")\r\n\r\n- entity id creation (and temporary ids)\r\n- on disk storage\r\n- avet and vaet indexes (need schema support, so maybe postpone until later as well)\r\n- ...\r\n\r\n    everything else, but out of scope until we actually stored some data on disk and used it for a (tiny) bit.",
+		"created": "2015-04-16T22:06:48.065160772+02:00"
+	},
+	{
 		"id": "4043e3bbfe84d0e9ed670afead37bbb2",
 		"title": "Comparing Datoms",
 		"content": "- multiple comparators (one per index type)\r\n- `.Value()` is most complex (no `\u003c` for `interface{}` values, or even `[]byte`)\r\n\r\na bit of (slightly) pseudo code:\r\n\r\n```go\r\nfunc CompareEavt(a, b Datom) int {\r\n    if a.entity \u003c b.entity {\r\n        return -1\r\n    } else if a.attribute \u003c b.attribute {\r\n        return -1\r\n    } else if a.value.Compare(b.value) \u003c 0 { // pseudo\r\n        return -1\r\n    } else if a.transaction \u003c b.transaction {\r\n        return -1\r\n    } else if a.entity == b.entity\r\n        \u0026\u0026 a.attribute == b.attribute\r\n        \u0026\u0026 a.value.Compare(b.value) == 0     // pseudo\r\n        \u0026\u0026 a.transaction == b.transaction {\r\n        return 0\r\n    } else {\r\n        return 1\r\n    }\r\n}\r\n```\r\n\r\nsome problems with that:\r\n\r\n- `.value` is an `interface{}` currently, not a `Comparable`\r\n    - not sure if we should wrap it and if we do so, how\r\n        - a `Value` type, `Comparable` with a type switch\r\n        - individual wrappers, all implementing `Comparable`\r\n        - in any case, it must still be possible to compare values of *different* types (at least those supported by datomic)\r\n- it seems quite inefficient (i.e. no fast path for `==` or `\u003e`)",
