@@ -187,6 +187,16 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 			}
 		case Int:
 			return v.val.(int) - ov.val.(int)
+		case Key:
+			v := v.val.(fressian.Key)
+			ov := ov.val.(fressian.Key)
+			if v.Namespace < ov.Namespace && v.Name < ov.Name {
+				return -1
+			} else if v.Namespace == ov.Namespace && v.Name == ov.Name {
+				return 0
+			} else {
+				return 1
+			}
 		case String:
 			vs := v.val.(string)
 			ovs := ov.val.(string)
