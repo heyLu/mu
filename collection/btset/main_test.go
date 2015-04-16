@@ -16,7 +16,7 @@ func TestCompare(t *testing.T) {
 }
 
 func TestBinarySearchL(t *testing.T) {
-	xs := []c.Comparable{c.Int(1), c.Int(14), c.Int(37), c.Int(109), c.Int(110), c.Int(385), c.Int(583)}
+	xs := []interface{}{c.Int(1), c.Int(14), c.Int(37), c.Int(109), c.Int(110), c.Int(385), c.Int(583)}
 	cmp := func(a, b interface{}) int {
 		return a.(c.Int).Compare(b.(c.Int))
 	}
@@ -55,7 +55,7 @@ func TestConjImmutable(t *testing.T) {
 		v := c.Int(i)
 		newSet := set.Conj(v)
 		tu.ExpectEqual(t, newSet.cnt, i+1)
-		expectEqual(t, newSet.Lookup(v), v)
+		expectEqual(t, newSet.Lookup(v).(c.Comparable), v)
 		tu.ExpectEqual(t, set.Lookup(v), nil)
 		set = newSet
 	}
@@ -102,8 +102,8 @@ func TestIter(t *testing.T) {
 	var last c.Comparable = c.Int(-1)
 	for iter != nil {
 		i += 1
-		tu.ExpectEqual(t, c.Lt(last, iter.First()), true)
-		last = iter.First()
+		tu.ExpectEqual(t, c.Lt(last, iter.First().(c.Comparable)), true)
+		last = iter.First().(c.Comparable)
 		iter = iter.Next()
 	}
 	tu.ExpectEqual(t, i, set.cnt)
@@ -125,8 +125,8 @@ func TestIterReverse(t *testing.T) {
 	var last c.Comparable = c.Int(num * 1000)
 	for iter != nil {
 		i += 1
-		tu.ExpectEqual(t, c.Gt(last, iter.first()), true)
-		last = iter.first()
+		tu.ExpectEqual(t, c.Gt(last, iter.first().(c.Comparable)), true)
+		last = iter.first().(c.Comparable)
 		iter = iter.next()
 	}
 	tu.ExpectEqual(t, i, set.cnt)
@@ -157,7 +157,8 @@ func TestSlice(t *testing.T) {
 
 	iter := Slice(set, c.Int(300), c.Int(500))
 	for iter != nil {
-		tu.ExpectEqual(t, c.Int(300).Compare(iter.First()) <= 0 && iter.First().Compare(c.Int(500)) <= 0, true)
+		tu.ExpectEqual(t, c.Int(300).Compare(iter.First().(c.Comparable)) <= 0 &&
+			iter.First().(c.Comparable).Compare(c.Int(500)) <= 0, true)
 		iter = iter.Next()
 	}
 }
