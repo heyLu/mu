@@ -12,7 +12,8 @@ type Connection struct {
 
 func New() *Connection {
 	eavt := memoryIndex.New(index.CompareEavt)
-	db := database.New(eavt, nil, nil, nil)
+	aevt := memoryIndex.New(index.CompareAevt)
+	db := database.New(eavt, aevt, nil, nil)
 	return &Connection{db}
 }
 
@@ -23,6 +24,8 @@ func (c *Connection) Db() (*database.Database, error) {
 func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	eavt := c.db.Eavt().(*memoryIndex.Index)
 	eavt = eavt.AddDatoms(datoms)
-	c.db = database.New(eavt, nil, nil, nil)
+	aevt := c.db.Aevt().(*memoryIndex.Index)
+	aevt = aevt.AddDatoms(datoms)
+	c.db = database.New(eavt, aevt, nil, nil)
 	return nil
 }
