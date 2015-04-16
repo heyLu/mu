@@ -3,6 +3,7 @@ package index
 import (
 	"github.com/heyLu/fressian"
 	"log"
+	"time"
 
 	"../storage"
 )
@@ -168,6 +169,46 @@ func NewValue(val interface{}) Value {
 
 func (v Value) Type() ValueType  { return v.ty }
 func (v Value) Val() interface{} { return v.val }
+
+func (v Value) Compare(ov Value) int {
+	if v.ty == ov.ty {
+		switch v.ty {
+		case Bool:
+			vb := v.val.(bool)
+			ovb := ov.val.(bool)
+			if vb == ovb {
+				return 0
+			} else if !vb && ovb {
+				return -1
+			} else {
+				return 1
+			}
+		case Int:
+			return v.val.(int) - ov.val.(int)
+		case String:
+			vs := v.val.(string)
+			ovs := ov.val.(string)
+			if vs < ovs {
+				return -1
+			} else if vs == ovs {
+				return 0
+			} else {
+				return 1
+			}
+		case Date:
+			vt := v.val.(time.Time)
+			ovt := ov.val.(time.Time)
+			return int(vt.Unix() - ovt.Unix())
+		default:
+			log.Fatal("invalid values: ", v, ", ", ov)
+			return 0
+		}
+	} else if v.ty < ov.ty {
+		return -1
+	} else {
+		return 1
+	}
+}
 
 type Datom struct {
 	entity      int
