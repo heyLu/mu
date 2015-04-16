@@ -74,6 +74,28 @@ func main() {
 		dbCardinality := fressian.Key{"db", "cardinality"}
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
+	case "transact-to-memory":
+		memUrl, _ := url.Parse("memory://test")
+		memConn, _ := Connect(memUrl)
+		memDbEmpty, _ := memConn.Db()
+		allDatoms := make([]index.Datom, 0, 1000)
+		datoms := db.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			allDatoms = append(allDatoms, *datom)
+		}
+
+		datoms = memDbEmpty.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			fmt.Println(datom)
+		}
+
+		memConn.TransactDatoms(allDatoms)
+		memDb, _ := memConn.Db()
+		datoms = memDb.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			fmt.Println(datom)
+		}
+
 	default:
 		fmt.Println("unknown command:", cmd)
 		os.Exit(1)
