@@ -1,14 +1,17 @@
 package connection
 
 import (
+	"errors"
 	"net/url"
 
 	"../database"
+	"../index"
 	"../storage"
 )
 
 type Connection interface {
 	Db() (*database.Database, error)
+	TransactDatoms(datoms []index.Datom) error
 }
 
 type PersistentConnection struct {
@@ -26,4 +29,8 @@ func New(u *url.URL) (Connection, error) {
 
 func (c *PersistentConnection) Db() (*database.Database, error) {
 	return database.NewFromStore(c.store)
+}
+
+func (c *PersistentConnection) TransactDatoms(datoms []index.Datom) error {
+	return errors.New("not implemented")
 }
