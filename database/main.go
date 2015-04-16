@@ -55,7 +55,7 @@ func (db *Database) Vaet() index.Index { return db.vaet }
 func (db *Database) Entid(key fressian.Key) int {
 	datoms := db.avet.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-		if datom.Attribute() == 10 && datom.V() == key {
+		if datom.Attribute() == 10 && datom.Value().Val() == key {
 			return datom.Entity()
 		}
 	}
@@ -67,7 +67,7 @@ func (db *Database) Ident(entity int) *fressian.Key {
 	datoms := db.aevt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == entity && datom.Attribute() == 10 {
-			key := datom.V().(fressian.Key)
+			key := datom.Value().Val().(fressian.Key)
 			return &key
 		}
 	}
@@ -93,7 +93,7 @@ func (e Entity) Get(key fressian.Key) interface{} {
 	datoms := e.db.eavt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == e.id && datom.Attribute() == attrId {
-			return datom.Value()
+			return datom.Value().Val()
 		}
 	}
 

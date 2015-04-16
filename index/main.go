@@ -223,7 +223,7 @@ func (d Datom) E() int           { return d.entity }
 func (d Datom) Attribute() int   { return d.attribute }
 func (d Datom) A() int           { return d.attribute }
 func (d Datom) Value() Value     { return d.value }
-func (d Datom) V() interface{}   { return d.value.val }
+func (d Datom) V() Value         { return d.value }
 func (d Datom) Transaction() int { return d.transaction }
 func (d Datom) Tx() int          { return d.transaction }
 func (d Datom) Added() bool      { return d.added }
