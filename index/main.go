@@ -133,23 +133,59 @@ func New(store *storage.Store, type_ Type, id string) (Index, error) {
 	return Index(&indexRoot), nil
 }
 
+type ValueType int
+
+const (
+	Bool ValueType = iota
+	Int
+	Key
+	String
+	Date
+)
+
+type Value struct {
+	ty  ValueType
+	val interface{}
+}
+
+func NewValue(val interface{}) Value {
+	switch val.(type) {
+	case bool:
+		return Value{Bool, val}
+	case int:
+		return Value{Int, val}
+	case fressian.Key:
+		return Value{Key, val}
+	case string:
+		return Value{String, val}
+	case time.Time:
+		return Value{Date, val}
+	default:
+		log.Fatal("invalid datom value: ", val)
+		return Value{-1, nil}
+	}
+}
+
+func (v Value) Type() ValueType  { return v.ty }
+func (v Value) Val() interface{} { return v.val }
+
 type Datom struct {
 	entity      int
 	attribute   int
-	value       interface{}
+	value       Value
 	transaction int
 	added       bool
 }
 
-func (d Datom) Entity() int        { return d.entity }
-func (d Datom) E() int             { return d.entity }
-func (d Datom) Attribute() int     { return d.attribute }
-func (d Datom) A() int             { return d.attribute }
-func (d Datom) Value() interface{} { return d.value }
-func (d Datom) V() interface{}     { return d.value }
-func (d Datom) Transaction() int   { return d.transaction }
-func (d Datom) Tx() int            { return d.transaction }
-func (d Datom) Added() bool        { return d.added }
+func (d Datom) Entity() int      { return d.entity }
+func (d Datom) E() int           { return d.entity }
+func (d Datom) Attribute() int   { return d.attribute }
+func (d Datom) A() int           { return d.attribute }
+func (d Datom) Value() Value     { return d.value }
+func (d Datom) V() interface{}   { return d.value.val }
+func (d Datom) Transaction() int { return d.transaction }
+func (d Datom) Tx() int          { return d.transaction }
+func (d Datom) Added() bool      { return d.added }
 
 type Iterator interface {
 	Next() *Datom
@@ -190,7 +226,7 @@ func (root *RootNode) Datoms() Iterator {
 		datom := Datom{
 			segment.entities[datomIndex],
 			segment.attributes[datomIndex],
-			segment.values[datomIndex],
+			NewValue(segment.values[datomIndex]),
 			3*(1<<42) + segment.transactions[datomIndex],
 			segment.addeds[datomIndex],
 		}
@@ -234,7 +270,7 @@ func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 		datom := Datom{
 			segment.entities[datomIndex],
 			segment.attributes[datomIndex],
-			segment.values[datomIndex],
+			NewValue(segment.values[datomIndex]),
 			3*(1<<42) + segment.transactions[datomIndex],
 			segment.addeds[datomIndex],
 		}
