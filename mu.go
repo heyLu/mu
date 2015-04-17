@@ -9,6 +9,8 @@ import (
 	"strconv"
 
 	"./connection"
+	_ "./connection/backup"
+	_ "./connection/memory"
 	"./database"
 	"./index"
 )

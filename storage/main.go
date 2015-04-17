@@ -30,7 +30,7 @@ func (s *Store) Get(id string) (io.ReadCloser, error) {
 }
 
 func Open(u *url.URL) (*Store, error) {
-	baseDir := u.Path
+	baseDir := u.Host + u.Path
 	rootId := u.Query().Get("root")
 	if rootId == "" {
 		roots, err := listDir(path.Join(baseDir, "roots"))

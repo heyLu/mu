@@ -2,40 +2,35 @@ package connection
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/url"
 
 	"../database"
 	"../index"
-	"../storage"
-	"./memory"
 )
+
+type Connector func(u *url.URL) (Connection, error)
 
 type Connection interface {
 	Db() (*database.Database, error)
 	TransactDatoms(datoms []index.Datom) error
 }
 
-type PersistentConnection struct {
-	store *storage.Store
-}
+var registeredConnectors = map[string]Connector{}
 
+func Register(name string, connector Connector) {
+	if _, ok := registeredConnectors[name]; ok {
+		log.Fatal("duplicate connector for ", name)
+	}
+
+	registeredConnectors[name] = connector
+}
 func New(u *url.URL) (Connection, error) {
-	if u.Scheme == "memory" {
-		return memory.New(), nil
+	connector, ok := registeredConnectors[u.Scheme]
+	if !ok {
+		return nil, errors.New(fmt.Sprint("no such connector: ", u.Scheme))
 	}
 
-	store, err := storage.Open(u)
-	if err != nil {
-		return nil, err
-	}
-
-	return &PersistentConnection{store}, nil
-}
-
-func (c *PersistentConnection) Db() (*database.Database, error) {
-	return database.NewFromStore(c.store)
-}
-
-func (c *PersistentConnection) TransactDatoms(datoms []index.Datom) error {
-	return errors.New("not implemented")
+	return connector(u)
 }
