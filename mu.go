@@ -97,7 +97,10 @@ func main() {
 			allDatoms = append(allDatoms, *datom)
 		}
 
-		toConn.TransactDatoms(allDatoms)
+		err = toConn.TransactDatoms(allDatoms)
+		if err != nil {
+			log.Fatal(err)
+		}
 		toDb, _ := toConn.Db()
 		datoms = toDb.Eavt().Datoms()
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
