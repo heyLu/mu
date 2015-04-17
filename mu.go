@@ -76,24 +76,30 @@ func main() {
 		dbCardinality := fressian.Key{"db", "cardinality"}
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
-	case "transact-to-memory":
-		memUrl, _ := url.Parse("memory://test")
-		memConn, _ := Connect(memUrl)
-		memDbEmpty, _ := memConn.Db()
+	case "transact-to":
+		rawUrl := "memory://test"
+		if len(os.Args) >= 4 {
+			rawUrl = os.Args[3]
+		}
+		toUrl, err := url.Parse(rawUrl)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		toConn, err := Connect(toUrl)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		allDatoms := make([]index.Datom, 0, 1000)
 		datoms := db.Eavt().Datoms()
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 			allDatoms = append(allDatoms, *datom)
 		}
 
-		datoms = memDbEmpty.Eavt().Datoms()
-		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-			fmt.Println(datom)
-		}
-
-		memConn.TransactDatoms(allDatoms)
-		memDb, _ := memConn.Db()
-		datoms = memDb.Eavt().Datoms()
+		toConn.TransactDatoms(allDatoms)
+		toDb, _ := toConn.Db()
+		datoms = toDb.Eavt().Datoms()
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 			fmt.Println(datom)
 		}
