@@ -50,7 +50,7 @@ func Open(u *url.URL) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootRaw, err := fressian.NewReader(f, nil).ReadObject()
+	rootRaw, err := fressian.NewReader(f, nil).ReadValue()
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func Get(s *Store, id string, handlers map[string]fressian.ReadHandler) (interfa
 		return nil, err
 	}
 
-	obj, err := fressian.NewReader(g, handlers).ReadObject()
+	obj, err := fressian.NewReader(g, handlers).ReadValue()
 	if err != nil {
 		return nil, err
 	}

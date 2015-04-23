@@ -20,8 +20,8 @@ type Type string
 
 var readHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		tData, _ := r.ReadObject()
-		directories, _ := r.ReadObject()
+		tData, _ := r.ReadValue()
+		directories, _ := r.ReadValue()
 		return RootNode{
 			nil,
 			nil,
@@ -31,11 +31,11 @@ var readHandlers = map[string]fressian.ReadHandler{
 		}
 	},
 	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		vs, _ := r.ReadObject()
-		es, _ := r.ReadObject()
-		as, _ := r.ReadObject()
-		txs, _ := r.ReadObject()
-		addeds, _ := r.ReadObject()
+		vs, _ := r.ReadValue()
+		es, _ := r.ReadValue()
+		as, _ := r.ReadValue()
+		txs, _ := r.ReadValue()
+		addeds, _ := r.ReadValue()
 		return TData{
 			vs.([]interface{}),
 			es.([]int),
@@ -45,10 +45,10 @@ var readHandlers = map[string]fressian.ReadHandler{
 		}
 	},
 	"index-dir-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		tData, _ := r.ReadObject()
-		segmentIds, _ := r.ReadObject()
-		mystery1, _ := r.ReadObject()
-		mystery2, _ := r.ReadObject()
+		tData, _ := r.ReadValue()
+		segmentIds, _ := r.ReadValue()
+		mystery1, _ := r.ReadValue()
+		mystery2, _ := r.ReadValue()
 		return DirNode{
 			tData.(TData),
 			segmentIds.([]interface{}),
