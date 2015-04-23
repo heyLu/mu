@@ -1,25 +1,36 @@
 package connection
 
 import (
+	"errors"
+	"fmt"
+	"log"
 	"net/url"
 
 	"../database"
-	"../storage"
+	"../index"
 )
 
-type Connection struct {
-	store *storage.Store
+type Connector func(u *url.URL) (Connection, error)
+
+type Connection interface {
+	Db() (*database.Database, error)
+	TransactDatoms(datoms []index.Datom) error
 }
 
-func New(u *url.URL) (*Connection, error) {
-	store, err := storage.Open(u)
-	if err != nil {
-		return nil, err
+var registeredConnectors = map[string]Connector{}
+
+func Register(name string, connector Connector) {
+	if _, ok := registeredConnectors[name]; ok {
+		log.Fatal("duplicate connector for ", name)
 	}
 
-	return &Connection{store}, nil
+	registeredConnectors[name] = connector
 }
+func New(u *url.URL) (Connection, error) {
+	connector, ok := registeredConnectors[u.Scheme]
+	if !ok {
+		return nil, errors.New(fmt.Sprint("no such connector: ", u.Scheme))
+	}
 
-func (c *Connection) Db() (*database.Database, error) {
-	return database.New(c.store)
+	return connector(u)
 }

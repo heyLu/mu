@@ -9,11 +9,13 @@ import (
 	"strconv"
 
 	"./connection"
+	_ "./connection/backup"
+	_ "./connection/memory"
 	"./database"
 	"./index"
 )
 
-func Connect(u *url.URL) (*connection.Connection, error) {
+func Connect(u *url.URL) (connection.Connection, error) {
 	return connection.New(u)
 }
 
@@ -73,6 +75,37 @@ func main() {
 		dbIdentEntity := db.Entity(10)
 		dbCardinality := fressian.Key{"db", "cardinality"}
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
+
+	case "transact-to":
+		rawUrl := "memory://test"
+		if len(os.Args) >= 4 {
+			rawUrl = os.Args[3]
+		}
+		toUrl, err := url.Parse(rawUrl)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		toConn, err := Connect(toUrl)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		allDatoms := make([]index.Datom, 0, 1000)
+		datoms := db.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			allDatoms = append(allDatoms, *datom)
+		}
+
+		err = toConn.TransactDatoms(allDatoms)
+		if err != nil {
+			log.Fatal(err)
+		}
+		toDb, _ := toConn.Db()
+		datoms = toDb.Eavt().Datoms()
+		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
+			fmt.Println(datom)
+		}
 
 	default:
 		fmt.Println("unknown command:", cmd)

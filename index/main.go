@@ -3,7 +3,9 @@ package index
 import (
 	"github.com/heyLu/fressian"
 	"log"
+	"time"
 
+	"../comparable"
 	"../storage"
 )
 
@@ -133,27 +135,208 @@ func New(store *storage.Store, type_ Type, id string) (Index, error) {
 	return Index(&indexRoot), nil
 }
 
+type ValueType int
+
+const (
+	Bool ValueType = iota
+	Int
+	Key
+	String
+	Date
+)
+
+type Value struct {
+	ty  ValueType
+	val interface{}
+}
+
+func NewValue(val interface{}) Value {
+	switch val.(type) {
+	case bool:
+		return Value{Bool, val}
+	case int:
+		return Value{Int, val}
+	case fressian.Key:
+		return Value{Key, val}
+	case string:
+		return Value{String, val}
+	case time.Time:
+		return Value{Date, val}
+	default:
+		log.Fatal("invalid datom value: ", val)
+		return Value{-1, nil}
+	}
+}
+
+func (v Value) Type() ValueType  { return v.ty }
+func (v Value) Val() interface{} { return v.val }
+
+func (v Value) Compare(ovc comparable.Comparable) int {
+	ov := ovc.(Value)
+	if v.ty == ov.ty {
+		switch v.ty {
+		case Bool:
+			v := v.val.(bool)
+			ov := ov.val.(bool)
+			if v == ov {
+				return 0
+			} else if !v && ov {
+				return -1
+			} else {
+				return 1
+			}
+		case Int:
+			return v.val.(int) - ov.val.(int)
+		case Key:
+			v := v.val.(fressian.Key)
+			ov := ov.val.(fressian.Key)
+			if v.Namespace < ov.Namespace && v.Name < ov.Name {
+				return -1
+			} else if v.Namespace == ov.Namespace && v.Name == ov.Name {
+				return 0
+			} else {
+				return 1
+			}
+		case String:
+			v := v.val.(string)
+			ov := ov.val.(string)
+			if v < ov {
+				return -1
+			} else if v == ov {
+				return 0
+			} else {
+				return 1
+			}
+		case Date:
+			v := v.val.(time.Time)
+			ov := ov.val.(time.Time)
+			return int(v.Unix() - ov.Unix())
+		default:
+			log.Fatal("invalid values: ", v, ", ", ov)
+			return 0
+		}
+	} else if v.ty < ov.ty {
+		return -1
+	} else {
+		return 1
+	}
+}
+
 type Datom struct {
 	entity      int
 	attribute   int
-	value       interface{}
+	value       Value
 	transaction int
 	added       bool
 }
 
-func (d Datom) Entity() int        { return d.entity }
-func (d Datom) E() int             { return d.entity }
-func (d Datom) Attribute() int     { return d.attribute }
-func (d Datom) A() int             { return d.attribute }
-func (d Datom) Value() interface{} { return d.value }
-func (d Datom) V() interface{}     { return d.value }
-func (d Datom) Transaction() int   { return d.transaction }
-func (d Datom) Tx() int            { return d.transaction }
-func (d Datom) Added() bool        { return d.added }
+func (d Datom) Entity() int      { return d.entity }
+func (d Datom) E() int           { return d.entity }
+func (d Datom) Attribute() int   { return d.attribute }
+func (d Datom) A() int           { return d.attribute }
+func (d Datom) Value() Value     { return d.value }
+func (d Datom) V() Value         { return d.value }
+func (d Datom) Transaction() int { return d.transaction }
+func (d Datom) Tx() int          { return d.transaction }
+func (d Datom) Added() bool      { return d.added }
 
-type Iterator struct {
-	Next func() *Datom
+func CompareEavt(ai, bi interface{}) int {
+	a := ai.(*Datom)
+	b := bi.(*Datom)
+
+	if a.entity < b.entity {
+		return -1
+	} else if a.attribute < b.attribute {
+		return -1
+	} else if comparable.Lt(a.value, b.value) {
+		return -1
+	} else if a.transaction < b.transaction {
+		return -1
+	} else if a.entity == b.entity &&
+		a.attribute == b.attribute &&
+		comparable.Eq(a.value, b.value) &&
+		a.transaction == b.transaction {
+		return 0
+	} else {
+		return 1
+	}
 }
+
+func CompareAevt(ai, bi interface{}) int {
+	a := ai.(*Datom)
+	b := bi.(*Datom)
+
+	if a.attribute < b.attribute {
+		return -1
+	} else if a.entity < b.entity {
+		return -1
+	} else if comparable.Lt(a.value, b.value) {
+		return -1
+	} else if a.transaction < b.transaction {
+		return -1
+	} else if a.entity == b.entity &&
+		a.attribute == b.attribute &&
+		comparable.Eq(a.value, b.value) &&
+		a.transaction == b.transaction {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+func CompareAvet(ai, bi interface{}) int {
+	a := ai.(*Datom)
+	b := bi.(*Datom)
+
+	if a.attribute < b.attribute {
+		return -1
+	} else if comparable.Lt(a.value, b.value) {
+		return -1
+	} else if a.entity < b.entity {
+		return -1
+	} else if a.transaction < b.transaction {
+		return -1
+	} else if a.entity == b.entity &&
+		a.attribute == b.attribute &&
+		comparable.Eq(a.value, b.value) &&
+		a.transaction == b.transaction {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+func CompareVaet(ai, bi interface{}) int {
+	a := ai.(*Datom)
+	b := bi.(*Datom)
+
+	if comparable.Lt(a.value, b.value) {
+		return -1
+	} else if a.attribute < b.attribute {
+		return -1
+	} else if a.entity < b.entity {
+		return -1
+	} else if a.transaction < b.transaction {
+		return -1
+	} else if a.entity == b.entity &&
+		a.attribute == b.attribute &&
+		comparable.Eq(a.value, b.value) &&
+		a.transaction == b.transaction {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+type Iterator interface {
+	Next() *Datom
+}
+
+type iterator struct {
+	next func() *Datom
+}
+
+func (i iterator) Next() *Datom { return i.next() }
 
 func (root *RootNode) Datoms() Iterator {
 	var (
@@ -184,14 +367,14 @@ func (root *RootNode) Datoms() Iterator {
 		datom := Datom{
 			segment.entities[datomIndex],
 			segment.attributes[datomIndex],
-			segment.values[datomIndex],
+			NewValue(segment.values[datomIndex]),
 			3*(1<<42) + segment.transactions[datomIndex],
 			segment.addeds[datomIndex],
 		}
 		return &datom
 	}
 
-	return Iterator{next}
+	return iterator{next}
 }
 
 func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
@@ -228,14 +411,14 @@ func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 		datom := Datom{
 			segment.entities[datomIndex],
 			segment.attributes[datomIndex],
-			segment.values[datomIndex],
+			NewValue(segment.values[datomIndex]),
 			3*(1<<42) + segment.transactions[datomIndex],
 			segment.addeds[datomIndex],
 		}
 		return &datom
 	}
 
-	return Iterator{next}
+	return iterator{next}
 }
 
 func findStart(root *RootNode, component int) (int, *DirNode, int, *TData, int) {
