@@ -55,7 +55,7 @@ func Open(u *url.URL) (*Store, error) {
 		return nil, err
 	}
 	root := rootRaw.(map[interface{}]interface{})
-	indexRootId := root[fressian.Key{"index", "root-id"}].(string)
+	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
 	return &Store{baseDir, indexRootId}, nil
 }
 

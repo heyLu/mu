@@ -24,22 +24,22 @@ func NewFromStore(store *storage.Store) (*Database, error) {
 		return nil, err
 	}
 	indexRoot := indexRootRaw.(map[interface{}]interface{})
-	eavtId := indexRoot[fressian.Key{"", "eavt-main"}].(string)
+	eavtId := indexRoot[fressian.Keyword{"", "eavt-main"}].(string)
 	eavt, err := index.New(store, index.Eavt, eavtId)
 	if err != nil {
 		return nil, err
 	}
-	aevtId := indexRoot[fressian.Key{"", "aevt-main"}].(string)
+	aevtId := indexRoot[fressian.Keyword{"", "aevt-main"}].(string)
 	aevt, err := index.New(store, index.Aevt, aevtId)
 	if err != nil {
 		return nil, err
 	}
-	avetId := indexRoot[fressian.Key{"", "avet-main"}].(string)
+	avetId := indexRoot[fressian.Keyword{"", "avet-main"}].(string)
 	avet, err := index.New(store, index.Avet, avetId)
 	if err != nil {
 		return nil, err
 	}
-	vaetId := indexRoot[fressian.Key{"", "raet-main"}].(string)
+	vaetId := indexRoot[fressian.Keyword{"", "raet-main"}].(string)
 	vaet, err := index.New(store, index.Vaet, vaetId)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (db *Database) Aevt() index.Index { return db.aevt }
 func (db *Database) Avet() index.Index { return db.avet }
 func (db *Database) Vaet() index.Index { return db.vaet }
 
-func (db *Database) Entid(key fressian.Key) int {
+func (db *Database) Entid(key fressian.Keyword) int {
 	datoms := db.avet.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Attribute() == 10 && datom.Value().Val() == key {
@@ -63,11 +63,11 @@ func (db *Database) Entid(key fressian.Key) int {
 	return -1
 }
 
-func (db *Database) Ident(entity int) *fressian.Key {
+func (db *Database) Ident(entity int) *fressian.Keyword {
 	datoms := db.aevt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == entity && datom.Attribute() == 10 {
-			key := datom.Value().Val().(fressian.Key)
+			key := datom.Value().Val().(fressian.Keyword)
 			return &key
 		}
 	}
@@ -84,7 +84,7 @@ func (db *Database) Entity(id int) Entity {
 	return Entity{db, id}
 }
 
-func (e Entity) Get(key fressian.Key) interface{} {
+func (e Entity) Get(key fressian.Keyword) interface{} {
 	attrId := e.db.Entid(key)
 	if attrId == -1 {
 		return nil

@@ -140,7 +140,7 @@ type ValueType int
 const (
 	Bool ValueType = iota
 	Int
-	Key
+	Keyword
 	String
 	Date
 )
@@ -156,8 +156,8 @@ func NewValue(val interface{}) Value {
 		return Value{Bool, val}
 	case int:
 		return Value{Int, val}
-	case fressian.Key:
-		return Value{Key, val}
+	case fressian.Keyword:
+		return Value{Keyword, val}
 	case string:
 		return Value{String, val}
 	case time.Time:
@@ -187,9 +187,9 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 			}
 		case Int:
 			return v.val.(int) - ov.val.(int)
-		case Key:
-			v := v.val.(fressian.Key)
-			ov := ov.val.(fressian.Key)
+		case Keyword:
+			v := v.val.(fressian.Keyword)
+			ov := ov.val.(fressian.Keyword)
 			if v.Namespace < ov.Namespace && v.Name < ov.Name {
 				return -1
 			} else if v.Namespace == ov.Namespace && v.Name == ov.Name {

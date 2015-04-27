@@ -68,12 +68,12 @@ func main() {
 		}
 
 	case "example":
-		dbIdent := fressian.Key{"db", "ident"}
+		dbIdent := fressian.Keyword{"db", "ident"}
 		fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
 		fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
 
 		dbIdentEntity := db.Entity(10)
-		dbCardinality := fressian.Key{"db", "cardinality"}
+		dbCardinality := fressian.Keyword{"db", "cardinality"}
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
 	case "transact-to":
