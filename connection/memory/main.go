@@ -24,6 +24,10 @@ func New(u *url.URL) (connection.Connection, error) {
 	return &Connection{db}, nil
 }
 
+func NewFromDb(db *database.Database) connection.Connection {
+	return &Connection{db}
+}
+
 func (c *Connection) Db() (*database.Database, error) {
 	return c.db, nil
 }
