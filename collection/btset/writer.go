@@ -17,6 +17,17 @@ var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{
 	}
 }
 
+func NewWriteHandler(defaultHandler fressian.WriteHandler) fressian.WriteHandler {
+	return func(w *fressian.Writer, val interface{}) error {
+		switch val.(type) {
+		case *Set, *pointerNode, *leafNode:
+			return WriteHandler(w, val)
+		default:
+			return defaultHandler(w, val)
+		}
+	}
+}
+
 var ReadHandlers = map[string]fressian.ReadHandler{
 	"btset.Set": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		shift, _ := r.ReadValue()
