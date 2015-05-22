@@ -10,6 +10,7 @@ import (
 
 	"./connection"
 	_ "./connection/backup"
+	_ "./connection/file"
 	_ "./connection/memory"
 	"./database"
 	"./index"
