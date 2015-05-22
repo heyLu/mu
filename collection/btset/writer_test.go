@@ -20,6 +20,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer f.Close()
+	defer os.Remove("test.btset.fsn")
 
 	err = writeSet(f, set)
 	if err != nil {
