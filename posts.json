@@ -1,5 +1,11 @@
 [
 	{
+		"id": "06febb5bfa6edd7db92a498f2585820e",
+		"title": "Next steps",
+		"content": "There's a `file` backend since yesterday, it stores the latest db using fressian in a single file.  Yes, that means there's no history when loading from disk, but it's a start.\r\n\r\nSo, what now?  I want to use it, but there are quite a few things missing.\r\n\r\nHere's what I want next:\r\n\r\n- do \"raw index\" queries (`datoms` and/or `seek-datoms`)\r\n- get an entity by id (or ident) from a db (`entity`)\r\n- some kind of transactions\r\n    - need to generate new ids for that (and keep track of them on disk)\r\n    - not sure about \"verification\" (e.g. checking cardinality, types, ...)\r\n    - updates are tricky\r\n- lightweight queries (although raw index queries are probably enough for the start?)\r\n    - need an EDN parser\r\n\r\nAnd then:\r\n\r\n- a `server` cmd, similar to datomic's rest api",
+		"created": "2015-05-23T12:19:11.267497199+02:00"
+	},
+	{
 		"id": "eb4136774a202c7a084f0735f731a811",
 		"title": "An initial in-memory backend",
 		"content": "Aka: **success**, we got something working.\r\n\r\nWhat works?\r\n\r\n- `eavt` and `aevt` indexes\r\n- `.TransactDatoms`, without *any* checks whatsoever\r\n    - no new entity ids\r\n    - no value type checking (i.e. you can store whatever you want)\r\n    - no attribute checking (i.e. no schema)\r\n    - it's just for straight-up imports from a datomic database\r\n\r\nWhat's missing?  (For certain values of \"missing\".  A more precise question would be \"What's missing before we can use this to store data at all?\")\r\n\r\n- entity id creation (and temporary ids)\r\n- on disk storage\r\n- avet and vaet indexes (need schema support, so maybe postpone until later as well)\r\n- ...\r\n\r\n    everything else, but out of scope until we actually stored some data on disk and used it for a (tiny) bit.",
