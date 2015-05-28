@@ -44,7 +44,7 @@ func NewFromStore(store *storage.Store) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Database{eavt, aevt, avet, vaet}, nil
+	return New(eavt, aevt, avet, vaet), nil
 }
 
 func (db *Database) Eavt() index.Index { return db.eavt }
