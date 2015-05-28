@@ -18,46 +18,6 @@ const (
 
 type Type string
 
-var readHandlers = map[string]fressian.ReadHandler{
-	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		tData, _ := r.ReadValue()
-		directories, _ := r.ReadValue()
-		return RootNode{
-			nil,
-			nil,
-			tData.(TData),
-			directories.([]interface{}),
-			make([]*DirNode, len(directories.([]interface{}))),
-		}
-	},
-	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		vs, _ := r.ReadValue()
-		es, _ := r.ReadValue()
-		as, _ := r.ReadValue()
-		txs, _ := r.ReadValue()
-		addeds, _ := r.ReadValue()
-		return TData{
-			vs.([]interface{}),
-			es.([]int),
-			as.([]int),
-			txs.([]int),
-			addeds.([]bool),
-		}
-	},
-	"index-dir-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
-		tData, _ := r.ReadValue()
-		segmentIds, _ := r.ReadValue()
-		mystery1, _ := r.ReadValue()
-		mystery2, _ := r.ReadValue()
-		return DirNode{
-			tData.(TData),
-			segmentIds.([]interface{}),
-			mystery1.([]int), mystery2.([]int),
-			make([]*TData, len(segmentIds.([]interface{}))),
-		}
-	},
-}
-
 type RootNode struct {
 	store        *storage.Store
 	find         func(*TData, int) int
@@ -71,7 +31,7 @@ func (root *RootNode) directory(idx int) *DirNode {
 		return dir
 	}
 
-	dirRaw, err := storage.Get(root.store, root.directoryIds[idx].(string), readHandlers)
+	dirRaw, err := storage.Get(root.store, root.directoryIds[idx].(string), backupReadHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +53,7 @@ func (dir *DirNode) segment(store *storage.Store, idx int) *TData {
 		return segment
 	}
 
-	segmentRaw, err := storage.Get(store, dir.segmentIds[idx].(string), readHandlers)
+	segmentRaw, err := storage.Get(store, dir.segmentIds[idx].(string), backupReadHandlers)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,7 +76,7 @@ type Index interface {
 }
 
 func New(store *storage.Store, type_ Type, id string) (Index, error) {
-	indexRaw, err := storage.Get(store, id, readHandlers)
+	indexRaw, err := storage.Get(store, id, backupReadHandlers)
 	if err != nil {
 		return nil, err
 	}
