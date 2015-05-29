@@ -230,22 +230,22 @@ func CompareAevt(ai, bi interface{}) int {
 	a := ai.(*Datom)
 	b := bi.(*Datom)
 
-	if a.attribute < b.attribute {
-		return -1
-	} else if a.entity < b.entity {
-		return -1
-	} else if comparable.Lt(a.value, b.value) {
-		return -1
-	} else if a.transaction < b.transaction {
-		return -1
-	} else if a.entity == b.entity &&
-		a.attribute == b.attribute &&
-		comparable.Eq(a.value, b.value) &&
-		a.transaction == b.transaction {
-		return 0
-	} else {
-		return 1
+	cmp := a.attribute - b.attribute
+	if cmp != 0 {
+		return cmp
 	}
+
+	cmp = a.entity - b.entity
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = a.value.Compare(b.value)
+	if cmp != 0 {
+		return cmp
+	}
+
+	return a.transaction - b.transaction
 }
 
 func CompareAvet(ai, bi interface{}) int {
