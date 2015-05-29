@@ -3,6 +3,7 @@ package index
 import (
 	"github.com/heyLu/fressian"
 	"log"
+	"math"
 	"time"
 
 	"../comparable"
@@ -189,6 +190,9 @@ type Datom struct {
 	transaction int
 	added       bool
 }
+
+var MinDatom = Datom{math.MinInt64, math.MinInt64, Value{String, ""}, math.MinInt64, false}
+var MaxDatom = Datom{math.MaxInt64, math.MaxInt64, Value{String, ""}, math.MaxInt64, true}
 
 func NewDatom(e int, a int, v interface{}, tx int, added bool) Datom {
 	return Datom{e, a, NewValue(v), tx, added}

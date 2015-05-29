@@ -46,5 +46,5 @@ func (i *Index) Datoms() index.Iterator {
 }
 
 func (i *Index) SeekDatoms(left, right index.Datom) index.Iterator {
-	return &iterator{btset.Slice(i.datoms, left, right)}
+	return &iterator{btset.Slice(i.datoms, &left, &right)}
 }
