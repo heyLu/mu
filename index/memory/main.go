@@ -1,6 +1,8 @@
 package memory
 
 import (
+	"reflect"
+
 	index ".."
 	"../../collection/btset"
 	"../../comparable"
@@ -27,7 +29,7 @@ type iterator struct {
 }
 
 func (it *iterator) Next() *index.Datom {
-	if it.iter == nil {
+	if it.iter == nil || reflect.ValueOf(it.iter).IsNil() {
 		return nil
 	} else {
 		cur := it.iter.First()

@@ -125,7 +125,7 @@ func NewValue(val interface{}) Value {
 	case time.Time:
 		return Value{Date, val}
 	default:
-		log.Fatal("invalid datom value: ", val)
+		log.Fatalf("invalid datom value: %#v\n", val)
 		return Value{-1, nil}
 	}
 }
@@ -208,6 +208,10 @@ func (d Datom) V() Value         { return d.value }
 func (d Datom) Transaction() int { return d.transaction }
 func (d Datom) Tx() int          { return d.transaction }
 func (d Datom) Added() bool      { return d.added }
+
+func (d Datom) Retraction() Datom {
+	return Datom{d.entity, d.attribute, d.value, d.transaction, false}
+}
 
 func CompareEavt(ai, bi interface{}) int {
 	a := ai.(*Datom)

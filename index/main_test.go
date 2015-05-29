@@ -32,6 +32,7 @@ func TestValueCompare(t *testing.T) {
 	expectEq(t, NewValue(4), NewValue(4))
 	expectGt(t, NewValue(5), NewValue(4))
 
+	expectLt(t, NewValue(""), NewValue("a"))
 	expectLt(t, NewValue("a"), NewValue("b"))
 	expectEq(t, NewValue("b"), NewValue("b"))
 	expectGt(t, NewValue("c"), NewValue("b"))
