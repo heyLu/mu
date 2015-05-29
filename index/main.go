@@ -190,6 +190,10 @@ type Datom struct {
 	added       bool
 }
 
+func NewDatom(e int, a int, v interface{}, tx int, added bool) Datom {
+	return Datom{e, a, NewValue(v), tx, added}
+}
+
 func (d Datom) Entity() int      { return d.entity }
 func (d Datom) E() int           { return d.entity }
 func (d Datom) Attribute() int   { return d.attribute }

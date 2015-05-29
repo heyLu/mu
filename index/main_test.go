@@ -2,8 +2,26 @@ package index
 
 import (
 	"github.com/heyLu/fressian"
+	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
 )
+
+var (
+	d1 = &Datom{0, 1, NewValue("hey"), 2, true}
+	d2 = &Datom{1, 1, NewValue("ho"), 2, true}
+	d3 = &Datom{2, 0, NewValue("huh"), 2, true}
+)
+
+func TestCompareEavt(t *testing.T) {
+	tu.ExpectEqual(t, CompareEavt(d1, d2), -1)
+	tu.ExpectEqual(t, CompareEavt(d2, d1), 1)
+	tu.ExpectEqual(t, CompareEavt(d1, d1), 0)
+}
+
+func TestCompareAevt(t *testing.T) {
+	tu.ExpectEqual(t, CompareAevt(d1, d2), -1)
+	tu.ExpectEqual(t, CompareAevt(d3, d1), -1)
+}
 
 func TestValueCompare(t *testing.T) {
 	expectLt(t, NewValue(false), NewValue(true))
