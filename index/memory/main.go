@@ -47,7 +47,7 @@ func (i *Index) Datoms() index.Iterator {
 	return &iterator{i.datoms.Iter()}
 }
 
-func (i *Index) SeekDatoms(components ...interface{}) index.Iterator {
+func (i *Index) SeekDatoms(keys ...index.Datom) index.Iterator {
 	log.Fatal("not implemented")
 	return nil
 }

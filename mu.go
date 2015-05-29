@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"strconv"
 
 	"./connection"
 	_ "./connection/backup"
@@ -50,20 +49,6 @@ func main() {
 	switch cmd {
 	case "eavt", "aevt", "avet", "vaet":
 		datoms := getIndex(db, cmd).Datoms()
-		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-			fmt.Println(datom)
-		}
-
-	case "seek":
-		indexName := "eavt"
-		component := 0
-		if len(os.Args) >= 4 {
-			indexName = os.Args[3]
-			if len(os.Args) >= 5 {
-				component, _ = strconv.Atoi(os.Args[4])
-			}
-		}
-		datoms := getIndex(db, indexName).SeekDatoms(component)
 		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 			fmt.Println(datom)
 		}

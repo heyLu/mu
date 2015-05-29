@@ -72,7 +72,7 @@ type TData struct { // "transposed data"?
 
 type Index interface {
 	Datoms() Iterator
-	SeekDatoms(components ...interface{}) Iterator
+	SeekDatoms(keys ...Datom) Iterator
 }
 
 func New(store *storage.Store, type_ Type, id string) (Index, error) {
@@ -341,7 +341,12 @@ func (root *RootNode) Datoms() Iterator {
 	return iterator{next}
 }
 
-func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
+func (root *RootNode) SeekDatoms(keys ...Datom) Iterator {
+	log.Fatal("not implemented")
+	return nil
+}
+
+/*func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 	var (
 		dirIndex     = 0
 		dir          = root.directory(dirIndex)
@@ -383,7 +388,7 @@ func (root *RootNode) SeekDatoms(components ...interface{}) Iterator {
 	}
 
 	return iterator{next}
-}
+}*/
 
 func findStart(root *RootNode, component int) (int, *DirNode, int, *TData, int) {
 	// TODO: fix `find` if it the component is too large (i.e. not in the index)
