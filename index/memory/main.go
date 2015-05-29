@@ -18,6 +18,10 @@ func (i *Index) UseCompare(compare comparable.CompareFn) {
 	i.datoms.UseCompare(compare)
 }
 
+func (i *Index) Count() int {
+	return i.datoms.Count()
+}
+
 type iterator struct {
 	iter btset.SetIter
 }
