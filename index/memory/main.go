@@ -1,8 +1,6 @@
 package memory
 
 import (
-	"log"
-
 	index ".."
 	"../../collection/btset"
 	"../../comparable"
@@ -48,6 +46,5 @@ func (i *Index) Datoms() index.Iterator {
 }
 
 func (i *Index) SeekDatoms(left, right index.Datom) index.Iterator {
-	log.Fatal("not implemented")
-	return nil
+	return &iterator{btset.Slice(i.datoms, left, right)}
 }
