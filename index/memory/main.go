@@ -36,7 +36,11 @@ func (i *Index) AddDatoms(datoms []index.Datom) *Index {
 	set := i.datoms
 	for i := 0; i < len(datoms); i++ {
 		datom := datoms[i]
-		set = set.Conj(&datom)
+		if datom.Added() {
+			set = set.Conj(&datom)
+		} else {
+			set = set.Disj(&datom)
+		}
 	}
 	return &Index{set}
 }
