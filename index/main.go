@@ -73,7 +73,8 @@ type TData struct { // "transposed data"?
 
 type Index interface {
 	Datoms() Iterator
-	SeekDatoms(left, right Datom) Iterator
+	DatomsAt(start, end Datom) Iterator
+	SeekDatoms(start Datom) Iterator
 }
 
 func New(store *storage.Store, type_ Type, id string) (Index, error) {
@@ -345,7 +346,12 @@ func (root *RootNode) Datoms() Iterator {
 	return iterator{next}
 }
 
-func (root *RootNode) SeekDatoms(left, right Datom) Iterator {
+func (root *RootNode) DatomsAt(start, end Datom) Iterator {
+	log.Fatal("not implemented")
+	return nil
+}
+
+func (root *RootNode) SeekDatoms(start Datom) Iterator {
 	log.Fatal("not implemented")
 	return nil
 }

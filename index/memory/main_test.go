@@ -38,7 +38,7 @@ func TestSeekDatoms(t *testing.T) {
 
 	// start at [1 _ _ _ _], until the end
 	start := index.NewDatom(1, -1, "", -1, false)
-	iter := eavt.SeekDatoms(start, index.MaxDatom)
+	iter := eavt.SeekDatoms(start)
 	tu.RequireNotNil(t, iter)
 
 	datom := iter.Next()

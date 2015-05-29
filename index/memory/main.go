@@ -45,6 +45,10 @@ func (i *Index) Datoms() index.Iterator {
 	return &iterator{i.datoms.Iter()}
 }
 
-func (i *Index) SeekDatoms(left, right index.Datom) index.Iterator {
-	return &iterator{btset.Slice(i.datoms, &left, &right)}
+func (i *Index) DatomsAt(start, end index.Datom) index.Iterator {
+	return &iterator{btset.Slice(i.datoms, &start, &end)}
+}
+
+func (i *Index) SeekDatoms(start index.Datom) index.Iterator {
+	return &iterator{btset.Slice(i.datoms, &start, &index.MaxDatom)}
 }
