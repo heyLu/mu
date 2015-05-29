@@ -25,7 +25,9 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 		r.ReadValue()
 		r.ReadValue()
 		eavt := eavtRaw.(*memory.Index)
+		eavt.UseCompare(index.CompareEavt)
 		aevt := aevtRaw.(*memory.Index)
+		aevt.UseCompare(index.CompareAevt)
 		return database.New(eavt, aevt, nil, nil)
 	},
 	"mu.memory.Index":   memory.ReadHandlers["mu.memory.Index"],

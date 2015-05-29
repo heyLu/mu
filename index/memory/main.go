@@ -16,6 +16,10 @@ func New(compare comparable.CompareFn) *Index {
 	return &Index{btset.New(compare)}
 }
 
+func (i *Index) UseCompare(compare comparable.CompareFn) {
+	i.datoms.UseCompare(compare)
+}
+
 type iterator struct {
 	iter btset.SetIter
 }

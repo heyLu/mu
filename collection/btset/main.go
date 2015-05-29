@@ -927,6 +927,10 @@ func NewComparable() *Set {
 	})
 }
 
+func (s *Set) UseCompare(compare c.CompareFn) {
+	s.cmp = compare
+}
+
 func (s *Set) Conj(key interface{}) *Set {
 	return btsetConj(s, key)
 }
