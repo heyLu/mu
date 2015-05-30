@@ -2,7 +2,6 @@ package index
 
 import (
 	"github.com/heyLu/fressian"
-	"log"
 )
 
 var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{}) error {
@@ -64,7 +63,6 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 		valueRaw, _ := r.ReadValue()
 		addedRaw, _ := r.ReadValue()
 		transactionRaw, _ := r.ReadValue()
-		log.Println(entityRaw, attributeRaw, valueRaw, addedRaw, transactionRaw)
 		return &Datom{
 			entityRaw.(int),
 			attributeRaw.(int),
