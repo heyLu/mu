@@ -42,10 +42,7 @@ func main() {
 
 	switch cmd {
 	case "eavt", "aevt", "avet", "vaet":
-		datoms := getIndex(db, cmd).Datoms()
-		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-			fmt.Println(datom)
-		}
+		printDatoms(getIndex(db, cmd).Datoms())
 
 	case "example":
 		dbIdent := fressian.Keyword{"db", "ident"}
@@ -82,10 +79,7 @@ func main() {
 			log.Fatal(err)
 		}
 		toDb, _ := toConn.Db()
-		datoms = toDb.Eavt().Datoms()
-		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-			fmt.Println(datom)
-		}
+		printDatoms(toDb.Eavt().Datoms())
 
 	case "test-transact":
 		fmt.Println("transact(conn, [[0 1 \"Jane\" 0 true]])")
