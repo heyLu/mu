@@ -14,7 +14,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/heyLu/fressian"
 	"log"
 	"net/url"
 	"os"
@@ -52,9 +51,26 @@ func main() {
 	fmt.Println(cmd, title)
 
 	switch cmd {
+	case "init":
+		nameId := mu.Tempid(mu.DbPartDb, -1)
+		contentId := mu.Tempid(mu.DbPartDb, -2)
+		err = mu.Transact(conn,
+			mu.Datoms(
+				// :name attribute (type string, cardinality one)
+				mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),
+				mu.Datum(nameId, mu.DbType, mu.DbTypeString),
+				mu.Datum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
+				// :content attribute (type string, cardinality one)
+				mu.Datum(contentId, mu.DbIdent, mu.Keyword("", "content")),
+				mu.Datum(contentId, mu.DbType, mu.DbTypeString),
+				mu.Datum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
+			))
+		if err != nil {
+			log.Fatal("could not initialize database: ", err)
+		}
 	case "new":
 		// create a new note
-		nameAttr := db.Entid(fressian.Keyword{"", "name"})
+		nameAttr := db.Entid(mu.Keyword("", "name"))
 		if nameAttr == -1 {
 			log.Fatal(":name attribute not present")
 		}
