@@ -45,3 +45,11 @@ func previousValue(db *database.Database, datom index.Datom) (*index.Datom, bool
 		return prev, true
 	}
 }
+
+func Datum(entity int, attribute int, value interface{}) index.Datom {
+	return index.NewDatom(entity, attribute, value, -1, true)
+}
+
+func Datoms(datoms ...index.Datom) []index.Datom {
+	return datoms
+}
