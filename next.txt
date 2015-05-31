@@ -24,6 +24,7 @@
     - add a `list` subcommand
     - add a `show` subcommand (shows *all* data in the index about an entity, by id or title)
     - implement `new` and `edit`
+        - if `!isatty(stdin)`, open `$EDITOR $tmpfile` and use that?
 
 .log
 
