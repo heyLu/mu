@@ -1,0 +1,31 @@
+.next
+
+- reading transactions from the outside
+    - need an edn parser?
+- tests for transactions (is it usable for simple things already?)
+    - maybe write a backend for `gol`?  (or a simpler note taking thing.)
+      (would need id generation, though.)
+- a log
+    - as part of the `file` backend?  (same file, a `xxx.db.log` file alongside the db?)
+    - separate `log` backend?
+    - whatever it will be, we need a way to create the history later on
+    - we need a new datom type, maybe really a datum?  because we store attributes as integers on disk, but we can't (or shouldn't) store them in a log, right?  if we did that we'd need to keep the id assignment, and it's not really readable.  mhh...
+- a real program using `mu`
+    - first step: note taking
+        - `:name`, `:content` (and of course a `:db/id`)
+        - make new notes, edit existing ones (no deletion)
+    - after that: attaching more data to the notes
+- compress db files in the `file` backend by default (disable with `&compress=false`)
+    - maybe do this in `fressian`, instead of here?  e.g. `NewWriterWithCompress` or similar?  (`NewGzipWriter` sounds better...)
+- transactions
+    - don't allow transacting the same values twice (this is actually about `:db/unique`, i think)
+- notes
+    - don't run `init` twice (check if the `:name` attribute is present)
+    - add a `list` subcommand
+    - add a `show` subcommand (shows *all* data in the index about an entity, by id or title)
+    - implement `new` and `edit`
+
+.log
+
+- simple transactions (no id generation, just cardinality one attributes)
+- `file` backend (serializing the db to a file using fressian)
