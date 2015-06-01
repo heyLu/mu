@@ -4,10 +4,12 @@ import (
 	"github.com/heyLu/fressian"
 )
 
+const txOffset = 3 * (1 << 42)
+
 var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{}) error {
 	switch val := val.(type) {
 	case *Datom:
-		return w.WriteExt("mu.Datom", val.entity, val.attribute, val.value, val.added, val.transaction)
+		return w.WriteExt("mu.Datom", val.entity, val.attribute, val.value, val.added, val.transaction%txOffset)
 	case Value:
 		return w.WriteValue(val.val)
 	default:
@@ -67,7 +69,7 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 			entityRaw.(int),
 			attributeRaw.(int),
 			NewValue(valueRaw),
-			transactionRaw.(int),
+			txOffset + transactionRaw.(int),
 			addedRaw.(bool),
 		}
 	},
