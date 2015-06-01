@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strconv"
 
 	mu "../.."
 )
@@ -105,8 +106,36 @@ func main() {
 
 		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
 		for datom := iter.Next(); datom != nil; datom = iter.Next() {
-			fmt.Println(datom.Value().Val())
+			fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
 		}
+	case "show":
+		nameAttr := db.Entid(mu.Keyword("", "name"))
+		if nameAttr == -1 {
+			log.Fatalf("db not initialized, run `%s init _` first")
+		}
+
+		entity, err := strconv.Atoi(title)
+		if err != nil {
+			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+			found := false
+			for datom := iter.Next(); datom != nil; datom = iter.Next() {
+				if datom.Value().Val() == title {
+					found = true
+					entity = datom.Entity()
+					break
+				}
+			}
+			if !found {
+				fmt.Println("no such note:", title)
+				os.Exit(1)
+			}
+
+		}
+
+		note := db.Entity(entity) // should check if it exists!
+		title := note.Get(mu.Keyword("", "name"))
+		content := note.Get(mu.Keyword("", "content"))
+		fmt.Printf("# %s (%d)\n\n%s", title, entity, content)
 	default:
 		printUsage()
 	}
