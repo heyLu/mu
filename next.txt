@@ -28,5 +28,7 @@
 
 .log
 
+- a simple note taking example application
+- transactions (entity & tx id generation, used in the note taking example)
 - simple transactions (no id generation, just cardinality one attributes)
 - `file` backend (serializing the db to a file using fressian)
