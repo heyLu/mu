@@ -97,6 +97,16 @@ func main() {
 		}
 	case "edit":
 		// find note id, edit it
+	case "list":
+		nameAttr := db.Entid(mu.Keyword("", "name"))
+		if nameAttr == -1 {
+			log.Fatalf("db not initialized, run `%s init _` first")
+		}
+
+		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+		for datom := iter.Next(); datom != nil; datom = iter.Next() {
+			fmt.Println(datom.Value().Val())
+		}
 	default:
 		printUsage()
 	}
