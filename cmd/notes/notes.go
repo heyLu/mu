@@ -12,8 +12,8 @@ notes edit <id or title> < note.txt
 package main
 
 import (
-	"flag"
 	"fmt"
+	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
@@ -23,121 +23,153 @@ import (
 	"strconv"
 
 	mu "../.."
+	"../../connection"
 	"../../database"
 )
 
-var dbUrl = flag.String("db", "file://notes.db", "The database to store the notes in")
-
 func main() {
-	flag.Parse()
+	var dbUrl string
+	var db *database.Database
+	var conn connection.Connection
 
-	if flag.NArg() != 2 {
-		printUsage()
-	}
-
-	u, err := url.Parse(*dbUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn, err := mu.Connect(u)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//defer conn.Disconnect()
-
-	db, err := conn.Db()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd := flag.Arg(0)
-	title := flag.Arg(1)
-
-	switch cmd {
-	case "init":
-		if db.Entid(mu.Keyword("", "name")) != -1 {
-			fmt.Println("already initialized")
-			os.Exit(1)
-		}
-
-		nameId := mu.Tempid(mu.DbPartDb, -1)
-		contentId := mu.Tempid(mu.DbPartDb, -2)
-		err = mu.Transact(conn,
-			mu.Datoms(
-				// :name attribute (type string, cardinality one)
-				mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),
-				mu.Datum(nameId, mu.DbType, mu.DbTypeString),
-				mu.Datum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
-				// :content attribute (type string, cardinality one)
-				mu.Datum(contentId, mu.DbIdent, mu.Keyword("", "content")),
-				mu.Datum(contentId, mu.DbType, mu.DbTypeString),
-				mu.Datum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
-			))
-		if err != nil {
-			log.Fatal("could not initialize database: ", err)
-		}
-	case "new":
-		nameAttr := db.Entid(mu.Keyword("", "name"))
-		contentAttr := db.Entid(mu.Keyword("", "content"))
-		if nameAttr == -1 || contentAttr == -1 {
-			log.Fatalf("db not initialized, run `%s init _` first")
-		}
-
-		content, err := getContent("")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = mu.Transact(conn,
-			mu.Datoms(
-				mu.Datum(-1, nameAttr, title),
-				mu.Datum(-1, contentAttr, content),
-			))
-		if err != nil {
-			log.Fatal(err)
-		}
-	case "edit":
-		contentAttr := db.Entid(mu.Keyword("", "content"))
-		if contentAttr == -1 {
-			log.Fatalf("db not initialized, run `%s init _` first")
-		}
-
-		noteId := findNote(db, title)
-		note := db.Entity(noteId)
-		prevContent := note.Get(mu.Keyword("", "content")).(string)
-		content, err := getContent(prevContent)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if prevContent == content {
-			fmt.Println("no changes")
-		} else {
-			err = mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
+	cli := &cobra.Command{
+		Use:   os.Args[0],
+		Short: " simple note taking application",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			u, err := url.Parse(dbUrl)
 			if err != nil {
 				log.Fatal(err)
 			}
-		}
 
-	case "list":
-		nameAttr := db.Entid(mu.Keyword("", "name"))
-		if nameAttr == -1 {
-			log.Fatalf("db not initialized, run `%s init _` first")
-		}
+			conn, err = mu.Connect(u)
+			if err != nil {
+				log.Fatal(err)
+			}
+			//defer conn.Disconnect()
 
-		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
-		for datom := iter.Next(); datom != nil; datom = iter.Next() {
-			fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
-		}
-	case "show":
-		noteId := findNote(db, title)
-		note := db.Entity(noteId) // should check if it exists!
-		title := note.Get(mu.Keyword("", "name"))
-		content := note.Get(mu.Keyword("", "content"))
-		fmt.Printf("# %s (%d)\n\n%s", title, noteId, content)
-	default:
-		printUsage()
+			db, err = conn.Db()
+			if err != nil {
+				log.Fatal(err)
+			}
+		},
 	}
+	cli.PersistentFlags().StringVar(&dbUrl, "db", "file://notes.db", "the database to connect to")
+
+	initCommand := &cobra.Command{
+		Use:   "init",
+		Short: "initialize the database",
+		Run: func(cmd *cobra.Command, args []string) {
+			if db.Entid(mu.Keyword("", "name")) != -1 {
+				fmt.Println("already initialized")
+				os.Exit(1)
+			}
+
+			nameId := mu.Tempid(mu.DbPartDb, -1)
+			contentId := mu.Tempid(mu.DbPartDb, -2)
+			err := mu.Transact(conn,
+				mu.Datoms(
+					// :name attribute (type string, cardinality one)
+					mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),
+					mu.Datum(nameId, mu.DbType, mu.DbTypeString),
+					mu.Datum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
+					// :content attribute (type string, cardinality one)
+					mu.Datum(contentId, mu.DbIdent, mu.Keyword("", "content")),
+					mu.Datum(contentId, mu.DbType, mu.DbTypeString),
+					mu.Datum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
+				))
+			if err != nil {
+				log.Fatal("could not initialize database: ", err)
+			}
+		},
+	}
+
+	newCommand := &cobra.Command{
+		Use:   "new",
+		Short: "create a new note",
+		Run: func(cmd *cobra.Command, args []string) {
+			nameAttr := db.Entid(mu.Keyword("", "name"))
+			contentAttr := db.Entid(mu.Keyword("", "content"))
+			if nameAttr == -1 || contentAttr == -1 {
+				log.Fatalf("db not initialized, run `%s init _` first")
+			}
+
+			content, err := getContent("")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = mu.Transact(conn,
+				mu.Datoms(
+					mu.Datum(-1, nameAttr, args[0]),
+					mu.Datum(-1, contentAttr, content),
+				))
+			if err != nil {
+				log.Fatal(err)
+			}
+		},
+	}
+
+	editCommand := &cobra.Command{
+		Use:   "edit",
+		Short: "edit a note",
+		Run: func(cmd *cobra.Command, args []string) {
+			contentAttr := db.Entid(mu.Keyword("", "content"))
+			if contentAttr == -1 {
+				log.Fatalf("db not initialized, run `%s init _` first")
+			}
+
+			noteId := findNote(db, args[0])
+			note := db.Entity(noteId)
+			prevContent := note.Get(mu.Keyword("", "content")).(string)
+			content, err := getContent(prevContent)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if prevContent == content {
+				fmt.Println("no changes")
+			} else {
+				err = mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		},
+	}
+
+	listCommand := &cobra.Command{
+		Use:   "list",
+		Short: "list all notes",
+		Run: func(cmd *cobra.Command, args []string) {
+			nameAttr := db.Entid(mu.Keyword("", "name"))
+			if nameAttr == -1 {
+				log.Fatalf("db not initialized, run `%s init _` first")
+			}
+
+			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+			for datom := iter.Next(); datom != nil; datom = iter.Next() {
+				fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
+			}
+		},
+	}
+
+	showCommand := &cobra.Command{
+		Use:   "show",
+		Short: "display a note",
+		Run: func(cmd *cobra.Command, args []string) {
+			noteId := findNote(db, args[0])
+			note := db.Entity(noteId) // should check if it exists!
+			title := note.Get(mu.Keyword("", "name"))
+			content := note.Get(mu.Keyword("", "content"))
+			fmt.Printf("# %s (%d)\n\n%s", title, noteId, content)
+		},
+	}
+
+	cli.AddCommand(initCommand)
+	cli.AddCommand(newCommand)
+	cli.AddCommand(editCommand)
+	cli.AddCommand(listCommand)
+	cli.AddCommand(showCommand)
+	cli.Execute()
 }
 
 func findNote(db *database.Database, idOrTitle string) int {
@@ -214,10 +246,4 @@ func getEnv(key, defaultValue string) string {
 	} else {
 		return val
 	}
-}
-
-func printUsage() {
-	fmt.Printf("Usage: %s <cmd> <title>\n", os.Args[0])
-	fmt.Println("  (Where <cmd> is one of `init`, `new`, `edit`, `list` or `show`.)")
-	os.Exit(1)
 }
