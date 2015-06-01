@@ -29,6 +29,10 @@ func Connect(u *url.URL) (connection.Connection, error) {
 }
 
 func Transact(conn connection.Connection, origDatoms []index.Datom) error {
+	// TODO:
+	//   - check for uniqueness
+	//   - check types of values
+	//   - ... (a lot)
 	db, err := conn.Db()
 	if err != nil {
 		return err
