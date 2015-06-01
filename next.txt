@@ -24,6 +24,12 @@
     - add a `show` subcommand (shows *all* data in the index about an entity, by id or title)
     - implement `new` and `edit`
         - if `!isatty(stdin)`, open `$EDITOR $tmpfile` and use that?
+- mu cli
+    - `init` (initialize a db with the default datoms, possibly do this automatically?)
+    - `datoms`, `seek-datoms` (specify index and leading components, get datoms)
+        - maybe this should be the default command, like `eavt` is now?
+    - `q` (or `query`) (possibly later)
+    - `transact` (read tx from edn on stdin, report results)
 
 .log
 
