@@ -1,6 +1,7 @@
 package file
 
 import (
+	"compress/gzip"
 	"github.com/heyLu/fressian"
 	"net/url"
 	"os"
@@ -16,18 +17,24 @@ func init() {
 }
 
 type Connection struct {
-	path string
-	conn connection.Connection
+	path     string
+	conn     connection.Connection
+	compress bool
 }
 
 func New(u *url.URL) (connection.Connection, error) {
 	path := u.Host + u.Path
 
+	compress := true
+	if u.Query().Get("compress") == "false" {
+		compress = false
+	}
+
 	// does not exist, create an empty db
 	_, err := os.Stat(path)
 	if err != nil {
 		memConn, _ := memoryConn.New(u)
-		conn := &Connection{path, memConn}
+		conn := &Connection{path, memConn, compress}
 		err = conn.TransactDatoms(nil) // writes empty db to `path`
 		if err != nil {
 			return nil, err
@@ -41,7 +48,12 @@ func New(u *url.URL) (connection.Connection, error) {
 	}
 	defer f.Close()
 
-	r := fressian.NewReader(f, ReadHandlers)
+	var r *fressian.Reader
+	if compress {
+		r = fressian.NewGzipReader(f, ReadHandlers)
+	} else {
+		r = fressian.NewReader(f, ReadHandlers)
+	}
 	dbRaw, err := r.ReadValue()
 	if err != nil {
 		return nil, err
@@ -49,7 +61,7 @@ func New(u *url.URL) (connection.Connection, error) {
 
 	db := dbRaw.(*database.Database)
 	conn := memoryConn.NewFromDb(db)
-	return &Connection{path, conn}, nil
+	return &Connection{path, conn, compress}, nil
 }
 
 func (c *Connection) Db() (*database.Database, error) {
@@ -70,15 +82,28 @@ func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	}
 	defer f.Close()
 
-	w := fressian.NewWriter(f, WriteHandler)
+	var w *fressian.Writer
+	var gz *gzip.Writer
+	if c.compress {
+		gz = gzip.NewWriter(f)
+		w = fressian.NewWriter(gz, WriteHandler)
+	} else {
+		w = fressian.NewWriter(f, WriteHandler)
+	}
+
 	db, _ := c.conn.Db()
 	err = w.WriteValue(db)
 	if err != nil {
 		return err
 	}
+
 	err = w.Flush()
 	if err != nil {
 		return err
+	}
+
+	if c.compress {
+		return gz.Flush()
 	}
 
 	return nil
