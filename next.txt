@@ -21,6 +21,7 @@
     - don't allow transacting the same values twice (this is actually about `:db/unique`, i think)
 - notes
     - add a `show` subcommand (shows *all* data in the index about an entity, by id or title)
+    - add a `server` subcommand (a smallish http server that provides an api and a simple web interface)
 - mu cli
     - `init` (initialize a db with the default datoms, possibly do this automatically?)
     - `datoms`, `seek-datoms` (specify index and leading components, get datoms)
