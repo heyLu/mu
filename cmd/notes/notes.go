@@ -112,17 +112,19 @@ func main() {
 	}
 
 	removeCommand := &cobra.Command{
-		Use:     "remove <id or title>",
+		Use:     "remove [<id or title>]+",
 		Aliases: []string{"rm"},
 		Short:   "remove a note",
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
 
-			noteId := findNote(db, args[0])
 			datoms := mu.Datoms()
-			iter := db.Eavt().DatomsAt(mu.Datum(noteId, -1, ""), mu.Datum(noteId, 10000, ""))
-			for datom := iter.Next(); datom != nil; datom = iter.Next() {
-				datoms = append(datoms, datom.Retraction())
+			for _, idOrTitle := range args {
+				noteId := findNote(db, idOrTitle)
+				iter := db.Eavt().DatomsAt(mu.Datum(noteId, -1, ""), mu.Datum(noteId, 10000, ""))
+				for datom := iter.Next(); datom != nil; datom = iter.Next() {
+					datoms = append(datoms, datom.Retraction())
+				}
 			}
 			err := mu.Transact(conn, datoms)
 			if err != nil {
