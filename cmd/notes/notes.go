@@ -132,8 +132,9 @@ func main() {
 	}
 
 	listCommand := &cobra.Command{
-		Use:   "list",
-		Short: "list all notes",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "list all notes",
 		Run: func(cmd *cobra.Command, args []string) {
 			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
 			for datom := iter.Next(); datom != nil; datom = iter.Next() {
