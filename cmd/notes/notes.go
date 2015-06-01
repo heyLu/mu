@@ -14,9 +14,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 
 	mu "../.."
 )
@@ -73,12 +76,22 @@ func main() {
 			log.Fatal("could not initialize database: ", err)
 		}
 	case "new":
-		// create a new note
 		nameAttr := db.Entid(mu.Keyword("", "name"))
-		if nameAttr == -1 {
-			log.Fatal(":name attribute not present")
+		contentAttr := db.Entid(mu.Keyword("", "content"))
+		if nameAttr == -1 || contentAttr == -1 {
+			log.Fatalf("db not initialized, run `%s init _` first")
 		}
-		err = mu.Transact(conn, mu.Datoms(mu.Datum(-1, nameAttr, title)))
+
+		content, err := getContent()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = mu.Transact(conn,
+			mu.Datoms(
+				mu.Datum(-1, nameAttr, title),
+				mu.Datum(-1, contentAttr, content),
+			))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -86,6 +99,40 @@ func main() {
 		// find note id, edit it
 	default:
 		printUsage()
+	}
+}
+
+func getContent() (string, error) {
+	if terminal.IsTerminal(int(os.Stdin.Fd())) {
+		f, err := ioutil.TempFile("", "note-")
+		if err != nil {
+			return "", err
+		}
+		defer os.Remove(f.Name())
+
+		editor := getEnv("EDITOR", "vi")
+		cmd := exec.Command(editor, f.Name())
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		err = cmd.Run()
+		if err != nil {
+			return "", err
+		}
+
+		content, err := ioutil.ReadAll(f)
+		return string(content), nil
+	} else {
+		content, err := ioutil.ReadAll(os.Stdin)
+		return string(content), err
+	}
+}
+
+func getEnv(key, defaultValue string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultValue
+	} else {
+		return val
 	}
 }
 
