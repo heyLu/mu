@@ -52,6 +52,11 @@ func main() {
 
 	switch cmd {
 	case "init":
+		if db.Entid(mu.Keyword("", "name")) != -1 {
+			fmt.Println("already initialized")
+			os.Exit(1)
+		}
+
 		nameId := mu.Tempid(mu.DbPartDb, -1)
 		contentId := mu.Tempid(mu.DbPartDb, -2)
 		err = mu.Transact(conn,

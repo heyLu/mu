@@ -20,7 +20,6 @@
 - transactions
     - don't allow transacting the same values twice (this is actually about `:db/unique`, i think)
 - notes
-    - don't run `init` twice (check if the `:name` attribute is present)
     - add a `list` subcommand
     - add a `show` subcommand (shows *all* data in the index about an entity, by id or title)
     - implement `new` and `edit`
