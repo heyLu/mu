@@ -16,6 +16,9 @@ import (
 	"../../database"
 )
 
+var nameAttr int
+var contentAttr int
+
 func main() {
 	var dbUrl string
 	var db *database.Database
@@ -39,6 +42,12 @@ func main() {
 			db, err = conn.Db()
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			nameAttr = db.Entid(mu.Keyword("", "name"))
+			contentAttr = db.Entid(mu.Keyword("", "content"))
+			if nameAttr == -1 || contentAttr == -1 {
+				log.Fatalf("db not initialized, run `%s init` first", os.Args[0])
 			}
 		},
 	}
@@ -77,12 +86,6 @@ func main() {
 		Short: "create a new note",
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
-
-			nameAttr := db.Entid(mu.Keyword("", "name"))
-			contentAttr := db.Entid(mu.Keyword("", "content"))
-			if nameAttr == -1 || contentAttr == -1 {
-				log.Fatalf("db not initialized, run `%s init _` first")
-			}
 
 			content := getContentFrom(args, 1, "")
 			err := mu.Transact(conn,
@@ -127,11 +130,6 @@ func main() {
 		Use:   "list",
 		Short: "list all notes",
 		Run: func(cmd *cobra.Command, args []string) {
-			nameAttr := db.Entid(mu.Keyword("", "name"))
-			if nameAttr == -1 {
-				log.Fatalf("db not initialized, run `%s init _` first")
-			}
-
 			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
 			for datom := iter.Next(); datom != nil; datom = iter.Next() {
 				fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
@@ -169,11 +167,6 @@ func requireArgs(cmd *cobra.Command, args []string, num int) {
 }
 
 func findNote(db *database.Database, idOrTitle string) int {
-	nameAttr := db.Entid(mu.Keyword("", "name"))
-	if nameAttr == -1 {
-		log.Fatalf("db not initialized, run `%s init _` first")
-	}
-
 	entity, err := strconv.Atoi(idOrTitle)
 	if err != nil {
 		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
