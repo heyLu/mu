@@ -218,6 +218,6 @@ func getEnv(key, defaultValue string) string {
 
 func printUsage() {
 	fmt.Printf("Usage: %s <cmd> <title>\n", os.Args[0])
-	fmt.Println("  (Where <cmd> is one of `new` or `edit`.)")
+	fmt.Println("  (Where <cmd> is one of `init`, `new`, `edit`, `list` or `show`.)")
 	os.Exit(1)
 }
