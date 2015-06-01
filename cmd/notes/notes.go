@@ -78,8 +78,8 @@ func main() {
 			content := getContentFrom(args, 1, "")
 			err := mu.Transact(conn,
 				mu.Datoms(
-					mu.Datum(-1, nameAttr, args[0]),
-					mu.Datum(-1, contentAttr, content),
+					mu.Datum(mu.Tempid(mu.DbPartUser, -1), nameAttr, args[0]),
+					mu.Datum(mu.Tempid(mu.DbPartUser, -1), contentAttr, content),
 				))
 			if err != nil {
 				log.Fatal(err)
@@ -141,7 +141,7 @@ func main() {
 		Aliases: []string{"ls"},
 		Short:   "list all notes",
 		Run: func(cmd *cobra.Command, args []string) {
-			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+			iter := db.Aevt().DatomsAt(mu.Datum(mu.DbPartUserStart, nameAttr, ""), mu.Datum(mu.DbPartUserEnd, nameAttr, ""))
 			for datom := iter.Next(); datom != nil; datom = iter.Next() {
 				fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
 			}
@@ -213,7 +213,7 @@ func initializeDb(conn connection.Connection) {
 func findNote(db *database.Database, idOrTitle string) int {
 	entity, err := strconv.Atoi(idOrTitle)
 	if err != nil {
-		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+		iter := db.Aevt().DatomsAt(mu.Datum(mu.DbPartUserStart, nameAttr, ""), mu.Datum(mu.DbPartUserEnd, nameAttr, ""))
 		for datom := iter.Next(); datom != nil; datom = iter.Next() {
 			if datom.Value().Val() == idOrTitle {
 				return datom.Entity()
