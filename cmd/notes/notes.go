@@ -23,6 +23,7 @@ import (
 	"strconv"
 
 	mu "../.."
+	"../../database"
 )
 
 var dbUrl = flag.String("db", "file://notes.db", "The database to store the notes in")
@@ -109,36 +110,44 @@ func main() {
 			fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
 		}
 	case "show":
-		nameAttr := db.Entid(mu.Keyword("", "name"))
-		if nameAttr == -1 {
-			log.Fatalf("db not initialized, run `%s init _` first")
-		}
-
-		entity, err := strconv.Atoi(title)
-		if err != nil {
-			iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
-			found := false
-			for datom := iter.Next(); datom != nil; datom = iter.Next() {
-				if datom.Value().Val() == title {
-					found = true
-					entity = datom.Entity()
-					break
-				}
-			}
-			if !found {
-				fmt.Println("no such note:", title)
-				os.Exit(1)
-			}
-
-		}
-
-		note := db.Entity(entity) // should check if it exists!
+		noteId := findNote(db, title)
+		note := db.Entity(noteId) // should check if it exists!
 		title := note.Get(mu.Keyword("", "name"))
 		content := note.Get(mu.Keyword("", "content"))
-		fmt.Printf("# %s (%d)\n\n%s", title, entity, content)
+		fmt.Printf("# %s (%d)\n\n%s", title, noteId, content)
 	default:
 		printUsage()
 	}
+}
+
+func findNote(db *database.Database, idOrTitle string) int {
+	nameAttr := db.Entid(mu.Keyword("", "name"))
+	if nameAttr == -1 {
+		log.Fatalf("db not initialized, run `%s init _` first")
+	}
+
+	entity, err := strconv.Atoi(idOrTitle)
+	if err != nil {
+		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
+		for datom := iter.Next(); datom != nil; datom = iter.Next() {
+			if datom.Value().Val() == idOrTitle {
+				return entity
+			}
+		}
+
+		fmt.Println("no such note:", idOrTitle)
+		os.Exit(1)
+	} else {
+		iter := db.Eavt().SeekDatoms(mu.Datum(entity, nameAttr, ""))
+		datom := iter.Next()
+		if datom == nil || datom.Entity() != entity || datom.Attribute() != nameAttr {
+			fmt.Println("no such note:", idOrTitle)
+			os.Exit(1)
+		}
+		return entity
+	}
+
+	return -1
 }
 
 func getContent() (string, error) {
