@@ -54,6 +54,9 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+
+				nameAttr = db.Entid(mu.Keyword("", "name"))
+				contentAttr = db.Entid(mu.Keyword("", "content"))
 			}
 		},
 	}
