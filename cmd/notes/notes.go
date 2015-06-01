@@ -1,14 +1,3 @@
-/*
-
-Taking notes.
-
-notes new <title> < note.txt
-  create a new note called `title` with the content from `note.txt`
-
-notes edit <id or title> < note.txt
-  change the notes content
-
-*/
 package main
 
 import (
