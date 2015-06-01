@@ -48,7 +48,6 @@ func main() {
 
 	cmd := flag.Arg(0)
 	title := flag.Arg(1)
-	fmt.Println(cmd, title)
 
 	switch cmd {
 	case "init":
