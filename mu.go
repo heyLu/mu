@@ -22,6 +22,8 @@ const (
 	DbPartDb         = 0  // :db.part/db
 	DbPartTx         = 3  // :db.part/tx
 	DbPartUser       = 4  // :db.part/user
+	DbPartUserStart  = DbPartUser * (1 << 42)
+	DbPartUserEnd    = (DbPartUser + 1) * (1 << 42)
 )
 
 func Connect(u *url.URL) (connection.Connection, error) {
@@ -121,7 +123,12 @@ func findMaxEntity(db *database.Database, part int) int {
 			maxEntity = datom.Entity()
 		}
 	}
-	return maxEntity
+
+	if maxEntity < part*(1<<42) {
+		return part*(1<<42) - 1
+	} else {
+		return maxEntity
+	}
 
 }
 
