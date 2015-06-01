@@ -73,7 +73,7 @@ func main() {
 	}
 
 	newCommand := &cobra.Command{
-		Use:   "new <title>",
+		Use:   "new <title> [<content>]",
 		Short: "create a new note",
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
@@ -84,12 +84,8 @@ func main() {
 				log.Fatalf("db not initialized, run `%s init _` first")
 			}
 
-			content, err := getContent("")
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = mu.Transact(conn,
+			content := getContentFrom(args, 1, "")
+			err := mu.Transact(conn,
 				mu.Datoms(
 					mu.Datum(-1, nameAttr, args[0]),
 					mu.Datum(-1, contentAttr, content),
@@ -101,7 +97,7 @@ func main() {
 	}
 
 	editCommand := &cobra.Command{
-		Use:   "edit <id or title>",
+		Use:   "edit <id or title> [<content>]",
 		Short: "edit a note",
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
@@ -114,14 +110,12 @@ func main() {
 			noteId := findNote(db, args[0])
 			note := db.Entity(noteId)
 			prevContent := note.Get(mu.Keyword("", "content")).(string)
-			content, err := getContent(prevContent)
-			if err != nil {
-				log.Fatal(err)
-			}
+			content := getContentFrom(args, 1, prevContent)
+
 			if prevContent == content {
 				fmt.Println("no changes")
 			} else {
-				err = mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
+				err := mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -202,6 +196,22 @@ func findNote(db *database.Database, idOrTitle string) int {
 	}
 
 	return -1
+}
+
+func getContentFrom(args []string, pos int, defaultContent string) string {
+	if len(args) > pos {
+		rawContent, err := ioutil.ReadFile(args[pos])
+		if err != nil {
+			log.Fatal(err)
+		}
+		return string(rawContent)
+	} else {
+		content, err := getContent("")
+		if err != nil {
+			log.Fatal(err)
+		}
+		return content
+	}
 }
 
 func getContent(content string) (string, error) {
