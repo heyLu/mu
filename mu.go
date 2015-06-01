@@ -88,6 +88,8 @@ func Transact(conn connection.Connection, origDatoms []index.Datom) error {
 	return conn.TransactDatoms(datoms)
 }
 
+const minTx = DbPartTx * (1 << 42)
+
 func findMaxTx(db *database.Database) int {
 	maxTx := -1
 	iter := db.Eavt().Datoms()
@@ -96,7 +98,11 @@ func findMaxTx(db *database.Database) int {
 			maxTx = datom.Tx()
 		}
 	}
-	return maxTx
+	if maxTx < minTx {
+		return minTx - 1
+	} else {
+		return maxTx
+	}
 }
 
 func findMaxEntity(db *database.Database, part int) int {
