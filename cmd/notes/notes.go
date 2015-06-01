@@ -98,7 +98,27 @@ func main() {
 			log.Fatal(err)
 		}
 	case "edit":
-		// find note id, edit it
+		contentAttr := db.Entid(mu.Keyword("", "content"))
+		if contentAttr == -1 {
+			log.Fatalf("db not initialized, run `%s init _` first")
+		}
+
+		noteId := findNote(db, title)
+		note := db.Entity(noteId)
+		prevContent := note.Get(mu.Keyword("", "content")).(string)
+		content, err := getContent(prevContent)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if prevContent == content {
+			fmt.Println("no changes")
+		} else {
+			err = mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
 	case "list":
 		nameAttr := db.Entid(mu.Keyword("", "name"))
 		if nameAttr == -1 {
