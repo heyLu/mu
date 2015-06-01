@@ -151,7 +151,7 @@ func findNote(db *database.Database, idOrTitle string) int {
 		iter := db.Aevt().DatomsAt(mu.Datum(-1, nameAttr, ""), mu.Datum(10000, nameAttr, ""))
 		for datom := iter.Next(); datom != nil; datom = iter.Next() {
 			if datom.Value().Val() == idOrTitle {
-				return entity
+				return datom.Entity()
 			}
 		}
 
