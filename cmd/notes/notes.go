@@ -203,7 +203,7 @@ func getContentFrom(args []string, pos int, defaultContent string) string {
 		}
 		return string(rawContent)
 	} else {
-		content, err := getContent("")
+		content, err := getContent(defaultContent)
 		if err != nil {
 			log.Fatal(err)
 		}
