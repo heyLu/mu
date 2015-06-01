@@ -42,7 +42,6 @@ func Transact(conn connection.Connection, origDatoms []index.Datom) error {
 
 	newEntityCache := map[int]int{}
 
-	// generate/assign new tx id
 	tx := findMaxTx(db) + 1
 	maxPartDbEntity := findMaxEntity(db, DbPartDb) + 1
 	maxPartUserEntity := findMaxEntity(db, DbPartUser) + 1
