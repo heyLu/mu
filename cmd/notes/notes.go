@@ -84,9 +84,11 @@ func main() {
 	}
 
 	newCommand := &cobra.Command{
-		Use:   "new",
+		Use:   "new <title>",
 		Short: "create a new note",
 		Run: func(cmd *cobra.Command, args []string) {
+			requireArgs(cmd, args, 1)
+
 			nameAttr := db.Entid(mu.Keyword("", "name"))
 			contentAttr := db.Entid(mu.Keyword("", "content"))
 			if nameAttr == -1 || contentAttr == -1 {
@@ -110,9 +112,11 @@ func main() {
 	}
 
 	editCommand := &cobra.Command{
-		Use:   "edit",
+		Use:   "edit <id or title>",
 		Short: "edit a note",
 		Run: func(cmd *cobra.Command, args []string) {
+			requireArgs(cmd, args, 1)
+
 			contentAttr := db.Entid(mu.Keyword("", "content"))
 			if contentAttr == -1 {
 				log.Fatalf("db not initialized, run `%s init _` first")
@@ -153,9 +157,11 @@ func main() {
 	}
 
 	showCommand := &cobra.Command{
-		Use:   "show",
+		Use:   "show <id or title>",
 		Short: "display a note",
 		Run: func(cmd *cobra.Command, args []string) {
+			requireArgs(cmd, args, 1)
+
 			noteId := findNote(db, args[0])
 			note := db.Entity(noteId) // should check if it exists!
 			title := note.Get(mu.Keyword("", "name"))
@@ -170,6 +176,13 @@ func main() {
 	cli.AddCommand(listCommand)
 	cli.AddCommand(showCommand)
 	cli.Execute()
+}
+
+func requireArgs(cmd *cobra.Command, args []string, num int) {
+	if len(args) < num {
+		cmd.Usage()
+		os.Exit(1)
+	}
 }
 
 func findNote(db *database.Database, idOrTitle string) int {
