@@ -145,6 +145,7 @@ func main() {
 		},
 	}
 
+	var showAll bool
 	showCommand := &cobra.Command{
 		Use:   "show <id or title>",
 		Short: "display a note",
@@ -152,12 +153,24 @@ func main() {
 			requireArgs(cmd, args, 1)
 
 			noteId := findNote(db, args[0])
-			note := db.Entity(noteId) // should check if it exists!
-			title := note.Get(mu.Keyword("", "name"))
-			content := note.Get(mu.Keyword("", "content"))
-			fmt.Printf("# %s (%d)\n\n%s", title, noteId, content)
+			if showAll {
+				note := db.Entity(noteId)
+				keys := note.Keys()
+				fmt.Println("{")
+				fmt.Printf("  :db/id %d\n", noteId)
+				for _, k := range keys {
+					fmt.Printf("  :%s %#v\n", k.Name, note.Get(k))
+				}
+				fmt.Println("}")
+			} else {
+				note := db.Entity(noteId) // should check if it exists!
+				title := note.Get(mu.Keyword("", "name"))
+				content := note.Get(mu.Keyword("", "content"))
+				fmt.Printf("# %s (%d)\n\n%s", title, noteId, content)
+			}
 		},
 	}
+	showCommand.Flags().BoolVarP(&showAll, "all", "a", false, "show all available attributes")
 
 	cli.AddCommand(initCommand)
 	cli.AddCommand(newCommand)
