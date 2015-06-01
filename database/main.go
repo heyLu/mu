@@ -9,14 +9,15 @@ import (
 )
 
 type Database struct {
-	eavt index.Index
-	aevt index.Index
-	avet index.Index
-	vaet index.Index
+	eavt           index.Index
+	aevt           index.Index
+	avet           index.Index
+	vaet           index.Index
+	attributeCache map[int]Attribute
 }
 
 func New(eavt, aevt, avet, vaet index.Index) *Database {
-	return &Database{eavt, aevt, avet, vaet}
+	return &Database{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
 }
 
 func NewFromStore(store *storage.Store) (*Database, error) {
@@ -112,4 +113,71 @@ func (e Entity) Get(key fressian.Keyword) interface{} {
 	}
 
 	return nil
+}
+
+type Attribute struct {
+	id          int
+	ident       fressian.Keyword
+	cardinality int
+	valueType   index.ValueType
+}
+
+func (db *Database) Attribute(id int) *Attribute {
+	attr, ok := db.attributeCache[id]
+	if ok {
+		log.Println("attribute from cache:", attr)
+		return &attr
+	} else {
+		iter := db.Eavt().DatomsAt(
+			index.NewDatom(id, -1, "", -1, false),
+			index.NewDatom(id, 10000, "", -1, false))
+		found := false
+		attr = Attribute{
+			id: id,
+		}
+
+		for datom := iter.Next(); datom != nil; datom = iter.Next() {
+			found = true
+
+			switch datom.Attribute() {
+			case 10: // :db/ident
+				attr.ident = datom.Value().Val().(fressian.Keyword)
+			case 41: // :db/cardinality
+				attr.cardinality = datom.Value().Val().(int)
+			case 40: // :db/valueType
+				attr.valueType = toValueType(datom.Value().Val().(int))
+			}
+		}
+
+		if !found {
+			return nil
+		}
+
+		db.attributeCache[id] = attr
+		log.Println("attribute from db:", attr)
+		return &attr
+	}
+}
+
+func (a Attribute) Id() int                 { return a.id }
+func (a Attribute) Ident() fressian.Keyword { return a.ident }
+func (a Attribute) Cardinality() int        { return a.cardinality }
+func (a Attribute) Type() index.ValueType   { return a.valueType }
+
+func toValueType(internalType int) index.ValueType {
+	switch internalType {
+	case 21:
+		return index.Keyword
+	case 22:
+		return index.Int
+	case 23:
+		return index.String
+	case 24:
+		return index.Bool
+	case 25:
+		return index.Date
+	default:
+		log.Fatal("unknown :db/type:", internalType)
+		return index.ValueType(-1)
+	}
 }
