@@ -47,7 +47,13 @@ func main() {
 			nameAttr = db.Entid(mu.Keyword("", "name"))
 			contentAttr = db.Entid(mu.Keyword("", "content"))
 			if nameAttr == -1 || contentAttr == -1 {
-				log.Fatalf("db not initialized, run `%s init` first", os.Args[0])
+				fmt.Println("initializing database")
+				initializeDb(conn)
+
+				db, err = conn.Db()
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		},
 	}
@@ -57,27 +63,6 @@ func main() {
 		Use:   "init",
 		Short: "initialize the database",
 		Run: func(cmd *cobra.Command, args []string) {
-			if db.Entid(mu.Keyword("", "name")) != -1 {
-				fmt.Println("already initialized")
-				os.Exit(1)
-			}
-
-			nameId := mu.Tempid(mu.DbPartDb, -1)
-			contentId := mu.Tempid(mu.DbPartDb, -2)
-			err := mu.Transact(conn,
-				mu.Datoms(
-					// :name attribute (type string, cardinality one)
-					mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),
-					mu.Datum(nameId, mu.DbType, mu.DbTypeString),
-					mu.Datum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
-					// :content attribute (type string, cardinality one)
-					mu.Datum(contentId, mu.DbIdent, mu.Keyword("", "content")),
-					mu.Datum(contentId, mu.DbType, mu.DbTypeString),
-					mu.Datum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
-				))
-			if err != nil {
-				log.Fatal("could not initialize database: ", err)
-			}
 		},
 	}
 
@@ -163,6 +148,25 @@ func requireArgs(cmd *cobra.Command, args []string, num int) {
 	if len(args) < num {
 		cmd.Usage()
 		os.Exit(1)
+	}
+}
+
+func initializeDb(conn connection.Connection) {
+	nameId := mu.Tempid(mu.DbPartDb, -1)
+	contentId := mu.Tempid(mu.DbPartDb, -2)
+	err := mu.Transact(conn,
+		mu.Datoms(
+			// :name attribute (type string, cardinality one)
+			mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),
+			mu.Datum(nameId, mu.DbType, mu.DbTypeString),
+			mu.Datum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
+			// :content attribute (type string, cardinality one)
+			mu.Datum(contentId, mu.DbIdent, mu.Keyword("", "content")),
+			mu.Datum(contentId, mu.DbType, mu.DbTypeString),
+			mu.Datum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
+		))
+	if err != nil {
+		log.Fatal("could not initialize database: ", err)
 	}
 }
 
