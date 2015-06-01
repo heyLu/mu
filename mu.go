@@ -51,6 +51,11 @@ func Transact(conn connection.Connection, origDatoms []index.Datom) error {
 		if prev, ok := previousValue(db, datom); datom.Entity() >= 0 && ok {
 			log.Println("retracting", prev)
 			datoms = append(datoms, prev.Retraction())
+
+			// retractions don't need to be `added` or get new entity ids
+			if !datom.Added() {
+				continue
+			}
 		}
 
 		entity := datom.Entity()
