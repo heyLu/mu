@@ -84,7 +84,7 @@ func main() {
 			log.Fatalf("db not initialized, run `%s init _` first")
 		}
 
-		content, err := getContent()
+		content, err := getContent("")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -150,13 +150,25 @@ func findNote(db *database.Database, idOrTitle string) int {
 	return -1
 }
 
-func getContent() (string, error) {
+func getContent(content string) (string, error) {
 	if terminal.IsTerminal(int(os.Stdin.Fd())) {
 		f, err := ioutil.TempFile("", "note-")
 		if err != nil {
 			return "", err
 		}
 		defer os.Remove(f.Name())
+
+		if content != "" {
+			_, err = f.WriteString(content)
+			if err != nil {
+				return "", err
+			}
+
+			_, err = f.Seek(0, 0)
+			if err != nil {
+				return "", err
+			}
+		}
 
 		editor := getEnv("EDITOR", "vi")
 		cmd := exec.Command(editor, f.Name())
