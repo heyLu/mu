@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/heyLu/fressian"
+	"log"
 
 	"../index"
 	"../storage"
@@ -82,6 +83,19 @@ type Entity struct {
 
 func (db *Database) Entity(id int) Entity {
 	return Entity{db, id}
+}
+
+func (e Entity) Keys() []fressian.Keyword {
+	keys := []fressian.Keyword{}
+	iter := e.db.Eavt().DatomsAt(index.NewDatom(e.id, -1, "", -1, false), index.NewDatom(e.id, index.MaxDatom.A(), "", -1, false))
+	for datom := iter.Next(); datom != nil; datom = iter.Next() {
+		kw := e.db.Ident(datom.Attribute())
+		if kw == nil {
+			log.Fatal("attribute has no `:db/ident`:", datom.Attribute())
+		}
+		keys = append(keys, *kw)
+	}
+	return keys
 }
 
 func (e Entity) Get(key fressian.Keyword) interface{} {
