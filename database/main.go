@@ -137,6 +137,10 @@ func (e Entity) Touch() {
 	}
 }
 
+func (e Entity) AsMap() map[fressian.Keyword]interface{} {
+	return e.attributeCache
+}
+
 type Attribute struct {
 	id          int
 	ident       fressian.Keyword
