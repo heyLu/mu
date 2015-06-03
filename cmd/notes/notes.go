@@ -150,8 +150,9 @@ func main() {
 
 	var showAll bool
 	showCommand := &cobra.Command{
-		Use:   "show <id or title>",
-		Short: "display a note",
+		Use:     "show <id or title>",
+		Aliases: []string{"cat"},
+		Short:   "display a note",
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
 
