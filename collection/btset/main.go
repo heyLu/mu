@@ -570,8 +570,8 @@ func btsetConj(set *Set, key interface{}) *Set {
 	}
 }
 
-func btsetDisj(set *Set, key interface{}) *Set {
-	newRoots := set.root.disj(key, true, nil, nil, set.cmp)
+func btsetDisj(set *Set, key interface{}, compare c.CompareFn) *Set {
+	newRoots := set.root.disj(key, true, nil, nil, compare)
 
 	if newRoots == nil { // nothing changed, key wasn't in set
 		return set
@@ -936,11 +936,19 @@ func (s *Set) Conj(key interface{}) *Set {
 }
 
 func (s *Set) Disj(key interface{}) *Set {
-	return btsetDisj(s, key)
+	return btsetDisj(s, key, s.cmp)
+}
+
+func (s *Set) DisjWith(key interface{}, compare c.CompareFn) *Set {
+	return btsetDisj(s, key, compare)
 }
 
 func (s *Set) Lookup(key interface{}) interface{} {
 	return s.root.lookup(key, s.cmp)
+}
+
+func (s *Set) LookupWith(key interface{}, compare c.CompareFn) interface{} {
+	return s.root.lookup(key, compare)
 }
 
 func (s *Set) Iter() SetIter {
