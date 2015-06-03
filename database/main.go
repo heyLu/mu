@@ -87,9 +87,13 @@ func (db *Database) Entity(id int) Entity {
 	return Entity{db, id, map[fressian.Keyword]interface{}{}}
 }
 
+func (e Entity) Datoms() index.Iterator {
+	return e.db.Eavt().DatomsAt(index.NewDatom(e.id, -1, "", -1, false), index.NewDatom(e.id, index.MaxDatom.A(), "", -1, false))
+}
+
 func (e Entity) Keys() []fressian.Keyword {
 	keys := []fressian.Keyword{}
-	iter := e.db.Eavt().DatomsAt(index.NewDatom(e.id, -1, "", -1, false), index.NewDatom(e.id, index.MaxDatom.A(), "", -1, false))
+	iter := e.Datoms()
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		kw := e.db.Ident(datom.Attribute())
 		if kw == nil {
@@ -120,6 +124,17 @@ func (e Entity) Get(key fressian.Keyword) interface{} {
 	}
 
 	return nil
+}
+
+func (e Entity) Touch() {
+	iter := e.Datoms()
+	for datom := iter.Next(); datom != nil; datom = iter.Next() {
+		kw := e.db.Ident(datom.Attribute())
+		if kw == nil {
+			log.Fatal("attribute has no `:db/ident`:", datom.Attribute())
+		}
+		e.attributeCache[*kw] = datom.Value().Val()
+	}
 }
 
 type Attribute struct {
