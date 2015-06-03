@@ -78,12 +78,13 @@ func (db *Database) Ident(entity int) *fressian.Keyword {
 }
 
 type Entity struct {
-	db *Database
-	id int
+	db             *Database
+	id             int
+	attributeCache map[fressian.Keyword]interface{}
 }
 
 func (db *Database) Entity(id int) Entity {
-	return Entity{db, id}
+	return Entity{db, id, map[fressian.Keyword]interface{}{}}
 }
 
 func (e Entity) Keys() []fressian.Keyword {
@@ -100,6 +101,10 @@ func (e Entity) Keys() []fressian.Keyword {
 }
 
 func (e Entity) Get(key fressian.Keyword) interface{} {
+	if val, ok := e.attributeCache[key]; ok {
+		return val
+	}
+
 	attrId := e.db.Entid(key)
 	if attrId == -1 {
 		return nil
@@ -108,7 +113,9 @@ func (e Entity) Get(key fressian.Keyword) interface{} {
 	datoms := e.db.eavt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == e.id && datom.Attribute() == attrId {
-			return datom.Value().Val()
+			val := datom.Value().Val()
+			e.attributeCache[key] = val
+			return val
 		}
 	}
 
