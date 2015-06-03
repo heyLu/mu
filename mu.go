@@ -22,8 +22,6 @@ const (
 	DbPartDb         = 0  // :db.part/db
 	DbPartTx         = 3  // :db.part/tx
 	DbPartUser       = 4  // :db.part/user
-	DbPartUserStart  = DbPartUser * (1 << 42)
-	DbPartUserEnd    = (DbPartUser + 1) * (1 << 42)
 )
 
 func Connect(u *url.URL) (connection.Connection, error) {
@@ -169,4 +167,12 @@ func Part(id int) int {
 	}
 
 	return sign * id / (1 << 42)
+}
+
+func PartStart(part int) int {
+	return part * (1 << 42)
+}
+
+func PartEnd(part int) int {
+	return (part + 1) * (1 << 42)
 }
