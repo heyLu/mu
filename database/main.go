@@ -83,15 +83,20 @@ type Entity struct {
 	attributeCache map[fressian.Keyword]interface{}
 }
 
+// Entity constructs a lazy, cached "view" of all datoms with a given
+// entity id.
 func (db *Database) Entity(id int) Entity {
 	return Entity{db, id, map[fressian.Keyword]interface{}{}}
 }
 
+// Datoms returns an iterator over all datoms for this entity.
 func (e Entity) Datoms() index.Iterator {
 	return e.db.Eavt().DatomsAt(index.NewDatom(e.id, -1, "", -1, false), index.NewDatom(e.id, index.MaxDatom.A(), "", -1, false))
 }
 
+// Keys returns a slice of all attributes of this entity.
 func (e Entity) Keys() []fressian.Keyword {
+	// TODO: cache attributes here as well?
 	keys := []fressian.Keyword{}
 	iter := e.Datoms()
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
@@ -104,6 +109,9 @@ func (e Entity) Keys() []fressian.Keyword {
 	return keys
 }
 
+// Get retrieves the value for the attribute.
+//
+// The resulting value is cached.  If no value is found, `nil` is returned.
 func (e Entity) Get(key fressian.Keyword) interface{} {
 	if val, ok := e.attributeCache[key]; ok {
 		return val
@@ -126,6 +134,7 @@ func (e Entity) Get(key fressian.Keyword) interface{} {
 	return nil
 }
 
+// Touch caches all attributes of this entity.
 func (e Entity) Touch() {
 	iter := e.Datoms()
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
@@ -137,6 +146,10 @@ func (e Entity) Touch() {
 	}
 }
 
+// AsMap returns a view of this entity as a map.
+//
+// The returned map will only contain cached attributes.  To get a map of
+// all attributes call `.Touch` first.
 func (e Entity) AsMap() map[fressian.Keyword]interface{} {
 	return e.attributeCache
 }
