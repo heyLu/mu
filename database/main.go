@@ -77,6 +77,20 @@ func (db *Database) Ident(entity int) *fressian.Keyword {
 	return nil
 }
 
+// HasLookup is an interface for things that can be uniquely resolved
+// to an entity.
+//
+// Entity ids, `:db/ident` and pairs of unique attributes and a value
+// all implement HasLookup.  This allows using them in places where
+// one would usually use an entity id, simplifying access.
+//
+// TODO: Do it this way or just provide a `db.Lookup(...)` function
+// that supports lookup for a fixed set of types?  (Doing it with an
+// interface means better errors and extensibility to user types.)
+type HasLookup interface {
+	Lookup(db *Database) int
+}
+
 type Entity struct {
 	db             *Database
 	id             int
