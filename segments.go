@@ -245,6 +245,17 @@ type Iterator interface {
 // - when it hits the end of the segment, it either goes on to the next
 // - or it goes one level up and down again
 
+// only one type of connections?
+type Connection struct{}
+
+func (c Connection) TransactDatoms(datoms []Datom) error {
+	// write datoms to log (maybe assign ids here?  or not, not sure...)
+	// possibly trigger indexing (if enough datoms in log)
+	//   (for now, do it immediately if necessary, but log it)
+	// update in-memory index to provide recent db
+	return nil
+}
+
 func main() {
 	fmt.Println(".")
 }
