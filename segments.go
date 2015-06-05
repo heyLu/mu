@@ -250,6 +250,8 @@ type Connection struct{}
 
 func (c Connection) TransactDatoms(datoms []Datom) error {
 	// write datoms to log (maybe assign ids here?  or not, not sure...)
+	//   this means writing a new root node to storage
+	//   do we want to support non-segmented storage?  (single-file is still possible via sqlite, kv dbs or something custom, but fressian-in-a-file would still be useful for debugging)
 	// possibly trigger indexing (if enough datoms in log)
 	//   (for now, do it immediately if necessary, but log it)
 	// update in-memory index to provide recent db
