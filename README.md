@@ -49,6 +49,18 @@ For now, you need to be familar with both Go and Datomic to be able to use
 languages, detailed documentation for both the Go API and the commandline
 interface.
 
+Note that the following are *not* implemented right now.  (Which may be
+considered as "the interesting parts" of Datomic.)
+
+- queries (planned.  for now you will have to use the raw index for queries)
+- segmented index (in progress)
+- log (in progress)
+- history (not planned for now.  the log will store the data, so we can
+    support this later.  the database values are still immutable, though.)
+- proper schema support (in progress.  support for checking attribute types,
+    cardinality many attributes and a few other things is not implemented
+    yet.)
+
 ## Thanks
 
 First and foremost, a very big thank you to Rich Hickey and everyone who
