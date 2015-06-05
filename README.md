@@ -3,8 +3,8 @@
 **Warning:** *Here be dragons, and lots of them.  `mu` is nowhere near
 finished, production ready or guaranteed (or even likely) to not mess
 up your data.  It is part research project, part utility in use at
-tiny (<1mb dbs) scales.  You're welcome to look around and have fun
-(and give feedback), but don't expect that it won't mess up things.*
+(really) tiny scale.  You're welcome to look around and have fun (and
+give feedback), but don't expect that it won't mess up things.*
 
 `mu` is a database that stores tuples, with a lightweight schema mechanism
 and a design that will support custom query languages and immutable storage
