@@ -529,6 +529,79 @@ func (i *indexIterator) Next() *Datom {
 	return &datom
 }
 
+type CompareDatomsFn func(a, b *Datom) int
+
+func CompareDatomsEavt(a, b *Datom) int {
+	if a == nil {
+		return -1
+	}
+	if b == nil {
+		return 1
+	}
+
+	cmp := a.e - b.e
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = a.a - b.a
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = compareValue(a.v, b.v)
+	if cmp != 0 {
+		return cmp
+	}
+
+	return a.tx - b.tx
+}
+
+type mergeIterator struct {
+	compare CompareDatomsFn
+	iter1   Iterator
+	datom1  *Datom
+	iter2   Iterator
+	datom2  *Datom
+}
+
+func newMergeIterator(compare CompareDatomsFn, iter1, iter2 Iterator) Iterator {
+	datom1 := iter1.Next()
+	if datom1 == nil {
+		return iter2
+	}
+	datom2 := iter2.Next()
+	if datom2 == nil {
+		return iter1
+	}
+	return &mergeIterator{compare, iter1, datom1, iter2, datom2}
+}
+
+func (i *mergeIterator) Next() *Datom {
+	if i.datom1 == nil {
+		return i.iter2.Next()
+	}
+	if i.datom2 == nil {
+		return i.iter1.Next()
+	}
+
+	cmp := i.compare(i.datom1, i.datom2)
+	if cmp < 0 {
+		datom := i.datom1
+		i.datom1 = i.iter1.Next()
+		return datom
+	} else if cmp == 0 {
+		datom := i.datom1
+		i.datom1 = i.iter1.Next()
+		i.datom2 = i.iter2.Next()
+		return datom
+	} else {
+		datom := i.datom2
+		i.datom2 = i.iter2.Next()
+		return datom
+	}
+}
+
 var globalStore Store
 
 func main() {
