@@ -320,8 +320,17 @@ func compareValue(a, b interface{}) int {
 	case int:
 		b := b.(int)
 		return a - b
+	case string:
+		b := b.(string)
+		if a < b {
+			return -1
+		} else if a == b {
+			return 0
+		} else {
+			return 1
+		}
 	default:
-		log.Fatal("compareValue: not implemented")
+		log.Fatal("compareValue: not implemented (compare ", a, ", ", b, ")")
 		return -1
 	}
 }
@@ -460,7 +469,9 @@ var globalStore Store
 func main() {
 	globalStore = fileStore{path: "dbs/mbrainz-1968-1973/values"}
 	root := getRoot("546ac104-57a3-4708-8fbe-beba9dabbc8d")
-	datom := Datom{e: 0, a: 11, v: 4, tx: 0, added: true}
+	//datom := Datom{e: 0, a: 11, v: 4, tx: 0, added: true}
+	//datom := Datom{e: 17592186046307, a: 94, v: "Paul Siebel", tx: 0, added: true}
+	datom := Datom{e: 17592186046329, a: 0, v: 0, tx: 0, added: true}
 	fmt.Println("searching for", datom)
 	rootIdx, dirIdx, segmentIdx := root.Find(CompareEavt, datom)
 	fmt.Println("found at", rootIdx, dirIdx, segmentIdx)
