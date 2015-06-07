@@ -346,6 +346,9 @@ func CompareEavt(tData TransposedData, idx int, datom Datom) int {
 	return tData.transactions[idx] - datom.tx
 }
 
+// invariants:
+//   - returns len(t.entities) if all datoms are smaller
+//   - the datom at the index is greater or equal
 func (t TransposedData) Find(compare CompareFn, datom Datom) int {
 	l := 0
 	r := len(t.entities) - 1
