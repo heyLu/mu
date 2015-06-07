@@ -398,7 +398,7 @@ func (t TransposedData) DatomAt(idx int) Datom {
 		e:     t.entities[idx],
 		a:     t.attributes[idx],
 		v:     t.values[idx],
-		tx:    t.transactions[idx],
+		tx:    3*(1<<42) + t.transactions[idx],
 		added: t.addeds[idx],
 	}
 }
@@ -462,6 +462,44 @@ func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
 	} else {
 		return len(r.directories), 0, 0
 	}
+}
+
+type indexIterator struct {
+	rootIdx, rootStart, rootEnd          int
+	dirIdx, dirStart, dirEnd             int
+	segmentIdx, segmentStart, segmentEnd int
+	root                                 Root
+	directory                            Directory
+	segment                              TransposedData
+}
+
+func (i *indexIterator) atEnd() bool {
+	return i.rootIdx >= i.rootEnd && i.dirIdx >= i.dirEnd && i.segmentIdx >= i.segmentEnd
+}
+
+func (i *indexIterator) Next() *Datom {
+	if i.atEnd() {
+		return nil
+	}
+
+	if i.segmentIdx < len(i.segment.entities)-1 {
+		i.segmentIdx += 1
+	} else if i.dirIdx < len(i.directory.segments)-1 {
+		i.dirIdx += 1
+		i.segment = getSegment(i.directory.segments[i.dirIdx])
+		i.segmentIdx = 0
+	} else if i.rootIdx < i.rootEnd && i.rootIdx < len(i.root.directories)-1 {
+		i.rootIdx += 1
+		i.dirIdx = 0
+		i.segmentIdx = 0
+		i.directory = getDirectory(i.root.directories[i.rootIdx])
+		i.segment = getSegment(i.directory.segments[i.dirIdx])
+	} else {
+		return nil
+	}
+
+	datom := i.segment.DatomAt(i.segmentIdx)
+	return &datom
 }
 
 var globalStore Store
