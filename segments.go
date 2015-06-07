@@ -8,7 +8,13 @@ import (
 	"path"
 )
 
-type Datom struct{}
+type Datom struct {
+	e     int
+	a     int
+	v     int //interface{}
+	tx    int
+	added bool
+}
 type IndexRoot struct{}
 type Log struct{}
 
@@ -113,7 +119,7 @@ type Directory struct {
 }
 
 type TransposedData struct {
-	values       []interface{}
+	values       []int //[]interface{}
 	entities     []int
 	attributes   []int
 	transactions []int
@@ -258,6 +264,72 @@ func (c Connection) TransactDatoms(datoms []Datom) error {
 	return nil
 }
 
+type CompareFn func(tData TransposedData, idx int, datom Datom) int
+
+func CompareEavt(tData TransposedData, idx int, datom Datom) int {
+	fmt.Println("compare", datom, "at", idx)
+	cmp := tData.entities[idx] - datom.e
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.attributes[idx] - datom.a
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.values[idx] - datom.v
+	if cmp != 0 {
+		return cmp
+	}
+
+	return tData.transactions[idx] - datom.tx
+}
+
+func (t TransposedData) Find(compare CompareFn, datom Datom) int {
+	l := 0
+	r := len(t.entities) - 1
+
+	for {
+		if l <= r {
+			m := (l + r) / 2
+			cmp := compare(t, m, datom)
+			if cmp < 0 {
+				l = m + 1
+			} else {
+				r = m - 1
+			}
+		} else {
+			return l
+		}
+	}
+}
+
+func (t TransposedData) DatomAt(idx int) Datom {
+	return Datom{
+		e:     t.entities[idx],
+		a:     t.attributes[idx],
+		v:     t.values[idx],
+		tx:    t.transactions[idx],
+		added: t.addeds[idx],
+	}
+}
+
 func main() {
-	fmt.Println(".")
+	tData := TransposedData{
+		entities:     []int{0, 0, 0, 1, 1, 1},
+		attributes:   []int{1, 2, 3, 1, 2, 3},
+		values:       []int{1, 2, 3, 4, 5, 6},
+		transactions: []int{0, 0, 0, 0, 0, 0},
+		addeds:       []bool{true, true, true, true, true, true},
+	}
+	datom := Datom{e: 0, a: 4, v: 42, tx: 0, added: true}
+	fmt.Println("searching for ", datom)
+	idx := tData.Find(CompareEavt, datom)
+	if idx >= len(tData.entities) {
+		fmt.Println("not found")
+	} else {
+		fmt.Println("found at idx ", idx)
+		fmt.Println("  ", tData.DatomAt(idx))
+	}
 }
