@@ -346,6 +346,8 @@ func CompareEavt(tData TransposedData, idx int, datom Datom) int {
 	return tData.transactions[idx] - datom.tx
 }
 
+// Find finds the closest (first) datom that is greater or equal to `datom`.
+//
 // invariants:
 //   - returns len(t.entities) if all datoms are smaller
 //   - the datom at the index is greater or equal
