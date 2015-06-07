@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"github.com/heyLu/fressian"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,7 +14,7 @@ import (
 type Datom struct {
 	e     int
 	a     int
-	v     int //interface{}
+	v     interface{}
 	tx    int
 	added bool
 }
@@ -119,11 +122,56 @@ type Directory struct {
 }
 
 type TransposedData struct {
-	values       []int //[]interface{}
+	values       []interface{}
 	entities     []int
 	attributes   []int
 	transactions []int
 	addeds       []bool
+}
+
+var readHandlers = map[string]fressian.ReadHandler{
+	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
+		tData, _ := r.ReadValue()
+		directoriesRaw, _ := r.ReadValue()
+		directories := make([]string, len(directoriesRaw.([]interface{})))
+		for i, dir := range directoriesRaw.([]interface{}) {
+			directories[i] = dir.(string)
+		}
+		return Root{
+			tData:       tData.(TransposedData),
+			directories: directories,
+		}
+	},
+	"index-tdata": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
+		vs, _ := r.ReadValue()
+		es, _ := r.ReadValue()
+		as, _ := r.ReadValue()
+		txs, _ := r.ReadValue()
+		addeds, _ := r.ReadValue()
+		return TransposedData{
+			entities:     es.([]int),
+			attributes:   as.([]int),
+			values:       vs.([]interface{}),
+			transactions: txs.([]int),
+			addeds:       addeds.([]bool),
+		}
+	},
+	"index-dir-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
+		tData, _ := r.ReadValue()
+		segmentsRaw, _ := r.ReadValue()
+		mystery1, _ := r.ReadValue()
+		mystery2, _ := r.ReadValue()
+		segments := make([]string, len(segmentsRaw.([]interface{})))
+		for i, dir := range segmentsRaw.([]interface{}) {
+			segments[i] = dir.(string)
+		}
+		return Directory{
+			tData:    tData.(TransposedData),
+			segments: segments,
+			mystery1: mystery1.([]int),
+			mystery2: mystery2.([]int),
+		}
+	},
 }
 
 // The (global) object cache
@@ -266,6 +314,18 @@ func (c Connection) TransactDatoms(datoms []Datom) error {
 
 type CompareFn func(tData TransposedData, idx int, datom Datom) int
 
+func compareValue(a, b interface{}) int {
+	fmt.Println("compareValue", a, b)
+	switch a := a.(type) {
+	case int:
+		b := b.(int)
+		return a - b
+	default:
+		log.Fatal("compareValue: not implemented")
+		return -1
+	}
+}
+
 func CompareEavt(tData TransposedData, idx int, datom Datom) int {
 	fmt.Println("compare", datom, "at", idx)
 	cmp := tData.entities[idx] - datom.e
@@ -278,7 +338,7 @@ func CompareEavt(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
-	cmp = tData.values[idx] - datom.v
+	cmp = compareValue(tData.values[idx], datom.v)
 	if cmp != 0 {
 		return cmp
 	}
@@ -315,11 +375,46 @@ func (t TransposedData) DatomAt(idx int) Datom {
 	}
 }
 
-func getDirectory(id string) Directory    { return Directory{} }
-func getSegment(id string) TransposedData { return TransposedData{} }
+var tmpGlobalCache = map[string]interface{}{}
+
+func getFromCache(id string) interface{} {
+	if val, ok := tmpGlobalCache[id]; ok {
+		return val
+	}
+
+	log.Printf("getFromCache: globalStore.Get(%s)\n", id)
+	data, err := globalStore.Get(id)
+	if err != nil {
+		log.Fatal("getFromCache: globalStore.Get: ", err)
+		return nil
+	}
+
+	gz, err := gzip.NewReader(bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal("getFromCache: gzip.NewReader: ", err)
+		return nil
+	}
+
+	r := fressian.NewReader(gz, readHandlers)
+	val, err := r.ReadValue()
+	if err != nil {
+		log.Fatal("getFromCache: r.ReadValue: ", err)
+		return nil
+	}
+
+	tmpGlobalCache[id] = val
+	return val
+}
+
+func getRoot(id string) Root              { return getFromCache(id).(Root) }
+func getDirectory(id string) Directory    { return getFromCache(id).(Directory) }
+func getSegment(id string) TransposedData { return getFromCache(id).(TransposedData) }
 
 func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
-	dirIdx := d.tData.Find(compare, datom)
+	dirIdx := 0
+	if len(d.segments) > 1 {
+		dirIdx = d.tData.Find(compare, datom)
+	}
 	if dirIdx < len(d.segments) {
 		segmentIdx := getSegment(d.segments[dirIdx]).Find(compare, datom)
 		return dirIdx, segmentIdx
@@ -329,7 +424,10 @@ func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
 }
 
 func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
-	rootIdx := r.tData.Find(compare, datom)
+	rootIdx := 0
+	if len(r.directories) > 1 {
+		rootIdx = r.tData.Find(compare, datom)
+	}
 	if rootIdx < len(r.directories) {
 		dirIdx, segmentIdx := getDirectory(r.directories[rootIdx]).Find(compare, datom)
 		return rootIdx, dirIdx, segmentIdx
@@ -338,21 +436,14 @@ func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
 	}
 }
 
+var globalStore Store
+
 func main() {
-	tData := TransposedData{
-		entities:     []int{0, 0, 0, 1, 1, 1},
-		attributes:   []int{1, 2, 3, 1, 2, 3},
-		values:       []int{1, 2, 3, 4, 5, 6},
-		transactions: []int{0, 0, 0, 0, 0, 0},
-		addeds:       []bool{true, true, true, true, true, true},
-	}
-	datom := Datom{e: 0, a: 4, v: 42, tx: 0, added: true}
+	globalStore = fileStore{path: "dbs/mbrainz-1968-1973/values"}
+	root := getRoot("546ac104-57a3-4708-8fbe-beba9dabbc8d")
+	datom := Datom{e: 0, a: 11, v: 4, tx: 0, added: true}
 	fmt.Println("searching for ", datom)
-	idx := tData.Find(CompareEavt, datom)
-	if idx >= len(tData.entities) {
-		fmt.Println("not found")
-	} else {
-		fmt.Println("found at idx ", idx)
-		fmt.Println("  ", tData.DatomAt(idx))
-	}
+	rootIdx, dirIdx, segmentIdx := root.Find(CompareEavt, datom)
+	fmt.Println(rootIdx, dirIdx, segmentIdx)
+	fmt.Println(getSegment(getDirectory(root.directories[rootIdx]).segments[dirIdx]).DatomAt(segmentIdx))
 }
