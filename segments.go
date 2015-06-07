@@ -464,6 +464,12 @@ func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
 	}
 }
 
+type emptyIterator struct{}
+
+func (i emptyIterator) Next() *Datom {
+	return nil
+}
+
 type indexIterator struct {
 	rootIdx, rootStart, rootEnd          int
 	dirIdx, dirStart, dirEnd             int
@@ -471,6 +477,27 @@ type indexIterator struct {
 	root                                 Root
 	directory                            Directory
 	segment                              TransposedData
+}
+
+func newIndexIterator(root Root, compare CompareFn, start, end Datom) Iterator {
+	rs, ds, ss := root.Find(compare, start)
+	fmt.Println(rs, ds, ss)
+	re, de, se := root.Find(compare, end)
+	fmt.Println(re, de, se)
+	if rs >= len(root.directories) {
+		return emptyIterator{}
+	}
+	directory := getDirectory(root.directories[rs])
+	if ds >= len(directory.segments) {
+		return emptyIterator{}
+	}
+	segment := getSegment(directory.segments[ds])
+	return &indexIterator{
+		rs, rs, re,
+		ds, ds, de,
+		ss - 1, ss, se - 1,
+		root, directory, segment,
+	}
 }
 
 func (i *indexIterator) atEnd() bool {
@@ -514,4 +541,9 @@ func main() {
 	rootIdx, dirIdx, segmentIdx := root.Find(CompareEavt, datom)
 	fmt.Println("found at", rootIdx, dirIdx, segmentIdx)
 	fmt.Println(" ", getSegment(getDirectory(root.directories[rootIdx]).segments[dirIdx]).DatomAt(segmentIdx))
+
+	iter := newIndexIterator(root, CompareEavt, datom, Datom{e: datom.e, a: 100000, v: 0, tx: 0, added: true})
+	for d := iter.Next(); d != nil; d = iter.Next() {
+		fmt.Println(d)
+	}
 }
