@@ -461,8 +461,8 @@ func main() {
 	globalStore = fileStore{path: "dbs/mbrainz-1968-1973/values"}
 	root := getRoot("546ac104-57a3-4708-8fbe-beba9dabbc8d")
 	datom := Datom{e: 0, a: 11, v: 4, tx: 0, added: true}
-	fmt.Println("searching for ", datom)
+	fmt.Println("searching for", datom)
 	rootIdx, dirIdx, segmentIdx := root.Find(CompareEavt, datom)
-	fmt.Println(rootIdx, dirIdx, segmentIdx)
-	fmt.Println(getSegment(getDirectory(root.directories[rootIdx]).segments[dirIdx]).DatomAt(segmentIdx))
+	fmt.Println("found at", rootIdx, dirIdx, segmentIdx)
+	fmt.Println(" ", getSegment(getDirectory(root.directories[rootIdx]).segments[dirIdx]).DatomAt(segmentIdx))
 }
