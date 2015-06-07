@@ -370,6 +370,20 @@ func (t TransposedData) Find(compare CompareFn, datom Datom) int {
 	}
 }
 
+func (t TransposedData) FindApprox(compare CompareFn, datom Datom) int {
+	idx := t.Find(compare, datom)
+	if idx > 0 && idx < len(t.entities) {
+		cmpPrev := compare(t, idx-1, datom)
+		if cmpPrev < 0 {
+			return idx - 1
+		} else {
+			return idx
+		}
+	} else {
+		return idx
+	}
+}
+
 func (t TransposedData) DatomAt(idx int) Datom {
 	return Datom{
 		e:     t.entities[idx],
@@ -418,7 +432,7 @@ func getSegment(id string) TransposedData { return getFromCache(id).(TransposedD
 func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
 	dirIdx := 0
 	if len(d.segments) > 1 {
-		dirIdx = d.tData.Find(compare, datom)
+		dirIdx = d.tData.FindApprox(compare, datom)
 	}
 	if dirIdx < len(d.segments) {
 		segmentIdx := getSegment(d.segments[dirIdx]).Find(compare, datom)
@@ -431,7 +445,7 @@ func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
 func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
 	rootIdx := 0
 	if len(r.directories) > 1 {
-		rootIdx = r.tData.Find(compare, datom)
+		rootIdx = r.tData.FindApprox(compare, datom)
 	}
 	if rootIdx < len(r.directories) {
 		dirIdx, segmentIdx := getDirectory(r.directories[rootIdx]).Find(compare, datom)
