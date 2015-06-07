@@ -315,7 +315,7 @@ func (c Connection) TransactDatoms(datoms []Datom) error {
 type CompareFn func(tData TransposedData, idx int, datom Datom) int
 
 func compareValue(a, b interface{}) int {
-	fmt.Println("compareValue", a, b)
+	//fmt.Println("compareValue", a, b)
 	switch a := a.(type) {
 	case int:
 		b := b.(int)
@@ -327,7 +327,7 @@ func compareValue(a, b interface{}) int {
 }
 
 func CompareEavt(tData TransposedData, idx int, datom Datom) int {
-	fmt.Println("compare", datom, "at", idx)
+	//fmt.Println("compare", datom, "at", idx)
 	cmp := tData.entities[idx] - datom.e
 	if cmp != 0 {
 		return cmp
