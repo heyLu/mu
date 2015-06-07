@@ -315,6 +315,29 @@ func (t TransposedData) DatomAt(idx int) Datom {
 	}
 }
 
+func getDirectory(id string) Directory    { return Directory{} }
+func getSegment(id string) TransposedData { return TransposedData{} }
+
+func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
+	dirIdx := d.tData.Find(compare, datom)
+	if dirIdx < len(d.segments) {
+		segmentIdx := getSegment(d.segments[dirIdx]).Find(compare, datom)
+		return dirIdx, segmentIdx
+	} else {
+		return len(d.segments), 0
+	}
+}
+
+func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
+	rootIdx := r.tData.Find(compare, datom)
+	if rootIdx < len(r.directories) {
+		dirIdx, segmentIdx := getDirectory(r.directories[rootIdx]).Find(compare, datom)
+		return rootIdx, dirIdx, segmentIdx
+	} else {
+		return len(r.directories), 0, 0
+	}
+}
+
 func main() {
 	tData := TransposedData{
 		entities:     []int{0, 0, 0, 1, 1, 1},
