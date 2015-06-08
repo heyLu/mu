@@ -12,17 +12,24 @@ import (
 type ValueType int
 
 const (
+	Min            = -1
 	Bool ValueType = iota
 	Int
 	Keyword
 	String
 	Date
+	Max
 )
 
 type Value struct {
 	ty  ValueType
 	val interface{}
 }
+
+var (
+	MinValue = Value{Min, nil}
+	MaxValue = Value{Max, nil}
+)
 
 func NewValue(val interface{}) Value {
 	switch val.(type) {
@@ -85,6 +92,10 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 			v := v.val.(time.Time)
 			ov := ov.val.(time.Time)
 			return int(v.Unix() - ov.Unix())
+		case Min:
+			return -1
+		case Max:
+			return 1
 		default:
 			log.Fatal("invalid values: ", v, ", ", ov)
 			return 0
@@ -104,8 +115,8 @@ type Datom struct {
 	added       bool
 }
 
-var MinDatom = Datom{0, 0, Value{String, ""}, 0, false}
-var MaxDatom = Datom{math.MaxInt64, math.MaxInt64, Value{String, ""}, math.MaxInt64, true}
+var MinDatom = Datom{0, 0, MinValue, 0, false}
+var MaxDatom = Datom{math.MaxInt64, math.MaxInt64, MaxValue, math.MaxInt64, true}
 
 func NewDatom(e int, a int, v interface{}, tx int, added bool) Datom {
 	return Datom{e, a, NewValue(v), tx, added}
