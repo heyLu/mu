@@ -3,16 +3,31 @@ package backup
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/heyLu/fressian"
 	"net/url"
 	"os"
 	"path"
 
 	connection ".."
+	"../../database"
+	"../../index"
+	"../../store"
 )
 
 func init() {
 	connection.Register("backup", New)
+}
+
+type Connection struct {
+	db *database.Database
+}
+
+func (c *Connection) Db() (*database.Database, error) {
+	return c.db, nil
+}
+
+func (c *Connection) TransactDatoms([]index.Datom) error {
+	return fmt.Errorf("transact is not supported on backups")
 }
 
 func New(u *url.URL) (connection.Connection, error) {
@@ -32,11 +47,23 @@ func New(u *url.URL) (connection.Connection, error) {
 		rootId = roots[0]
 	}
 
-	log.Fatal("reading the root not implemented")
+	// read root which contains index/root-id, log/root-id and log/tail
+	// construct a connection from that (log -> memory index, index/root-id -> segmented index
+	root, err := getRoot(path.Join(baseDir, "roots", rootId))
+	if err != nil {
+		return nil, err
+	}
 
-	indexRootId := ""
-	newU, _ := url.Parse(fmt.Sprintf("files://%s/values?root=%s", baseDir, indexRootId))
-	return connection.New(newU)
+	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
+	logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
+	logTail := root[fressian.Keyword{"log", "tail"}].([]byte)
+	storeUrl, _ := url.Parse(fmt.Sprintf("files://%s/values", u.Host+u.Path))
+	store, err := store.Get(storeUrl)
+	if err != nil {
+		return nil, err
+	}
+	db := connection.CurrentDb(store, indexRootId, logRootId, logTail)
+	return &Connection{db}, nil
 }
 
 func listDir(path string) ([]string, error) {
@@ -45,4 +72,19 @@ func listDir(path string) ([]string, error) {
 		return nil, err
 	}
 	return dir.Readdirnames(-1)
+}
+
+func getRoot(path string) (map[interface{}]interface{}, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	r := fressian.NewReader(f, nil)
+	rootRaw, err := r.ReadValue()
+	if err != nil {
+		return nil, err
+	}
+
+	return rootRaw.(map[interface{}]interface{}), nil
 }

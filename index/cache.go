@@ -29,7 +29,7 @@ func (c *memoryCache) Put(id string, val interface{}) {
 
 var cache Cache = &memoryCache{make(map[string]interface{}, 100)}
 
-func getFromCache(store store.Store, id string) interface{} {
+func GetFromCache(store store.Store, id string) interface{} {
 	if val, ok := cache.Get(id); ok {
 		return val
 	}
@@ -58,8 +58,8 @@ func getFromCache(store store.Store, id string) interface{} {
 	return val
 }
 
-func GetRoot(store store.Store, id string) Root           { return getFromCache(store, id).(Root) }
-func getDirectory(store store.Store, id string) Directory { return getFromCache(store, id).(Directory) }
+func GetRoot(store store.Store, id string) Root           { return GetFromCache(store, id).(Root) }
+func getDirectory(store store.Store, id string) Directory { return GetFromCache(store, id).(Directory) }
 func getSegment(store store.Store, id string) TransposedData {
-	return getFromCache(store, id).(TransposedData)
+	return GetFromCache(store, id).(TransposedData)
 }

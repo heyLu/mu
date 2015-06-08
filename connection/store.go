@@ -38,24 +38,13 @@ func connectToStore(u *url.URL) (Connection, error) {
 		return nil, fmt.Errorf("must specify a ?root=<root> parameter")
 	}
 
-	// get database root from store (by db name = last path component?)
-	root, err := getDbRoot(store, rootId)
-	if err != nil {
-		return nil, err
-	}
+	root := index.GetFromCache(store, rootId).(map[interface{}]interface{})
+	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
+	//logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
+	//logTail := root[fressian.Keyword{"log", "tail"}].(string)
 
-	// get index roots from store
-	// create segment indexes
-	eavt := getIndex(root, "eavt-main", store, index.CompareEavtIndex)
-	aevt := getIndex(root, "aevt-main", store, index.CompareAevtIndex)
-	avet := getIndex(root, "avet-main", store, index.CompareAvetIndex)
-	vaet := getIndex(root, "raet-main", store, index.CompareVaetIndex)
+	db := CurrentDb(store, indexRootId, "", []byte{})
 
-	// get log from store
-	// create in-memory indexes
-	// create merged indexes
-
-	db := database.New(eavt, aevt, avet, vaet)
 	conn := &storeConnection{
 		store:  store,
 		rootId: rootId,
@@ -64,6 +53,23 @@ func connectToStore(u *url.URL) (Connection, error) {
 	}
 
 	return conn, nil
+}
+
+func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) *database.Database {
+	indexRoot := index.GetFromCache(store, indexRootId).(map[interface{}]interface{})
+
+	// get index roots from store
+	// create segment indexes
+	eavt := getIndex(indexRoot, "eavt-main", store, index.CompareEavtIndex)
+	aevt := getIndex(indexRoot, "aevt-main", store, index.CompareAevtIndex)
+	avet := getIndex(indexRoot, "avet-main", store, index.CompareAvetIndex)
+	vaet := getIndex(indexRoot, "raet-main", store, index.CompareVaetIndex)
+
+	// get log from store
+	// create in-memory indexes
+	// create merged indexes
+
+	return database.New(eavt, aevt, avet, vaet)
 }
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
