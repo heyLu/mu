@@ -8,6 +8,7 @@ import (
 	connection ".."
 	"../../database"
 	"../../index/"
+	"../../log"
 	memoryConn "../memory"
 )
 
@@ -55,6 +56,8 @@ func New(u *url.URL) (connection.Connection, error) {
 func (c *Connection) Db() *database.Database {
 	return c.conn.Db()
 }
+
+func (c *Connection) Log() *log.Log { return nil }
 
 func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	// FIXME: write using memory index, then write to file

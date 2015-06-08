@@ -8,12 +8,14 @@ import (
 
 	"../database"
 	"../index"
+	dbLog "../log"
 )
 
 type Connector func(u *url.URL) (Connection, error)
 
 type Connection interface {
 	Db() *database.Database
+	Log() *dbLog.Log
 	TransactDatoms(datoms []index.Datom) error
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"../database"
 	"../index"
+	"../log"
 	"../store"
 	_ "../store/file"
 )
@@ -21,6 +22,8 @@ type storeConnection struct {
 }
 
 func (c *storeConnection) Db() *database.Database { return c.db }
+
+func (c *storeConnection) Log() *log.Log { return nil }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
