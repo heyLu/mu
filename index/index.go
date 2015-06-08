@@ -5,6 +5,7 @@ import (
 
 	"../collection/btset"
 	"../comparable"
+	"../store"
 )
 
 const (
@@ -28,6 +29,10 @@ type Iterator interface {
 
 type MemoryIndex struct {
 	datoms *btset.Set
+}
+
+func NewMemoryIndex(compare comparable.CompareFn) *MemoryIndex {
+	return &MemoryIndex{btset.New(compare)}
 }
 
 type btsetIterator struct {
@@ -58,7 +63,12 @@ func (mi MemoryIndex) SeekDatoms(start Datom) Iterator {
 
 type SegmentedIndex struct {
 	root    *Root
+	store   store.Store
 	compare CompareFn
+}
+
+func NewSegmentedIndex(root *Root, store store.Store, compare CompareFn) *SegmentedIndex {
+	return &SegmentedIndex{root, store, compare}
 }
 
 func (si SegmentedIndex) Datoms() Iterator {
@@ -77,6 +87,10 @@ type MergedIndex struct {
 	memoryIndex    *MemoryIndex
 	segmentedIndex *SegmentedIndex
 	compare        comparable.CompareFn
+}
+
+func NewMergedIndex(mi *MemoryIndex, si *SegmentedIndex, compare comparable.CompareFn) *MergedIndex {
+	return &MergedIndex{mi, si, compare}
 }
 
 func (mi MergedIndex) Datoms() Iterator {
