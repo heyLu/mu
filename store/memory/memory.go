@@ -1,5 +1,20 @@
 package memory
 
+import (
+	"fmt"
+	"net/url"
+
+	store ".."
+)
+
+func init() {
+	store.Register("memory", open)
+}
+
+func open(u *url.URL) (store.Store, error) {
+	return new(memoryStore), nil
+}
+
 type memoryStore struct {
 	store map[string][]byte
 }

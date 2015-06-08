@@ -1,8 +1,6 @@
 package index
 
 import (
-	"bytes"
-	"compress/gzip"
 	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
@@ -31,7 +29,7 @@ type TransposedData struct {
 	addeds       []bool
 }
 
-var readHandlers = map[string]fressian.ReadHandler{
+var SegmentReadHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadValue()
 		directoriesRaw, _ := r.ReadValue()
@@ -119,6 +117,63 @@ func CompareEavtIndex(tData TransposedData, idx int, datom Datom) int {
 	return tData.transactions[idx] - datom.transaction
 }
 
+func CompareAevtIndex(tData TransposedData, idx int, datom Datom) int {
+	cmp := tData.attributes[idx] - datom.attribute
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.entities[idx] - datom.entity
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = NewValue(tData.values[idx]).Compare(datom.value)
+	if cmp != 0 {
+		return cmp
+	}
+
+	return tData.transactions[idx] - datom.transaction
+}
+
+func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
+	cmp := tData.attributes[idx] - datom.attribute
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = NewValue(tData.values[idx]).Compare(datom.value)
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.entities[idx] - datom.entity
+	if cmp != 0 {
+		return cmp
+	}
+
+	return tData.transactions[idx] - datom.transaction
+}
+
+func CompareVaetIndex(tData TransposedData, idx int, datom Datom) int {
+	cmp := tData.values[idx].(int) - datom.value.Val().(int)
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.attributes[idx] - datom.attribute
+	if cmp != 0 {
+		return cmp
+	}
+
+	cmp = tData.entities[idx] - datom.entity
+	if cmp != 0 {
+		return cmp
+	}
+
+	return tData.transactions[idx] - datom.transaction
+}
+
 // Find finds the closest (first) datom that is greater or equal to `datom`.
 //
 // invariants:
@@ -167,61 +222,26 @@ func (t TransposedData) DatomAt(idx int) Datom {
 	}
 }
 
-var tmpGlobalCache = map[string]interface{}{}
-
-func getFromCache(id string) interface{} {
-	if val, ok := tmpGlobalCache[id]; ok {
-		return val
-	}
-
-	log.Printf("getFromCache: globalStore.Get(%s)\n", id)
-	data, err := globalStore.Get(id)
-	if err != nil {
-		log.Fatal("getFromCache: globalStore.Get: ", err)
-		return nil
-	}
-
-	gz, err := gzip.NewReader(bytes.NewBuffer(data))
-	if err != nil {
-		log.Fatal("getFromCache: gzip.NewReader: ", err)
-		return nil
-	}
-
-	r := fressian.NewReader(gz, readHandlers)
-	val, err := r.ReadValue()
-	if err != nil {
-		log.Fatal("getFromCache: r.ReadValue: ", err)
-		return nil
-	}
-
-	tmpGlobalCache[id] = val
-	return val
-}
-
-func getRoot(id string) Root              { return getFromCache(id).(Root) }
-func getDirectory(id string) Directory    { return getFromCache(id).(Directory) }
-func getSegment(id string) TransposedData { return getFromCache(id).(TransposedData) }
-
-func (d Directory) Find(compare CompareFn, datom Datom) (int, int) {
+func (d Directory) Find(store store.Store, compare CompareFn, datom Datom) (int, int) {
 	dirIdx := 0
 	if len(d.segments) > 1 {
 		dirIdx = d.tData.FindApprox(compare, datom)
 	}
 	if dirIdx < len(d.segments) {
-		segmentIdx := getSegment(d.segments[dirIdx]).Find(compare, datom)
+		segmentIdx := getSegment(store, d.segments[dirIdx]).Find(compare, datom)
 		return dirIdx, segmentIdx
 	} else {
 		return len(d.segments), 0
 	}
 }
 
-func (r Root) Find(compare CompareFn, datom Datom) (int, int, int) {
+func (r Root) Find(store store.Store, compare CompareFn, datom Datom) (int, int, int) {
 	rootIdx := 0
 	if len(r.directories) > 1 {
 		rootIdx = r.tData.FindApprox(compare, datom)
 	}
 	if rootIdx < len(r.directories) {
-		dirIdx, segmentIdx := getDirectory(r.directories[rootIdx]).Find(compare, datom)
+		dirIdx, segmentIdx := getDirectory(store, r.directories[rootIdx]).Find(store, compare, datom)
 		return rootIdx, dirIdx, segmentIdx
 	} else {
 		return len(r.directories), 0, 0
@@ -241,26 +261,28 @@ type indexIterator struct {
 	root                                 Root
 	directory                            Directory
 	segment                              TransposedData
+	store                                store.Store
 }
 
-func newIndexIterator(root Root, compare CompareFn, start, end Datom) Iterator {
-	rs, ds, ss := root.Find(compare, start)
+func newIndexIterator(store store.Store, root Root, compare CompareFn, start, end Datom) Iterator {
+	rs, ds, ss := root.Find(store, compare, start)
 	fmt.Println(rs, ds, ss)
-	re, de, se := root.Find(compare, end)
+	re, de, se := root.Find(store, compare, end)
 	fmt.Println(re, de, se)
 	if rs >= len(root.directories) {
 		return emptyIterator{}
 	}
-	directory := getDirectory(root.directories[rs])
+	directory := getDirectory(store, root.directories[rs])
 	if ds >= len(directory.segments) {
 		return emptyIterator{}
 	}
-	segment := getSegment(directory.segments[ds])
+	segment := getSegment(store, directory.segments[ds])
 	return &indexIterator{
 		rs, rs, re,
 		ds, ds, de,
 		ss - 1, ss, se - 1,
 		root, directory, segment,
+		store,
 	}
 }
 
@@ -277,14 +299,14 @@ func (i *indexIterator) Next() *Datom {
 		i.segmentIdx += 1
 	} else if i.dirIdx < len(i.directory.segments)-1 {
 		i.dirIdx += 1
-		i.segment = getSegment(i.directory.segments[i.dirIdx])
+		i.segment = getSegment(i.store, i.directory.segments[i.dirIdx])
 		i.segmentIdx = 0
 	} else if i.rootIdx < i.rootEnd && i.rootIdx < len(i.root.directories)-1 {
 		i.rootIdx += 1
 		i.dirIdx = 0
 		i.segmentIdx = 0
-		i.directory = getDirectory(i.root.directories[i.rootIdx])
-		i.segment = getSegment(i.directory.segments[i.dirIdx])
+		i.directory = getDirectory(i.store, i.root.directories[i.rootIdx])
+		i.segment = getSegment(i.store, i.directory.segments[i.dirIdx])
 	} else {
 		return nil
 	}
@@ -337,5 +359,3 @@ func (i *mergeIterator) Next() *Datom {
 		return datom
 	}
 }
-
-var globalStore store.Store

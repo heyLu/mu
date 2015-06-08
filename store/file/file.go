@@ -2,9 +2,28 @@ package file
 
 import (
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
+
+	store ".."
 )
+
+func init() {
+	store.Register("files", open)
+}
+
+func open(u *url.URL) (store.Store, error) {
+	path := u.Host + u.Path
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	f.Close()
+
+	return &fileStore{path}, nil
+}
 
 type fileStore struct {
 	path string

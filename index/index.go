@@ -76,7 +76,7 @@ func (si SegmentedIndex) Datoms() Iterator {
 }
 
 func (si SegmentedIndex) DatomsAt(start, end Datom) Iterator {
-	return newIndexIterator(*si.root, si.compare, start, end)
+	return newIndexIterator(si.store, *si.root, si.compare, start, end)
 }
 
 func (si SegmentedIndex) SeekDatoms(start Datom) Iterator {

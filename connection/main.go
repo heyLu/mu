@@ -26,11 +26,16 @@ func Register(name string, connector Connector) {
 
 	registeredConnectors[name] = connector
 }
+
 func New(u *url.URL) (Connection, error) {
-	connector, ok := registeredConnectors[u.Scheme]
-	if !ok {
-		return nil, errors.New(fmt.Sprint("no such connector: ", u.Scheme))
+	if u.Scheme == "backup" {
+		connector, ok := registeredConnectors[u.Scheme]
+		if !ok {
+			return nil, errors.New(fmt.Sprint("no such connector: ", u.Scheme))
+		}
+
+		return connector(u)
 	}
 
-	return connector(u)
+	return connectToStore(u)
 }
