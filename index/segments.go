@@ -1,7 +1,6 @@
 package index
 
 import (
-	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
 
@@ -156,7 +155,7 @@ func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
 }
 
 func CompareVaetIndex(tData TransposedData, idx int, datom Datom) int {
-	cmp := tData.values[idx].(int) - datom.value.Val().(int)
+	cmp := NewValue(tData.values[idx]).Compare(datom.value)
 	if cmp != 0 {
 		return cmp
 	}
@@ -266,9 +265,9 @@ type indexIterator struct {
 
 func newIndexIterator(store store.Store, root Root, compare CompareFn, start, end Datom) Iterator {
 	rs, ds, ss := root.Find(store, compare, start)
-	fmt.Println(rs, ds, ss)
+	//fmt.Println(rs, ds, ss)
 	re, de, se := root.Find(store, compare, end)
-	fmt.Println(re, de, se)
+	//fmt.Println(re, de, se)
 	if rs >= len(root.directories) {
 		return emptyIterator{}
 	}
