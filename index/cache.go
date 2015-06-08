@@ -34,6 +34,7 @@ func getFromCache(store store.Store, id string) interface{} {
 		return val
 	}
 
+	//log.Println("[cache] get:", id)
 	data, err := store.Get(id)
 	if err != nil {
 		log.Fatal("[cache] store.Get: ", err)
