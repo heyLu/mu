@@ -29,10 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := conn.Db()
-	if err != nil {
-		log.Fatal(err)
-	}
+	db := conn.Db()
 	fmt.Println(db)
 
 	cmd := "eavt"
@@ -78,7 +75,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		toDb, _ := toConn.Db()
+		toDb := toConn.Db()
 		printDatoms(toDb.Eavt().Datoms())
 
 	case "test-transact":
@@ -88,7 +85,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		newDb, _ := conn.Db()
+		newDb := conn.Db()
 		printDatoms(newDb.Eavt().Datoms())
 
 		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 true]])")
@@ -97,7 +94,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		newDb, _ = conn.Db()
+		newDb = conn.Db()
 		printDatoms(newDb.Eavt().Datoms())
 
 		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 false]])")
@@ -105,7 +102,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		newDb, _ = conn.Db()
+		newDb = conn.Db()
 		printDatoms(newDb.Eavt().Datoms())
 
 	default:

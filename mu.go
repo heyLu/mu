@@ -33,10 +33,7 @@ func Transact(conn connection.Connection, origDatoms []index.Datom) error {
 	//   - check for uniqueness
 	//   - check types of values
 	//   - ... (a lot)
-	db, err := conn.Db()
-	if err != nil {
-		return err
-	}
+	db := conn.Db()
 
 	newEntityCache := map[int]int{}
 

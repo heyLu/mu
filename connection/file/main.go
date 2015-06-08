@@ -52,7 +52,7 @@ func New(u *url.URL) (connection.Connection, error) {
 	return &Connection{path, conn}, nil
 }
 
-func (c *Connection) Db() (*database.Database, error) {
+func (c *Connection) Db() *database.Database {
 	return c.conn.Db()
 }
 
@@ -71,8 +71,7 @@ func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	defer f.Close()
 
 	w := fressian.NewWriter(f, WriteHandler)
-	db, _ := c.conn.Db()
-	err = w.WriteValue(db)
+	err = w.WriteValue(c.conn.Db())
 	if err != nil {
 		return err
 	}

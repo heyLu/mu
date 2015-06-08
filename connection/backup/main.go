@@ -22,9 +22,7 @@ type Connection struct {
 	db *database.Database
 }
 
-func (c *Connection) Db() (*database.Database, error) {
-	return c.db, nil
-}
+func (c *Connection) Db() *database.Database { return c.db }
 
 func (c *Connection) TransactDatoms([]index.Datom) error {
 	return fmt.Errorf("transact is not supported on backups")

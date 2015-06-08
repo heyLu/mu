@@ -39,10 +39,7 @@ func main() {
 			}
 			//defer conn.Disconnect()
 
-			db, err = conn.Db()
-			if err != nil {
-				log.Fatal(err)
-			}
+			db = conn.Db()
 
 			nameAttr = db.Entid(mu.Keyword("", "name"))
 			contentAttr = db.Entid(mu.Keyword("", "content"))
@@ -50,11 +47,7 @@ func main() {
 				fmt.Println("initializing database")
 				initializeDb(conn)
 
-				db, err = conn.Db()
-				if err != nil {
-					log.Fatal(err)
-				}
-
+				db = conn.Db()
 				nameAttr = db.Entid(mu.Keyword("", "name"))
 				contentAttr = db.Entid(mu.Keyword("", "content"))
 			}

@@ -30,9 +30,7 @@ func NewFromDb(db *database.Database) connection.Connection {
 	return &Connection{db}
 }
 
-func (c *Connection) Db() (*database.Database, error) {
-	return c.db, nil
-}
+func (c *Connection) Db() *database.Database { return c.db }
 
 func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	eavt := c.db.Eavt().(*memoryIndex.Index)

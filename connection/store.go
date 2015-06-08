@@ -20,7 +20,7 @@ type storeConnection struct {
 	//log    *Log
 }
 
-func (c *storeConnection) Db() (*database.Database, error) { return c.db, nil }
+func (c *storeConnection) Db() *database.Database { return c.db }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")

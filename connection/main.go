@@ -13,7 +13,7 @@ import (
 type Connector func(u *url.URL) (Connection, error)
 
 type Connection interface {
-	Db() (*database.Database, error)
+	Db() *database.Database
 	TransactDatoms(datoms []index.Datom) error
 }
 
