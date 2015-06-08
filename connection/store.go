@@ -5,11 +5,12 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/heyLu/fressian"
+	"log"
 	"net/url"
 
 	"../database"
 	"../index"
-	"../log"
+	dbLog "../log"
 	"../store"
 	_ "../store/file"
 )
@@ -23,7 +24,7 @@ type storeConnection struct {
 
 func (c *storeConnection) Db() *database.Database { return c.db }
 
-func (c *storeConnection) Log() *log.Log { return nil }
+func (c *storeConnection) Log() *dbLog.Log { return nil }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
@@ -71,8 +72,13 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	// get log from store
 	// create in-memory indexes
 	// create merged indexes
-
-	return database.New(eavt, aevt, avet, vaet)
+	l := dbLog.FromStore(store, logRootId, logTail)
+	if len(l.Tail) > 0 {
+		log.Fatal("[conn] reading log tail not implemented")
+		return nil
+	} else {
+		return database.New(eavt, aevt, avet, vaet)
+	}
 }
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
