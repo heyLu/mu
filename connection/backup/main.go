@@ -1,6 +1,6 @@
 package backup
 
-import (
+/*import (
 	"errors"
 	"net/url"
 
@@ -34,3 +34,4 @@ func (c *Connection) Db() (*database.Database, error) {
 func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	return errors.New("not implemented")
 }
+*/

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"../index"
-	"../storage"
+	//	"../storage"
 )
 
 type Database struct {
@@ -20,7 +20,7 @@ func New(eavt, aevt, avet, vaet index.Index) *Database {
 	return &Database{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
 }
 
-func NewFromStore(store *storage.Store) (*Database, error) {
+/*func NewFromStore(store *storage.Store) (*Database, error) {
 	indexRootRaw, err := storage.Get(store, store.IndexRootId(), nil)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func NewFromStore(store *storage.Store) (*Database, error) {
 		return nil, err
 	}
 	return New(eavt, aevt, avet, vaet), nil
-}
+}*/
 
 func (db *Database) Eavt() index.Index { return db.eavt }
 func (db *Database) Aevt() index.Index { return db.aevt }
