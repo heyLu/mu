@@ -28,7 +28,7 @@ func Register(name string, connector Connector) {
 }
 
 func New(u *url.URL) (Connection, error) {
-	if u.Scheme == "backup" {
+	if u.Scheme == "file" || u.Scheme == "backup" {
 		connector, ok := registeredConnectors[u.Scheme]
 		if !ok {
 			return nil, errors.New(fmt.Sprint("no such connector: ", u.Scheme))
