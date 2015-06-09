@@ -5,12 +5,11 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/heyLu/fressian"
-	"log"
 	"net/url"
 
 	"../database"
 	"../index"
-	dbLog "../log"
+	log "../log"
 	"../store"
 	_ "../store/file"
 )
@@ -24,7 +23,7 @@ type storeConnection struct {
 
 func (c *storeConnection) Db() *database.Database { return c.db }
 
-func (c *storeConnection) Log() *dbLog.Log { return nil }
+func (c *storeConnection) Log() *log.Log { return nil }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
@@ -72,10 +71,35 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	// get log from store
 	// create in-memory indexes
 	// create merged indexes
-	l := dbLog.FromStore(store, logRootId, logTail)
+	l := log.FromStore(store, logRootId, logTail)
 	if len(l.Tail) > 0 {
-		log.Fatal("[conn] reading log tail not implemented")
-		return nil
+		memoryEavt := index.NewMemoryIndex(index.CompareEavt)
+		memoryAevt := index.NewMemoryIndex(index.CompareAevt)
+		memoryAvet := index.NewMemoryIndex(index.CompareAvet)
+		memoryVaet := index.NewMemoryIndex(index.CompareVaet)
+
+		makeDb := func() *database.Database {
+			return database.New(
+				index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
+				index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),
+				index.NewMergedIndex(memoryAvet, avet, index.CompareAvet),
+				index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
+		}
+		db := makeDb()
+
+		for _, tx := range l.Tail {
+			fmt.Printf("adding %d datoms from tx %d\n", len(tx.Datoms), tx.T)
+			/*for _, datom := range tx.Datoms {
+				fmt.Println(datom)
+			}*/
+			memoryEavt = memoryEavt.AddDatoms(tx.Datoms)
+			memoryAevt = memoryAevt.AddDatoms(tx.Datoms)
+			avetDatoms, vaetDatoms := FilterAvetAndVaet(db, tx.Datoms)
+			memoryAvet = memoryAvet.AddDatoms(avetDatoms)
+			memoryVaet = memoryVaet.AddDatoms(vaetDatoms)
+			db = makeDb()
+		}
+		return db
 	} else {
 		return database.New(eavt, aevt, avet, vaet)
 	}
