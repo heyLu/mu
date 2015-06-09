@@ -61,6 +61,19 @@ func (mi MemoryIndex) SeekDatoms(start Datom) Iterator {
 	return mi.DatomsAt(start, MaxDatom)
 }
 
+func (mi MemoryIndex) AddDatoms(datoms []Datom) *MemoryIndex {
+	set := mi.datoms
+	for i := 0; i < len(datoms); i++ {
+		datom := datoms[i]
+		if datom.Added() {
+			set = set.Conj(&datom)
+		} else {
+			set = set.Disj(&datom)
+		}
+	}
+	return &MemoryIndex{set}
+}
+
 type SegmentedIndex struct {
 	root    *Root
 	store   store.Store
