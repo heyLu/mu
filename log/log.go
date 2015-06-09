@@ -35,8 +35,9 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 		t := tx[fressian.Keyword{"", "t"}].(int)
 		dataRaw := tx[fressian.Keyword{"", "data"}].([]interface{})
 		data := make([]index.Datom, len(dataRaw))
-		for i, datom := range data {
-			data[i] = datom
+		for i, datomRaw := range dataRaw {
+			datom := datomRaw.(*index.Datom)
+			data[i] = *datom
 		}
 		txs[i] = LogTx{id, t, data}
 	}
