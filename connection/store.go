@@ -3,6 +3,7 @@ package connection
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"fmt"
 	"github.com/heyLu/fressian"
 	"net/url"
@@ -36,10 +37,11 @@ func connectToStore(u *url.URL) (Connection, error) {
 		return nil, err
 	}
 
-	rootId := u.Query().Get("root")
-	if rootId == "" {
-		return nil, fmt.Errorf("must specify a ?root=<root> parameter")
+	dbName := u.Query().Get("name")
+	if dbName == "" {
+		return nil, fmt.Errorf("must specify a ?name=<name> parameter")
 	}
+	rootId := DbNameToId(dbName)
 
 	root := index.GetFromCache(store, rootId).(map[interface{}]interface{})
 	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
@@ -56,6 +58,11 @@ func connectToStore(u *url.URL) (Connection, error) {
 	}
 
 	return conn, nil
+}
+
+func DbNameToId(dbName string) string {
+	sum := md5.Sum([]byte(dbName))
+	return fressian.NewUUIDFromBytes(sum[:]).String()
 }
 
 func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) (*database.Database, *log.Log) {
