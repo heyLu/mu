@@ -61,6 +61,20 @@ considered as "the interesting parts" of Datomic.)
     cardinality many attributes and a few other things is not implemented
     yet.)
 
+## Contributing
+
+Thanks for your interest!  Please take the following things into consideration:
+
+- all contributors are expected to follow our [Code of Conduct]
+- some areas for improvements:
+    - compatibility with Datomic's API
+    - documentation and examples
+    - performance
+
+`mu` is currently distributed under the [`MIT` license](./LICENSE).  By
+contributing to it you agree to license your contribution under the same
+license.
+
 ## Thanks
 
 First and foremost, a very big thank you to Rich Hickey and everyone who
