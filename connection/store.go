@@ -27,6 +27,7 @@ func (c *storeConnection) Db() *database.Database { return c.db }
 func (c *storeConnection) Log() *log.Log { return c.log }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
+	// TODO: implement this
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
 }
 
@@ -43,6 +44,7 @@ func connectToStore(u *url.URL) (Connection, error) {
 	}
 	rootId := DbNameToId(dbName)
 
+	// TODO: read log root and log tail from the segment (and don't cache it)
 	root := index.GetFromCache(store, rootId).(map[interface{}]interface{})
 	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
 	//logRootId := root[fressian.Keyword{"log", "root-id"}].(string)

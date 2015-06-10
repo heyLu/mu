@@ -55,6 +55,7 @@ func (db *Database) Avet() index.Index { return db.avet }
 func (db *Database) Vaet() index.Index { return db.vaet }
 
 func (db *Database) Entid(key fressian.Keyword) int {
+	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.avet.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Attribute() == 10 && datom.Value().Val() == key {
@@ -66,6 +67,7 @@ func (db *Database) Entid(key fressian.Keyword) int {
 }
 
 func (db *Database) Ident(entity int) *fressian.Keyword {
+	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.aevt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == entity && datom.Attribute() == 10 {
@@ -136,6 +138,7 @@ func (e Entity) Get(key fressian.Keyword) interface{} {
 		return nil
 	}
 
+	// FIXME [perf]: use `.DatomsAt` (or `e.Datoms`)
 	datoms := e.db.eavt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == e.id && datom.Attribute() == attrId {
@@ -218,6 +221,7 @@ func (a Attribute) Cardinality() int        { return a.cardinality }
 func (a Attribute) Type() index.ValueType   { return a.valueType }
 
 func toValueType(internalType int) index.ValueType {
+	// TODO: maybe make index.ValueType start out with the correct numbers?
 	switch internalType {
 	case 21:
 		return index.Keyword

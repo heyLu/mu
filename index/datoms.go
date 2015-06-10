@@ -32,6 +32,7 @@ var (
 )
 
 func NewValue(val interface{}) Value {
+	// TODO: implement more types
 	switch val.(type) {
 	case bool:
 		return Value{Bool, val}

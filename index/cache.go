@@ -27,6 +27,7 @@ func (c *memoryCache) Put(id string, val interface{}) {
 	c.cache[id] = val
 }
 
+// FIXME: use github.com/golang/groupcache/lru instead
 var cache Cache = &memoryCache{make(map[string]interface{}, 100)}
 
 func GetFromCache(store store.Store, id string) interface{} {
@@ -58,6 +59,7 @@ func GetFromCache(store store.Store, id string) interface{} {
 	return val
 }
 
+// TODO: make all of these public?
 func GetRoot(store store.Store, id string) Root           { return GetFromCache(store, id).(Root) }
 func getDirectory(store store.Store, id string) Directory { return GetFromCache(store, id).(Directory) }
 func getSegment(store store.Store, id string) TransposedData {

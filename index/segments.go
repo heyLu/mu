@@ -32,6 +32,7 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadValue()
 		directoriesRaw, _ := r.ReadValue()
+		// FIXME [perf]: can we avoid doing this?  possibly needs fressian api improvements
 		directories := make([]string, len(directoriesRaw.([]interface{})))
 		for i, dir := range directoriesRaw.([]interface{}) {
 			directories[i] = dir.(string)
@@ -60,6 +61,7 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 		segmentsRaw, _ := r.ReadValue()
 		mystery1, _ := r.ReadValue()
 		mystery2, _ := r.ReadValue()
+		// FIXME [perf]: can we avoid doing this?  possibly needs fressian api improvements
 		segments := make([]string, len(segmentsRaw.([]interface{})))
 		for i, dir := range segmentsRaw.([]interface{}) {
 			segments[i] = dir.(string)
@@ -108,6 +110,7 @@ func CompareEavtIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
+	// FIXME [perf]: check if NewValue is a problem, think about avoiding
 	cmp = NewValue(tData.values[idx]).Compare(datom.value)
 	if cmp != 0 {
 		return cmp
@@ -127,6 +130,7 @@ func CompareAevtIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
+	// FIXME [perf]: check if NewValue is a problem, think about avoiding
 	cmp = NewValue(tData.values[idx]).Compare(datom.value)
 	if cmp != 0 {
 		return cmp
@@ -141,6 +145,7 @@ func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
+	// FIXME [perf]: check if NewValue is a problem, think about avoiding
 	cmp = NewValue(tData.values[idx]).Compare(datom.value)
 	if cmp != 0 {
 		return cmp
@@ -155,6 +160,7 @@ func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
 }
 
 func CompareVaetIndex(tData TransposedData, idx int, datom Datom) int {
+	// FIXME [perf]: check if NewValue is a problem, think about avoiding
 	cmp := NewValue(tData.values[idx]).Compare(datom.value)
 	if cmp != 0 {
 		return cmp
@@ -213,8 +219,9 @@ func (t TransposedData) FindApprox(compare CompareFn, datom Datom) int {
 
 func (t TransposedData) DatomAt(idx int) Datom {
 	return Datom{
-		entity:      t.entities[idx],
-		attribute:   t.attributes[idx],
+		entity:    t.entities[idx],
+		attribute: t.attributes[idx],
+		// FIXME [perf]: check if NewValue is a problem, think about avoiding
 		value:       NewValue(t.values[idx]),
 		transaction: 3*(1<<42) + t.transactions[idx],
 		added:       t.addeds[idx],
