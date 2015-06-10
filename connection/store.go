@@ -18,12 +18,12 @@ type storeConnection struct {
 	store  store.Store
 	rootId string
 	db     *database.Database
-	//log    *Log
+	log    *log.Log
 }
 
 func (c *storeConnection) Db() *database.Database { return c.db }
 
-func (c *storeConnection) Log() *log.Log { return nil }
+func (c *storeConnection) Log() *log.Log { return c.log }
 
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
@@ -46,19 +46,19 @@ func connectToStore(u *url.URL) (Connection, error) {
 	//logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
 	//logTail := root[fressian.Keyword{"log", "tail"}].(string)
 
-	db := CurrentDb(store, indexRootId, "", []byte{})
+	db, log := CurrentDb(store, indexRootId, "", []byte{})
 
 	conn := &storeConnection{
 		store:  store,
 		rootId: rootId,
 		db:     db,
-		//log:    nil,
+		log:    log,
 	}
 
 	return conn, nil
 }
 
-func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) *database.Database {
+func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) (*database.Database, *log.Log) {
 	indexRoot := index.GetFromCache(store, indexRootId).(map[interface{}]interface{})
 
 	// get index roots from store
@@ -99,9 +99,9 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			memoryVaet = memoryVaet.AddDatoms(vaetDatoms)
 			db = makeDb()
 		}
-		return db
+		return db, l
 	} else {
-		return database.New(eavt, aevt, avet, vaet)
+		return database.New(eavt, aevt, avet, vaet), l
 	}
 }
 

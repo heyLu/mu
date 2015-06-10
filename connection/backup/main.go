@@ -20,11 +20,12 @@ func init() {
 }
 
 type Connection struct {
-	db *database.Database
+	db  *database.Database
+	log *log.Log
 }
 
 func (c *Connection) Db() *database.Database { return c.db }
-func (c *Connection) Log() *log.Log          { return nil }
+func (c *Connection) Log() *log.Log          { return c.log }
 
 func (c *Connection) TransactDatoms([]index.Datom) error {
 	return fmt.Errorf("transact is not supported on backups")
@@ -62,8 +63,8 @@ func New(u *url.URL) (connection.Connection, error) {
 	if err != nil {
 		return nil, err
 	}
-	db := connection.CurrentDb(store, indexRootId, logRootId, logTail)
-	return &Connection{db}, nil
+	db, log := connection.CurrentDb(store, indexRootId, logRootId, logTail)
+	return &Connection{db, log}, nil
 }
 
 func listDir(path string) ([]string, error) {
