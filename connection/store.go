@@ -31,6 +31,18 @@ func (c *storeConnection) Log() *log.Log { return c.log }
 func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
 	// TODO: implement this
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
+
+	/*txRes, err := transactor.Transact(c, datoms)
+	if err != nil {
+		return nil, err
+	}
+
+	c.lock.Lock()
+	c.db = txRes.DbAfter
+	c.log = c.log.AddTx(txRes.TxData)
+	c.lock.Unlock()
+
+	return txRes, nil*/
 }
 
 func connectToStore(u *url.URL) (Connection, error) {
