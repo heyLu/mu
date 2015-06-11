@@ -20,6 +20,8 @@ type storeConnection struct {
 	rootId string
 	db     *database.Database
 	log    *log.Log
+	// .RLock for .Log and .Db, .Lock for .TransactDatoms
+	//lock   *sync.RWMutex
 }
 
 func (c *storeConnection) Db() *database.Database { return c.db }
