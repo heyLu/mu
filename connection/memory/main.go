@@ -34,15 +34,6 @@ func (c *Connection) Db() *database.Database { return c.db }
 func (c *Connection) Log() *log.Log          { return nil }
 
 func (c *Connection) Index(datoms []index.Datom) error {
-	eavt := c.db.Eavt().(*index.MemoryIndex)
-	eavt = eavt.AddDatoms(datoms)
-	aevt := c.db.Aevt().(*index.MemoryIndex)
-	aevt = aevt.AddDatoms(datoms)
-	avet := c.db.Avet().(*index.MemoryIndex)
-	avetDatoms, vaetDatoms := database.FilterAvetAndVaet(c.db, datoms)
-	avet = avet.AddDatoms(avetDatoms)
-	vaet := c.db.Vaet().(*index.MemoryIndex)
-	vaet = vaet.AddDatoms(vaetDatoms)
-	c.db = database.NewMemory(eavt, aevt, avet, vaet)
+	c.db = c.db.WithDatoms(datoms)
 	return nil
 }
