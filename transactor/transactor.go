@@ -93,3 +93,48 @@ func ExpandTxData(db *database.Database, txData []TxDatum) ([]Datum, error) {
 func RealizeDatums(db *database.Database, datums []Datum) ([]index.Datom, error) {
 	return nil, nil
 }
+
+type HasLookup interface {
+	Lookup(db *database.Database) (int, bool)
+}
+
+// types implementing HasLookup (in theory
+//
+//  - DbIds (for entities, attributes and refs)
+type DbId struct {
+	Part Keyword // lookup needs to verify this is a partition ...
+	Id   int
+}
+
+func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+	return -1, false
+}
+
+//  - lookup refs (kw + value, kw refers to a unique attribute)
+type LookupRef struct {
+	Attribute Keyword
+	Value     Value
+}
+
+func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+	return -1, false
+}
+
+//  - keywords (resolves via the :db/ident attribute)
+//     - does not work for `fressian.Keyword`s, because we
+//         can't implement interfaces for external types
+//     - option 1: don't use an interface, do it via reflection
+//     - option 2: do it via user-level primitives (i.e. lookup
+//         ahead of time)
+//     - option 3: use an internal type for keywords, convert
+//         when serializing with fressian  (only necessary for
+//         values of type `index.Value`)
+//        - keywords are constructed with `mu.Keyword` or directly
+//           (or maybe we just wrap them?)
+type Keyword struct {
+	fressian.Keyword
+}
+
+func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+	return -1, false
+}
