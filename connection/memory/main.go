@@ -39,7 +39,7 @@ func (c *Connection) Index(datoms []index.Datom) error {
 	return nil
 }
 
-func (c *Connection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
+func (c *Connection) Transact(datoms []transactor.TxDatum) (*transactor.TxResult, error) {
 	_, txResult, err := transactor.Transact(c.db, nil, datoms)
 	if err != nil {
 		return nil, err

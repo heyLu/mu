@@ -32,7 +32,7 @@ func (c *Connection) Index([]index.Datom) error {
 	return fmt.Errorf(".Index is not supported on backups")
 }
 
-func (c *Connection) Transact([]index.Datom) (*transactor.TxResult, error) {
+func (c *Connection) Transact([]transactor.TxDatum) (*transactor.TxResult, error) {
 	return nil, fmt.Errorf(".Transact is not supported on backups")
 }
 

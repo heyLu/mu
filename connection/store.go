@@ -48,7 +48,7 @@ func (c *storeConnection) Index(datoms []index.Datom) error {
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
 }
 
-func (c *storeConnection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
+func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxResult, error) {
 	c.txLock.Lock()
 	defer c.txLock.Unlock()
 	newLog, txResult, err := transactor.Transact(c.db, c.log, datoms)

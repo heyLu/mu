@@ -18,7 +18,7 @@ type Connection interface {
 	Db() *database.Db
 	Log() *dbLog.Log
 	Index(datoms []index.Datom) error
-	Transact(datoms []index.Datom) (*transactor.TxResult, error)
+	Transact(datoms []transactor.TxDatum) (*transactor.TxResult, error)
 }
 
 var registeredConnectors = map[string]Connector{}

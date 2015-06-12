@@ -26,7 +26,7 @@ type TxResult struct {
 	Datoms   []index.Datom
 }
 
-func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txlog.Log, *TxResult, error) {
+func Transact(db *database.Db, txLog *txlog.Log, txData []TxDatum) (*txlog.Log, *TxResult, error) {
 	// TODO:
 	//   - check for uniqueness
 	//   - check types of values
@@ -34,7 +34,12 @@ func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txl
 	txState := newTxState(db)
 	log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
 
-	datoms := assignIds(txState, db, origDatoms)
+	datums, err := resolveTxData(db, txData)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	datoms := assignIds(txState, db, datums)
 
 	txResult := &TxResult{
 		DbBefore: db,
@@ -82,29 +87,29 @@ func (txState *txState) resolveTempid(entity int) int {
 	}
 }
 
-func assignIds(txState *txState, db *database.Db, origDatoms []index.Datom) []index.Datom {
+func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
 		log.Println("processing", datom)
 
 		// if db already contains a value for the attribute, retract it before adding the new value.
 		// (assumes the attribute has cardinality one.)
-		if prev, ok := previousValue(db, datom); datom.Entity() >= 0 && ok {
+		if prev, ok := previousValue(db, datom); datom.E >= 0 && ok {
 			log.Println("retracting", prev)
 			datoms = append(datoms, prev.Retraction())
 
 			// retractions don't need to be `added` or get new entity ids
-			if !datom.Added() {
+			if !datom.Op {
 				continue
 			}
 		}
 
-		entity := datom.Entity()
+		entity := datom.E
 		if entity < 0 {
 			entity = txState.resolveTempid(entity)
 		}
 
-		newDatom := index.NewDatom(entity, datom.A(), datom.V().Val(), txState.tx, datom.Added())
+		newDatom := index.NewDatom(entity, datom.A, datom.V.Val(), txState.tx, datom.Op)
 		log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
 	}
@@ -153,10 +158,10 @@ func findMaxEntity(db *database.Db, part int) int {
 
 }
 
-func previousValue(db *database.Db, datom index.Datom) (*index.Datom, bool) {
+func previousValue(db *database.Db, datom RawDatum) (*index.Datom, bool) {
 	// FIXME [perf]: this shouldn't be necessary.  indexes should know how to do this.
 	//               probably...
-	iter := db.Eavt().DatomsAt(index.NewDatom(datom.E(), datom.A(), "", -1, true), index.MaxDatom)
+	iter := db.Eavt().DatomsAt(index.NewDatom(datom.E, datom.A, "", -1, true), index.MaxDatom)
 	prev := iter.Next()
 	if prev == nil {
 		return nil, false

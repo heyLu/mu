@@ -36,6 +36,10 @@ type RawDatum struct {
 	V  index.Value
 }
 
+func (d RawDatum) Retraction() RawDatum {
+	return RawDatum{false, d.E, d.A, d.V}
+}
+
 func (d RawDatum) Resolve(db *database.Db) ([]RawDatum, error) {
 	return []RawDatum{d}, nil
 }

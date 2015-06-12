@@ -27,15 +27,27 @@ func Connect(u *url.URL) (connection.Connection, error) {
 	return connection.New(u)
 }
 
-func Transact(conn connection.Connection, origDatoms []index.Datom) (*transactor.TxResult, error) {
+func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*transactor.TxResult, error) {
 	return conn.Transact(origDatoms)
 }
 
-func Datum(entity int, attribute int, value interface{}) index.Datom {
-	return index.NewDatom(entity, attribute, value, -1, true)
+func Datum(entity transactor.TxLookup, attribute transactor.TxLookup, value interface{}) transactor.Datum {
+	return transactor.Datum{true, entity, attribute, index.NewValue(value)}
 }
 
-func Datoms(datoms ...index.Datom) []index.Datom {
+func RawDatum(entity int, attribute int, value interface{}) transactor.RawDatum {
+	return transactor.RawDatum{true, entity, attribute, index.NewValue(value)}
+}
+
+func Datom(entity int, attribute int, value interface{}) index.Datom {
+	return index.NewDatom(entity, attribute, value, -1, false)
+}
+
+func Retraction(datom index.Datom) transactor.Datum {
+	return transactor.Datum{false, transactor.DbId(datom.E()), transactor.DbId(datom.A()), datom.V()}
+}
+
+func Datoms(datoms ...transactor.TxDatum) []transactor.TxDatum {
 	return datoms
 }
 
