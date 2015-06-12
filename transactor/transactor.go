@@ -19,7 +19,14 @@ const (
 	DbPartUser       = 4  // :db.part/user
 )
 
-func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txlog.Log, *database.Db, error) {
+type TxResult struct {
+	DbBefore *database.Db
+	DbAfter  *database.Db
+	Tempids  map[int]int
+	Datoms   []index.Datom
+}
+
+func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txlog.Log, *TxResult, error) {
 	// TODO:
 	//   - check for uniqueness
 	//   - check types of values
@@ -29,7 +36,13 @@ func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txl
 
 	datoms := assignIds(txState, db, origDatoms)
 
-	return txLog, db.WithDatoms(datoms), nil
+	txResult := &TxResult{
+		DbBefore: db,
+		DbAfter:  db.WithDatoms(datoms),
+		Tempids:  txState.newEntityCache,
+		Datoms:   datoms,
+	}
+	return txLog, txResult, nil
 }
 
 type txState struct {

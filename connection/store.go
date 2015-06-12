@@ -47,11 +47,11 @@ func (c *storeConnection) Index(datoms []index.Datom) error {
 }
 
 func (c *storeConnection) Transact(datoms []index.Datom) error {
-	newLog, newDb, err := transactor.Transact(c.db, c.log, datoms)
+	newLog, txResult, err := transactor.Transact(c.db, c.log, datoms)
 	if err != nil {
 		return err
 	}
-	c.db = newDb
+	c.db = txResult.DbAfter
 	c.log = newLog
 	return nil
 }

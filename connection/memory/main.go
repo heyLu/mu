@@ -40,10 +40,10 @@ func (c *Connection) Index(datoms []index.Datom) error {
 }
 
 func (c *Connection) Transact(datoms []index.Datom) error {
-	_, newDb, err := transactor.Transact(c.db, nil, datoms)
+	_, txResult, err := transactor.Transact(c.db, nil, datoms)
 	if err != nil {
 		return err
 	}
-	c.db = newDb
+	c.db = txResult.DbAfter
 	return nil
 }
