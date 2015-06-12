@@ -7,7 +7,7 @@ import (
 	"../index"
 )
 
-type Database struct {
+type Db struct {
 	eavt           *index.MergedIndex
 	aevt           *index.MergedIndex
 	avet           *index.MergedIndex
@@ -15,11 +15,11 @@ type Database struct {
 	attributeCache map[int]Attribute
 }
 
-func New(eavt, aevt, avet, vaet *index.MergedIndex) *Database {
-	return &Database{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
+func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
+	return &Db{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
 }
 
-func NewMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Database {
+func NewMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
 	empty := index.NewSegmentedIndex(&index.Root{}, nil, index.CompareEavtIndex)
 	return New(
 		index.NewMergedIndex(eavt, empty, index.CompareEavt),
@@ -28,12 +28,12 @@ func NewMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Database {
 		index.NewMergedIndex(vaet, empty, index.CompareVaet))
 }
 
-func (db *Database) Eavt() index.Index { return db.eavt }
-func (db *Database) Aevt() index.Index { return db.aevt }
-func (db *Database) Avet() index.Index { return db.avet }
-func (db *Database) Vaet() index.Index { return db.vaet }
+func (db *Db) Eavt() index.Index { return db.eavt }
+func (db *Db) Aevt() index.Index { return db.aevt }
+func (db *Db) Avet() index.Index { return db.avet }
+func (db *Db) Vaet() index.Index { return db.vaet }
 
-func (db *Database) WithDatoms(datoms []index.Datom) *Database {
+func (db *Db) WithDatoms(datoms []index.Datom) *Db {
 	eavt := db.eavt.AddDatoms(datoms)
 	aevt := db.aevt.AddDatoms(datoms)
 	avetDatoms, vaetDatoms := FilterAvetAndVaet(db, datoms)
@@ -42,7 +42,7 @@ func (db *Database) WithDatoms(datoms []index.Datom) *Database {
 	return New(eavt, aevt, avet, vaet)
 }
 
-func (db *Database) Entid(key fressian.Keyword) int {
+func (db *Db) Entid(key fressian.Keyword) int {
 	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.avet.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
@@ -54,7 +54,7 @@ func (db *Database) Entid(key fressian.Keyword) int {
 	return -1
 }
 
-func (db *Database) Ident(entity int) *fressian.Keyword {
+func (db *Db) Ident(entity int) *fressian.Keyword {
 	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.aevt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
@@ -78,18 +78,18 @@ func (db *Database) Ident(entity int) *fressian.Keyword {
 // that supports lookup for a fixed set of types?  (Doing it with an
 // interface means better errors and extensibility to user types.)
 type HasLookup interface {
-	Lookup(db *Database) int
+	Lookup(db *Db) int
 }
 
 type Entity struct {
-	db             *Database
+	db             *Db
 	id             int
 	attributeCache map[fressian.Keyword]interface{}
 }
 
 // Entity constructs a lazy, cached "view" of all datoms with a given
 // entity id.
-func (db *Database) Entity(id int) Entity {
+func (db *Db) Entity(id int) Entity {
 	return Entity{db, id, map[fressian.Keyword]interface{}{}}
 }
 
@@ -166,7 +166,7 @@ type Attribute struct {
 	valueType   index.ValueType
 }
 
-func (db *Database) Attribute(id int) *Attribute {
+func (db *Db) Attribute(id int) *Attribute {
 	attr, ok := db.attributeCache[id]
 	if ok {
 		log.Println("attribute from cache:", attr)

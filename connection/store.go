@@ -18,13 +18,13 @@ import (
 type storeConnection struct {
 	store  store.Store
 	rootId string
-	db     *database.Database
+	db     *database.Db
 	log    *log.Log
 	// .RLock for .Log and .Db, .Lock for .TransactDatoms
 	//lock   *sync.RWMutex
 }
 
-func (c *storeConnection) Db() *database.Database { return c.db }
+func (c *storeConnection) Db() *database.Db { return c.db }
 
 func (c *storeConnection) Log() *log.Log { return c.log }
 
@@ -81,7 +81,7 @@ func DbNameToId(dbName string) string {
 	return fressian.NewUUIDFromBytes(sum[:]).String()
 }
 
-func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) (*database.Database, *log.Log) {
+func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte) (*database.Db, *log.Log) {
 	indexRoot := index.GetFromCache(store, indexRootId).(map[interface{}]interface{})
 
 	// get index roots from store
@@ -96,7 +96,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	memoryAvet := index.NewMemoryIndex(index.CompareAvet)
 	memoryVaet := index.NewMemoryIndex(index.CompareVaet)
 
-	makeDb := func() *database.Database {
+	makeDb := func() *database.Db {
 		return database.New(
 			index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
 			index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),

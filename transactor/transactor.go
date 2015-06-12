@@ -53,8 +53,8 @@ func (m TxMap) Resolve() []Datum {
 
 type TxResult struct {
 	Tempids  map[DbId]int
-	DbBefore *database.Database // FIXME: rename this to just database.Db
-	DbAfter  *database.Database
+	DbBefore *database.Db // FIXME: rename this to just database.Db
+	DbAfter  *database.Db
 	TxData   []index.Datom // or Datum, what does Datomic do?
 }
 
@@ -132,13 +132,13 @@ func NewMemoryDatabase(eavt, aevt, avet, vaet Index) *Db {
 	// - root id == "00000000-0000-0000-0000-0000000000"
 }
 
-type Database interface {
+type Db interface {
 	Eavt() Index
 	Aevt() Index
 	Avet() Index
 	Vaet() Index
 	// Fulltext() Index
-	WithDatoms(datoms []Datom) Database
+	WithDatoms(datoms []Datom) Db
 	With(txData []TxDatum) (*TxResult, error)
 	RootId() string
 }
@@ -173,17 +173,17 @@ func (db *Db) Eavt() index.Index {
 // - expands TxDatum's using .Resolve
 // - checks for schema compliance
 // - checks (and resolves) entity references
-func ExpandTxData(db *database.Database, txData []TxDatum) ([]Datum, error) {
+func ExpandTxData(db *database.Db, txData []TxDatum) ([]Datum, error) {
 	return nil, nil
 }
 
 // Assigns ids, adds retractions (?), ...
-func RealizeDatums(db *database.Database, datums []Datum) ([]index.Datom, error) {
+func RealizeDatums(db *database.Db, datums []Datum) ([]index.Datom, error) {
 	return nil, nil
 }
 
 type HasLookup interface {
-	Lookup(db *database.Database) (int, bool)
+	Lookup(db *database.Db) (int, bool)
 }
 
 // types implementing HasLookup (in theory
@@ -194,7 +194,7 @@ type DbId struct {
 	Id   int
 }
 
-func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+func (kw Keyword) Lookup(db *database.Db) (int, bool) {
 	return -1, false
 }
 
@@ -204,7 +204,7 @@ type LookupRef struct {
 	Value     Value
 }
 
-func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+func (kw Keyword) Lookup(db *database.Db) (int, bool) {
 	return -1, false
 }
 
@@ -223,6 +223,6 @@ type Keyword struct {
 	fressian.Keyword
 }
 
-func (kw Keyword) Lookup(db *database.Database) (int, bool) {
+func (kw Keyword) Lookup(db *database.Db) (int, bool) {
 	return -1, false
 }

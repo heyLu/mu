@@ -10,7 +10,7 @@ import (
 
 var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{}) error {
 	switch val := val.(type) {
-	case *database.Database:
+	case *database.Db:
 		return w.WriteExt("mu.Database", val.Eavt(), val.Aevt(), val.Avet(), val.Vaet())
 	default:
 		return index.MemoryWriteHandler(w, val)

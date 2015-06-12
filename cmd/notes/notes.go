@@ -21,7 +21,7 @@ var contentAttr int
 
 func main() {
 	var dbUrl string
-	var db *database.Database
+	var db *database.Db
 	var conn connection.Connection
 
 	cli := &cobra.Command{
@@ -206,7 +206,7 @@ func initializeDb(conn connection.Connection) {
 	}
 }
 
-func findNote(db *database.Database, idOrTitle string) int {
+func findNote(db *database.Db, idOrTitle string) int {
 	entity, err := strconv.Atoi(idOrTitle)
 	if err != nil {
 		iter := db.Aevt().DatomsAt(

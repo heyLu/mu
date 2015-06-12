@@ -111,7 +111,7 @@ func main() {
 	}
 }
 
-func getIndex(db *database.Database, indexName string) index.Index {
+func getIndex(db *database.Db, indexName string) index.Index {
 	switch index.Type(indexName) {
 	case index.Eavt:
 		return db.Eavt()

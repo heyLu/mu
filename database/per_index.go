@@ -8,7 +8,7 @@ import (
 // avet and vaet indexes, respectively.
 //
 // TODO: It needs a better name
-func FilterAvetAndVaet(db *Database, datoms []index.Datom) ([]index.Datom, []index.Datom) {
+func FilterAvetAndVaet(db *Db, datoms []index.Datom) ([]index.Datom, []index.Datom) {
 	avet := make([]index.Datom, 0, len(datoms))
 	vaet := make([]index.Datom, 0, len(datoms))
 	for _, datom := range datoms {

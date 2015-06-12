@@ -14,7 +14,7 @@ import (
 type Connector func(u *url.URL) (Connection, error)
 
 type Connection interface {
-	Db() *database.Database
+	Db() *database.Db
 	Log() *dbLog.Log
 	Index(datoms []index.Datom) error
 }

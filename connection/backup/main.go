@@ -20,12 +20,12 @@ func init() {
 }
 
 type Connection struct {
-	db  *database.Database
+	db  *database.Db
 	log *log.Log
 }
 
-func (c *Connection) Db() *database.Database { return c.db }
-func (c *Connection) Log() *log.Log          { return c.log }
+func (c *Connection) Db() *database.Db { return c.db }
+func (c *Connection) Log() *log.Log    { return c.log }
 
 func (c *Connection) Index([]index.Datom) error {
 	return fmt.Errorf("transact is not supported on backups")

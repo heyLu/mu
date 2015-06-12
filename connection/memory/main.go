@@ -14,7 +14,7 @@ func init() {
 }
 
 type Connection struct {
-	db *database.Database
+	db *database.Db
 }
 
 func New(u *url.URL) (connection.Connection, error) {
@@ -26,12 +26,12 @@ func New(u *url.URL) (connection.Connection, error) {
 	return &Connection{db}, nil
 }
 
-func NewFromDb(db *database.Database) connection.Connection {
+func NewFromDb(db *database.Db) connection.Connection {
 	return &Connection{db}
 }
 
-func (c *Connection) Db() *database.Database { return c.db }
-func (c *Connection) Log() *log.Log          { return nil }
+func (c *Connection) Db() *database.Db { return c.db }
+func (c *Connection) Log() *log.Log    { return nil }
 
 func (c *Connection) Index(datoms []index.Datom) error {
 	c.db = c.db.WithDatoms(datoms)

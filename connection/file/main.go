@@ -48,12 +48,12 @@ func New(u *url.URL) (connection.Connection, error) {
 		return nil, err
 	}
 
-	db := dbRaw.(*database.Database)
+	db := dbRaw.(*database.Db)
 	conn := memoryConn.NewFromDb(db)
 	return &Connection{path, conn}, nil
 }
 
-func (c *Connection) Db() *database.Database {
+func (c *Connection) Db() *database.Db {
 	return c.conn.Db()
 }
 
