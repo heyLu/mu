@@ -114,15 +114,11 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	memoryAvet := index.NewMemoryIndex(index.CompareAvet)
 	memoryVaet := index.NewMemoryIndex(index.CompareVaet)
 
-	makeDb := func() *database.Db {
-		return database.New(
-			index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
-			index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),
-			index.NewMergedIndex(memoryAvet, avet, index.CompareAvet),
-			index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
-	}
-
-	db := makeDb()
+	db := database.New(
+		index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
+		index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),
+		index.NewMergedIndex(memoryAvet, avet, index.CompareAvet),
+		index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
 
 	// get log from store
 	// create in-memory indexes
