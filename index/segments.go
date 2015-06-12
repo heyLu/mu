@@ -335,18 +335,19 @@ func newMergeIterator(compare comparable.CompareFn, iter1, iter2 Iterator) Itera
 		return iter2
 	}
 	datom2 := iter2.Next()
-	if datom2 == nil {
-		return iter1
-	}
 	return &mergeIterator{compare, iter1, datom1, iter2, datom2}
 }
 
 func (i *mergeIterator) Next() *Datom {
 	if i.datom1 == nil {
-		return i.iter2.Next()
+		datom := i.datom2
+		i.datom2 = i.iter2.Next()
+		return datom
 	}
 	if i.datom2 == nil {
-		return i.iter1.Next()
+		datom := i.datom1
+		i.datom1 = i.iter1.Next()
+		return datom
 	}
 
 	cmp := i.compare(i.datom1, i.datom2)
