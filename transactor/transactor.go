@@ -48,6 +48,27 @@ func newTxState(db *database.Db) *txState {
 	}
 }
 
+func (txState *txState) resolveTempid(entity int) int {
+	newEntity, ok := txState.newEntityCache[entity]
+	if ok {
+		return newEntity
+	} else {
+		newEntity := -1
+		switch Part(entity) {
+		case DbPartDb:
+			newEntity = txState.maxPartDbEntity
+			txState.maxPartDbEntity += 1
+		case DbPartUser:
+			newEntity = txState.maxPartUserEntity
+			txState.maxPartUserEntity += 1
+		default:
+			log.Fatal("unknown partition:", Part(entity))
+		}
+		txState.newEntityCache[entity] = newEntity
+		return newEntity
+	}
+}
+
 func assignIds(txState *txState, db *database.Db, origDatoms []index.Datom) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
@@ -67,24 +88,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []index.Datom) []in
 
 		entity := datom.Entity()
 		if entity < 0 {
-			newEntity, ok := txState.newEntityCache[entity]
-			if ok {
-				entity = newEntity
-			} else {
-				newEntity := -1
-				switch Part(entity) {
-				case DbPartDb:
-					newEntity = txState.maxPartDbEntity
-					txState.maxPartDbEntity += 1
-				case DbPartUser:
-					newEntity = txState.maxPartUserEntity
-					txState.maxPartUserEntity += 1
-				default:
-					log.Fatal("unknown partition:", Part(entity))
-				}
-				txState.newEntityCache[entity] = newEntity
-				entity = newEntity
-			}
+			entity = txState.resolveTempid(entity)
 		}
 
 		newDatom := index.NewDatom(entity, datom.A(), datom.V().Val(), txState.tx, datom.Added())
