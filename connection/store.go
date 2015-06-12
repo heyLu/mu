@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/heyLu/fressian"
 	"net/url"
+	"sync"
 
 	"../database"
 	"../index"
@@ -21,38 +22,43 @@ type storeConnection struct {
 	rootId string
 	db     *database.Db
 	log    *log.Log
-	// .RLock for .Log and .Db, .Lock for .TransactDatoms
-	//lock   *sync.RWMutex
+
+	// Used to protect against dirty reads of db and log.
+	lock *sync.RWMutex
+	// Used to ensure that transaction are serialized.
+	txLock *sync.Mutex
 }
 
-func (c *storeConnection) Db() *database.Db { return c.db }
+func (c *storeConnection) Db() *database.Db {
+	c.lock.RLock()
+	db := c.db
+	c.lock.RUnlock()
+	return db
+}
 
-func (c *storeConnection) Log() *log.Log { return c.log }
+func (c *storeConnection) Log() *log.Log {
+	c.lock.RLock()
+	log := c.log
+	c.lock.RUnlock()
+	return log
+}
 
 func (c *storeConnection) Index(datoms []index.Datom) error {
 	// TODO: implement this
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
-
-	/*txRes, err := transactor.Transact(c, datoms)
-	if err != nil {
-		return nil, err
-	}
-
-	c.lock.Lock()
-	c.db = txRes.DbAfter
-	c.log = c.log.AddTx(txRes.TxData)
-	c.lock.Unlock()
-
-	return txRes, nil*/
 }
 
 func (c *storeConnection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
+	c.txLock.Lock()
+	defer c.txLock.Unlock()
 	newLog, txResult, err := transactor.Transact(c.db, c.log, datoms)
 	if err != nil {
 		return nil, err
 	}
+	c.lock.Lock()
 	c.db = txResult.DbAfter
 	c.log = newLog
+	c.lock.Unlock()
 	return txResult, nil
 }
 
