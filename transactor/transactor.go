@@ -78,6 +78,21 @@ func Transact(conn connection.Conn, txData []TxDatum) (*TxResult, error) {
 	//  - wrap new datoms in a LogTx
 	//  - serialize previous LogTail + new LogTx
 	//  - write new index (db?) root (only log tail is different)
+	//
+	// problem: how do we write to the log with the file
+	// and in-memory connections?  we can't just use the store.
+	// maybe have the connection provide a callback?  conn.WriteLog?
+	// however, when Transact returns, the lock is released and
+	// someone could start a new transaction *just before* the
+	// new database is written to the connection.  so maybe we *do*
+	// need to lock the connection even for reading?  that would
+	// be unfortunate, but i think we may just have to implement
+	// Transact in the connections themselves, so that they have
+	// a tx log that they use to lock transactions, and a db/log
+	// lock that they use for swapping the db and log, and for
+	// reading them.
+	// another alternative: implement Transact in the transactor
+	// package, but move the locking stuff to connections.
 
 	// create new db (i.e. update in-memory indexes)
 
