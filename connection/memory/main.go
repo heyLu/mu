@@ -39,11 +39,11 @@ func (c *Connection) Index(datoms []index.Datom) error {
 	return nil
 }
 
-func (c *Connection) Transact(datoms []index.Datom) error {
+func (c *Connection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
 	_, txResult, err := transactor.Transact(c.db, nil, datoms)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	c.db = txResult.DbAfter
-	return nil
+	return txResult, nil
 }

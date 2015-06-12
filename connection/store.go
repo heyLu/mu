@@ -46,14 +46,14 @@ func (c *storeConnection) Index(datoms []index.Datom) error {
 	return txRes, nil*/
 }
 
-func (c *storeConnection) Transact(datoms []index.Datom) error {
+func (c *storeConnection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
 	newLog, txResult, err := transactor.Transact(c.db, c.log, datoms)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	c.db = txResult.DbAfter
 	c.log = newLog
-	return nil
+	return txResult, nil
 }
 
 func connectToStore(u *url.URL) (Connection, error) {

@@ -81,7 +81,7 @@ func main() {
 	case "test-transact":
 		fmt.Println("transact(conn, [[0 1 \"Jane\" 0 true]])")
 		nameIsJane := index.NewDatom(0, 1, "Jane", 0, true)
-		err := mu.Transact(conn, []index.Datom{nameIsJane})
+		_, err := mu.Transact(conn, []index.Datom{nameIsJane})
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -90,7 +90,7 @@ func main() {
 
 		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 true]])")
 		nameIsJane = index.NewDatom(0, 1, "Jane Lane", 0, true)
-		err = mu.Transact(conn, []index.Datom{nameIsJane})
+		_, err = mu.Transact(conn, []index.Datom{nameIsJane})
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,7 +98,7 @@ func main() {
 		printDatoms(newDb.Eavt().Datoms())
 
 		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 false]])")
-		err = mu.Transact(conn, []index.Datom{nameIsJane.Retraction()})
+		_, err = mu.Transact(conn, []index.Datom{nameIsJane.Retraction()})
 		if err != nil {
 			log.Fatal(err)
 		}

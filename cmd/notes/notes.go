@@ -69,7 +69,7 @@ func main() {
 			requireArgs(cmd, args, 1)
 
 			content := getContentFrom(args, 1, "")
-			err := mu.Transact(conn,
+			_, err := mu.Transact(conn,
 				mu.Datoms(
 					mu.Datum(mu.Tempid(mu.DbPartUser, -1), nameAttr, args[0]),
 					mu.Datum(mu.Tempid(mu.DbPartUser, -1), contentAttr, content),
@@ -99,7 +99,7 @@ func main() {
 			if prevContent == content {
 				fmt.Println("no changes")
 			} else {
-				err := mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
+				_, err := mu.Transact(conn, mu.Datoms(mu.Datum(noteId, contentAttr, content)))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -122,7 +122,7 @@ func main() {
 					datoms = append(datoms, datom.Retraction())
 				}
 			}
-			err := mu.Transact(conn, datoms)
+			_, err := mu.Transact(conn, datoms)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -190,7 +190,7 @@ func requireArgs(cmd *cobra.Command, args []string, num int) {
 func initializeDb(conn connection.Connection) {
 	nameId := mu.Tempid(mu.DbPartDb, -1)
 	contentId := mu.Tempid(mu.DbPartDb, -2)
-	err := mu.Transact(conn,
+	_, err := mu.Transact(conn,
 		mu.Datoms(
 			// :name attribute (type string, cardinality one)
 			mu.Datum(nameId, mu.DbIdent, mu.Keyword("", "name")),

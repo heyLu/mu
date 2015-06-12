@@ -9,6 +9,7 @@ import (
 	_ "./connection/file"
 	_ "./connection/memory"
 	"./index"
+	"./transactor"
 )
 
 const (
@@ -26,7 +27,7 @@ func Connect(u *url.URL) (connection.Connection, error) {
 	return connection.New(u)
 }
 
-func Transact(conn connection.Connection, origDatoms []index.Datom) error {
+func Transact(conn connection.Connection, origDatoms []index.Datom) (*transactor.TxResult, error) {
 	return conn.Transact(origDatoms)
 }
 

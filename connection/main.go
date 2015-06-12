@@ -9,6 +9,7 @@ import (
 	"../database"
 	"../index"
 	dbLog "../log"
+	"../transactor"
 )
 
 type Connector func(u *url.URL) (Connection, error)
@@ -17,7 +18,7 @@ type Connection interface {
 	Db() *database.Db
 	Log() *dbLog.Log
 	Index(datoms []index.Datom) error
-	Transact(datoms []index.Datom) error
+	Transact(datoms []index.Datom) (*transactor.TxResult, error)
 }
 
 var registeredConnectors = map[string]Connector{}

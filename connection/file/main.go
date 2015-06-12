@@ -9,6 +9,7 @@ import (
 	"../../database"
 	"../../index/"
 	"../../log"
+	"../../transactor"
 	memoryConn "../memory"
 )
 
@@ -86,10 +87,16 @@ func (c *Connection) Index(datoms []index.Datom) error {
 	return nil
 }
 
-func (c *Connection) Transact(datoms []index.Datom) error {
-	err := c.conn.Transact(datoms)
+func (c *Connection) Transact(datoms []index.Datom) (*transactor.TxResult, error) {
+	txResult, err := c.conn.Transact(datoms)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return c.Index(nil)
+
+	err = c.Index(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return txResult, nil
 }
