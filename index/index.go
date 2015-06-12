@@ -1,9 +1,6 @@
 package index
 
 import (
-	"reflect"
-
-	"../collection/btset"
 	"../comparable"
 	"../store"
 )
@@ -25,53 +22,6 @@ type Index interface {
 
 type Iterator interface {
 	Next() *Datom
-}
-
-type MemoryIndex struct {
-	datoms *btset.Set
-}
-
-func NewMemoryIndex(compare comparable.CompareFn) *MemoryIndex {
-	return &MemoryIndex{btset.New(compare)}
-}
-
-type btsetIterator struct {
-	iter btset.SetIter
-}
-
-func (it *btsetIterator) Next() *Datom {
-	if it.iter == nil || reflect.ValueOf(it.iter).IsNil() {
-		return nil
-	} else {
-		cur := it.iter.First()
-		it.iter = it.iter.Next()
-		return cur.(*Datom)
-	}
-}
-
-func (mi MemoryIndex) Datoms() Iterator {
-	return mi.DatomsAt(MinDatom, MaxDatom)
-}
-
-func (mi MemoryIndex) DatomsAt(start, end Datom) Iterator {
-	return &btsetIterator{btset.Slice(mi.datoms, &start, &end)}
-}
-
-func (mi MemoryIndex) SeekDatoms(start Datom) Iterator {
-	return mi.DatomsAt(start, MaxDatom)
-}
-
-func (mi MemoryIndex) AddDatoms(datoms []Datom) *MemoryIndex {
-	set := mi.datoms
-	for i := 0; i < len(datoms); i++ {
-		datom := datoms[i]
-		if datom.Added() {
-			set = set.Conj(&datom)
-		} else {
-			set = set.Disj(&datom)
-		}
-	}
-	return &MemoryIndex{set}
 }
 
 type SegmentedIndex struct {
