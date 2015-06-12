@@ -24,13 +24,31 @@ func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txl
 	//   - check for uniqueness
 	//   - check types of values
 	//   - ... (a lot)
-	newEntityCache := map[int]int{}
+	txState := newTxState(db)
+	log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
 
-	tx := findMaxTx(db) + 1
-	maxPartDbEntity := findMaxEntity(db, DbPartDb) + 1
-	maxPartUserEntity := findMaxEntity(db, DbPartUser) + 1
-	log.Println("max entities", maxPartDbEntity, maxPartUserEntity)
+	datoms := assignIds(txState, db, origDatoms)
 
+	return txLog, db.WithDatoms(datoms), nil
+}
+
+type txState struct {
+	newEntityCache    map[int]int
+	tx                int
+	maxPartDbEntity   int
+	maxPartUserEntity int
+}
+
+func newTxState(db *database.Db) *txState {
+	return &txState{
+		newEntityCache:    map[int]int{},
+		tx:                findMaxTx(db) + 1,
+		maxPartDbEntity:   findMaxEntity(db, DbPartDb) + 1,
+		maxPartUserEntity: findMaxEntity(db, DbPartUser) + 1,
+	}
+}
+
+func assignIds(txState *txState, db *database.Db, origDatoms []index.Datom) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
 		log.Println("processing", datom)
@@ -49,32 +67,32 @@ func Transact(db *database.Db, txLog *txlog.Log, origDatoms []index.Datom) (*txl
 
 		entity := datom.Entity()
 		if entity < 0 {
-			newEntity, ok := newEntityCache[entity]
+			newEntity, ok := txState.newEntityCache[entity]
 			if ok {
 				entity = newEntity
 			} else {
 				newEntity := -1
 				switch Part(entity) {
 				case DbPartDb:
-					newEntity = maxPartDbEntity
-					maxPartDbEntity += 1
+					newEntity = txState.maxPartDbEntity
+					txState.maxPartDbEntity += 1
 				case DbPartUser:
-					newEntity = maxPartUserEntity
-					maxPartUserEntity += 1
+					newEntity = txState.maxPartUserEntity
+					txState.maxPartUserEntity += 1
 				default:
 					log.Fatal("unknown partition:", Part(entity))
 				}
-				newEntityCache[entity] = newEntity
+				txState.newEntityCache[entity] = newEntity
 				entity = newEntity
 			}
 		}
 
-		newDatom := index.NewDatom(entity, datom.A(), datom.V().Val(), tx, datom.Added())
+		newDatom := index.NewDatom(entity, datom.A(), datom.V().Val(), txState.tx, datom.Added())
 		log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
 	}
 
-	return txLog, db.WithDatoms(datoms), nil
+	return datoms
 }
 
 const minTx = DbPartTx * (1 << 42)
