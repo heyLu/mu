@@ -19,7 +19,7 @@ func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 	return &Db{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
 }
 
-func NewMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
+func NewInMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
 	empty := index.NewSegmentedIndex(&index.Root{}, nil, index.CompareEavtIndex)
 	return New(
 		index.NewMergedIndex(eavt, empty, index.CompareEavt),

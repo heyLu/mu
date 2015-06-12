@@ -31,7 +31,7 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 		avet.UseCompare(index.CompareAvet)
 		vaet := vaetRaw.(*index.MemoryIndex)
 		vaet.UseCompare(index.CompareVaet)
-		return database.NewMemory(eavt, aevt, avet, vaet)
+		return database.NewInMemory(eavt, aevt, avet, vaet)
 	},
 	"mu.memory.Index":   index.MemoryReadHandlers["mu.memory.Index"],
 	"mu.Datom":          index.ReadHandlers["mu.Datom"],

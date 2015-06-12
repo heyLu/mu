@@ -23,7 +23,7 @@ func New(u *url.URL) (connection.Connection, error) {
 	aevt := index.NewMemoryIndex(index.CompareAevt)
 	avet := index.NewMemoryIndex(index.CompareAvet)
 	vaet := index.NewMemoryIndex(index.CompareVaet)
-	db := database.NewMemory(eavt, aevt, avet, vaet)
+	db := database.NewInMemory(eavt, aevt, avet, vaet)
 	return &Connection{db}, nil
 }
 
