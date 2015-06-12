@@ -6,7 +6,6 @@ import (
 	connection ".."
 	"../../database"
 	"../../index/"
-	memoryIndex "../../index/memory"
 	"../../log"
 )
 
@@ -19,10 +18,10 @@ type Connection struct {
 }
 
 func New(u *url.URL) (connection.Connection, error) {
-	eavt := memoryIndex.New(index.CompareEavt)
-	aevt := memoryIndex.New(index.CompareAevt)
-	avet := memoryIndex.New(index.CompareAvet)
-	vaet := memoryIndex.New(index.CompareVaet)
+	eavt := index.NewMemoryIndex(index.CompareEavt)
+	aevt := index.NewMemoryIndex(index.CompareAevt)
+	avet := index.NewMemoryIndex(index.CompareAvet)
+	vaet := index.NewMemoryIndex(index.CompareVaet)
 	db := database.New(eavt, aevt, avet, vaet)
 	return &Connection{db}, nil
 }
@@ -35,14 +34,14 @@ func (c *Connection) Db() *database.Database { return c.db }
 func (c *Connection) Log() *log.Log          { return nil }
 
 func (c *Connection) TransactDatoms(datoms []index.Datom) error {
-	eavt := c.db.Eavt().(*memoryIndex.Index)
+	eavt := c.db.Eavt().(*index.MemoryIndex)
 	eavt = eavt.AddDatoms(datoms)
-	aevt := c.db.Aevt().(*memoryIndex.Index)
+	aevt := c.db.Aevt().(*index.MemoryIndex)
 	aevt = aevt.AddDatoms(datoms)
-	avet := c.db.Avet().(*memoryIndex.Index)
+	avet := c.db.Avet().(*index.MemoryIndex)
 	avetDatoms, vaetDatoms := connection.FilterAvetAndVaet(c.db, datoms)
 	avet = avet.AddDatoms(avetDatoms)
-	vaet := c.db.Vaet().(*memoryIndex.Index)
+	vaet := c.db.Vaet().(*index.MemoryIndex)
 	vaet = vaet.AddDatoms(vaetDatoms)
 	c.db = database.New(eavt, aevt, avet, vaet)
 	return nil

@@ -6,7 +6,6 @@ import (
 	"../../collection/btset"
 	"../../database"
 	"../../index"
-	"../../index/memory"
 )
 
 var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{}) error {
@@ -14,7 +13,7 @@ var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{
 	case *database.Database:
 		return w.WriteExt("mu.Database", val.Eavt(), val.Aevt(), val.Avet(), val.Vaet())
 	default:
-		return memory.WriteHandler(w, val)
+		return index.MemoryWriteHandler(w, val)
 	}
 }
 
@@ -24,17 +23,17 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 		aevtRaw, _ := r.ReadValue()
 		avetRaw, _ := r.ReadValue()
 		vaetRaw, _ := r.ReadValue()
-		eavt := eavtRaw.(*memory.Index)
+		eavt := eavtRaw.(*index.MemoryIndex)
 		eavt.UseCompare(index.CompareEavt)
-		aevt := aevtRaw.(*memory.Index)
+		aevt := aevtRaw.(*index.MemoryIndex)
 		aevt.UseCompare(index.CompareAevt)
-		avet := avetRaw.(*memory.Index)
+		avet := avetRaw.(*index.MemoryIndex)
 		avet.UseCompare(index.CompareAvet)
-		vaet := vaetRaw.(*memory.Index)
+		vaet := vaetRaw.(*index.MemoryIndex)
 		vaet.UseCompare(index.CompareVaet)
 		return database.New(eavt, aevt, avet, vaet)
 	},
-	"mu.memory.Index":   memory.ReadHandlers["mu.memory.Index"],
+	"mu.memory.Index":   index.MemoryReadHandlers["mu.memory.Index"],
 	"mu.Datom":          index.ReadHandlers["mu.Datom"],
 	"btset.Set":         btset.ReadHandlers["btset.Set"],
 	"btset.PointerNode": btset.ReadHandlers["btset.PointerNode"],
