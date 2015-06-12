@@ -91,23 +91,24 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	avet := getIndex(indexRoot, "avet-main", store, index.CompareAvetIndex)
 	vaet := getIndex(indexRoot, "raet-main", store, index.CompareVaetIndex)
 
+	memoryEavt := index.NewMemoryIndex(index.CompareEavt)
+	memoryAevt := index.NewMemoryIndex(index.CompareAevt)
+	memoryAvet := index.NewMemoryIndex(index.CompareAvet)
+	memoryVaet := index.NewMemoryIndex(index.CompareVaet)
+
+	makeDb := func() *database.Database {
+		return database.New(
+			index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
+			index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),
+			index.NewMergedIndex(memoryAvet, avet, index.CompareAvet),
+			index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
+	}
+
 	// get log from store
 	// create in-memory indexes
 	// create merged indexes
 	l := log.FromStore(store, logRootId, logTail)
 	if len(l.Tail) > 0 {
-		memoryEavt := index.NewMemoryIndex(index.CompareEavt)
-		memoryAevt := index.NewMemoryIndex(index.CompareAevt)
-		memoryAvet := index.NewMemoryIndex(index.CompareAvet)
-		memoryVaet := index.NewMemoryIndex(index.CompareVaet)
-
-		makeDb := func() *database.Database {
-			return database.New(
-				index.NewMergedIndex(memoryEavt, eavt, index.CompareEavt),
-				index.NewMergedIndex(memoryAevt, aevt, index.CompareAevt),
-				index.NewMergedIndex(memoryAvet, avet, index.CompareAvet),
-				index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
-		}
 		db := makeDb()
 
 		for _, tx := range l.Tail {
@@ -124,7 +125,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 		}
 		return db, l
 	} else {
-		return database.New(eavt, aevt, avet, vaet), l
+		return makeDb(), l
 	}
 }
 

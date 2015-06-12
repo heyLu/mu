@@ -22,7 +22,7 @@ func New(u *url.URL) (connection.Connection, error) {
 	aevt := index.NewMemoryIndex(index.CompareAevt)
 	avet := index.NewMemoryIndex(index.CompareAvet)
 	vaet := index.NewMemoryIndex(index.CompareVaet)
-	db := database.New(eavt, aevt, avet, vaet)
+	db := database.NewMemory(eavt, aevt, avet, vaet)
 	return &Connection{db}, nil
 }
 
@@ -43,6 +43,6 @@ func (c *Connection) TransactDatoms(datoms []index.Datom) error {
 	avet = avet.AddDatoms(avetDatoms)
 	vaet := c.db.Vaet().(*index.MemoryIndex)
 	vaet = vaet.AddDatoms(vaetDatoms)
-	c.db = database.New(eavt, aevt, avet, vaet)
+	c.db = database.NewMemory(eavt, aevt, avet, vaet)
 	return nil
 }

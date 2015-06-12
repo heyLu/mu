@@ -8,15 +8,24 @@ import (
 )
 
 type Database struct {
-	eavt           index.Index
-	aevt           index.Index
-	avet           index.Index
-	vaet           index.Index
+	eavt           *index.MergedIndex
+	aevt           *index.MergedIndex
+	avet           *index.MergedIndex
+	vaet           *index.MergedIndex
 	attributeCache map[int]Attribute
 }
 
-func New(eavt, aevt, avet, vaet index.Index) *Database {
+func New(eavt, aevt, avet, vaet *index.MergedIndex) *Database {
 	return &Database{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
+}
+
+func NewMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Database {
+	empty := index.NewSegmentedIndex(&index.Root{}, nil, index.CompareEavtIndex)
+	return New(
+		index.NewMergedIndex(eavt, empty, index.CompareEavt),
+		index.NewMergedIndex(aevt, empty, index.CompareAevt),
+		index.NewMergedIndex(avet, empty, index.CompareAvet),
+		index.NewMergedIndex(vaet, empty, index.CompareVaet))
 }
 
 func (db *Database) Eavt() index.Index { return db.eavt }
