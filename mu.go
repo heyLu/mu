@@ -47,7 +47,7 @@ func Retraction(datom index.Datom) transactor.Datum {
 	return transactor.Datum{false, transactor.DbId(datom.E()), transactor.DbId(datom.A()), datom.V()}
 }
 
-func Datoms(datoms ...transactor.TxDatum) []transactor.TxDatum {
+func Datums(datoms ...transactor.TxDatum) []transactor.TxDatum {
 	return datoms
 }
 

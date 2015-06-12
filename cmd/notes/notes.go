@@ -70,7 +70,7 @@ func main() {
 
 			content := getContentFrom(args, 1, "")
 			_, err := mu.Transact(conn,
-				mu.Datoms(
+				mu.Datums(
 					mu.RawDatum(mu.Tempid(mu.DbPartUser, -1), nameAttr, args[0]),
 					mu.RawDatum(mu.Tempid(mu.DbPartUser, -1), contentAttr, content),
 				))
@@ -99,7 +99,7 @@ func main() {
 			if prevContent == content {
 				fmt.Println("no changes")
 			} else {
-				_, err := mu.Transact(conn, mu.Datoms(mu.RawDatum(noteId, contentAttr, content)))
+				_, err := mu.Transact(conn, mu.Datums(mu.RawDatum(noteId, contentAttr, content)))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -114,7 +114,7 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			requireArgs(cmd, args, 1)
 
-			datoms := mu.Datoms()
+			datoms := mu.Datums()
 			for _, idOrTitle := range args {
 				noteId := findNote(db, idOrTitle)
 				iter := db.Eavt().DatomsAt(mu.Datom(noteId, -1, ""), mu.Datom(noteId, 10000, ""))
@@ -191,7 +191,7 @@ func initializeDb(conn connection.Connection) {
 	nameId := mu.Tempid(mu.DbPartDb, -1)
 	contentId := mu.Tempid(mu.DbPartDb, -2)
 	_, err := mu.Transact(conn,
-		mu.Datoms(
+		mu.Datums(
 			// :name attribute (type string, cardinality one)
 			mu.RawDatum(nameId, mu.DbIdent, mu.Keyword("", "name")),
 			mu.RawDatum(nameId, mu.DbType, mu.DbTypeString),
