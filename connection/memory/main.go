@@ -39,7 +39,7 @@ func (c *Connection) Index(datoms []index.Datom) error {
 	aevt := c.db.Aevt().(*index.MemoryIndex)
 	aevt = aevt.AddDatoms(datoms)
 	avet := c.db.Avet().(*index.MemoryIndex)
-	avetDatoms, vaetDatoms := connection.FilterAvetAndVaet(c.db, datoms)
+	avetDatoms, vaetDatoms := database.FilterAvetAndVaet(c.db, datoms)
 	avet = avet.AddDatoms(avetDatoms)
 	vaet := c.db.Vaet().(*index.MemoryIndex)
 	vaet = vaet.AddDatoms(vaetDatoms)

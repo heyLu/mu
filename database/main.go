@@ -33,6 +33,15 @@ func (db *Database) Aevt() index.Index { return db.aevt }
 func (db *Database) Avet() index.Index { return db.avet }
 func (db *Database) Vaet() index.Index { return db.vaet }
 
+func (db *Database) WithDatoms(datoms []index.Datom) *Database {
+	eavt := db.eavt.AddDatoms(datoms)
+	aevt := db.aevt.AddDatoms(datoms)
+	avetDatoms, vaetDatoms := FilterAvetAndVaet(db, datoms)
+	avet := db.avet.AddDatoms(avetDatoms)
+	vaet := db.vaet.AddDatoms(vaetDatoms)
+	return New(eavt, aevt, avet, vaet)
+}
+
 func (db *Database) Entid(key fressian.Keyword) int {
 	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.avet.Datoms()

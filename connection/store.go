@@ -118,7 +118,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			}*/
 			memoryEavt = memoryEavt.AddDatoms(tx.Datoms)
 			memoryAevt = memoryAevt.AddDatoms(tx.Datoms)
-			avetDatoms, vaetDatoms := FilterAvetAndVaet(db, tx.Datoms)
+			avetDatoms, vaetDatoms := database.FilterAvetAndVaet(db, tx.Datoms)
 			memoryAvet = memoryAvet.AddDatoms(avetDatoms)
 			memoryVaet = memoryVaet.AddDatoms(vaetDatoms)
 			db = makeDb()

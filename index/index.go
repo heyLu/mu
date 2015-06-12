@@ -47,9 +47,9 @@ func (si SegmentedIndex) SeekDatoms(start Datom) Iterator {
 }
 
 type MergedIndex struct {
-	memoryIndex    *MemoryIndex
-	segmentedIndex *SegmentedIndex
-	compare        comparable.CompareFn
+	memory    *MemoryIndex
+	segmented *SegmentedIndex
+	compare   comparable.CompareFn
 }
 
 func NewMergedIndex(mi *MemoryIndex, si *SegmentedIndex, compare comparable.CompareFn) *MergedIndex {
@@ -61,11 +61,16 @@ func (mi MergedIndex) Datoms() Iterator {
 }
 
 func (mi MergedIndex) DatomsAt(start, end Datom) Iterator {
-	iter1 := mi.memoryIndex.DatomsAt(start, end)
-	iter2 := mi.segmentedIndex.DatomsAt(start, end)
+	iter1 := mi.memory.DatomsAt(start, end)
+	iter2 := mi.segmented.DatomsAt(start, end)
 	return newMergeIterator(mi.compare, iter1, iter2)
 }
 
 func (mi MergedIndex) SeekDatoms(start Datom) Iterator {
 	return mi.DatomsAt(start, MaxDatom)
+}
+
+func (mi MergedIndex) AddDatoms(datoms []Datom) *MergedIndex {
+	memory := mi.memory.AddDatoms(datoms)
+	return NewMergedIndex(memory, mi.segmented, mi.compare)
 }
