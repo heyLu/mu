@@ -28,7 +28,11 @@ func (c *Connection) Db() *database.Db { return c.db }
 func (c *Connection) Log() *log.Log    { return c.log }
 
 func (c *Connection) Index([]index.Datom) error {
-	return fmt.Errorf("transact is not supported on backups")
+	return fmt.Errorf(".Index is not supported on backups")
+}
+
+func (c *Connection) Transact([]index.Datom) error {
+	return fmt.Errorf(".Transact is not supported on backups")
 }
 
 func New(u *url.URL) (connection.Connection, error) {

@@ -7,6 +7,7 @@ import (
 	"../../database"
 	"../../index/"
 	"../../log"
+	"../../transactor"
 )
 
 func init() {
@@ -35,5 +36,14 @@ func (c *Connection) Log() *log.Log    { return nil }
 
 func (c *Connection) Index(datoms []index.Datom) error {
 	c.db = c.db.WithDatoms(datoms)
+	return nil
+}
+
+func (c *Connection) Transact(datoms []index.Datom) error {
+	_, newDb, err := transactor.Transact(c.db, nil, datoms)
+	if err != nil {
+		return err
+	}
+	c.db = newDb
 	return nil
 }

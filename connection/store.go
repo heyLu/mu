@@ -13,6 +13,7 @@ import (
 	log "../log"
 	"../store"
 	_ "../store/file"
+	"../transactor"
 )
 
 type storeConnection struct {
@@ -43,6 +44,16 @@ func (c *storeConnection) Index(datoms []index.Datom) error {
 	c.lock.Unlock()
 
 	return txRes, nil*/
+}
+
+func (c *storeConnection) Transact(datoms []index.Datom) error {
+	newLog, newDb, err := transactor.Transact(c.db, c.log, datoms)
+	if err != nil {
+		return err
+	}
+	c.db = newDb
+	c.log = newLog
+	return nil
 }
 
 func connectToStore(u *url.URL) (Connection, error) {

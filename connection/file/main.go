@@ -85,3 +85,11 @@ func (c *Connection) Index(datoms []index.Datom) error {
 
 	return nil
 }
+
+func (c *Connection) Transact(datoms []index.Datom) error {
+	err := c.conn.Transact(datoms)
+	if err != nil {
+		return err
+	}
+	return c.Index(nil)
+}
