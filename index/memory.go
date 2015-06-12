@@ -69,6 +69,8 @@ var MemoryWriteHandler fressian.WriteHandler = func(w *fressian.Writer, val inte
 	switch val := val.(type) {
 	case *MemoryIndex:
 		return w.WriteExt("mu.memory.Index", val.datoms)
+	case *MergedIndex:
+		return w.WriteExt("mu.memory.Index", val.memory.datoms)
 	default:
 		return defaultHandler(w, val)
 	}
