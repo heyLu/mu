@@ -1,6 +1,6 @@
 .v0.1.0
 
-- published before 10th of june 2015, preferrably next weekend (6/7th of june)
+- published before 10th of july 2015
 - a `log` backend (or other backend that we can later recover the transactions from
     - or maybe not, but a few thoughts about this couldn't hurt
 - a readme, with mostly just comments about having fun with this
