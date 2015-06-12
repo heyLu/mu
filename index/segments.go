@@ -35,7 +35,7 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 		// FIXME [perf]: can we avoid doing this?  possibly needs fressian api improvements
 		directories := make([]string, len(directoriesRaw.([]interface{})))
 		for i, dir := range directoriesRaw.([]interface{}) {
-			directories[i] = dir.(string)
+			directories[i] = dir.(fressian.UUID).String()
 		}
 		return Root{
 			tData:       tData.(TransposedData),
@@ -64,7 +64,7 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 		// FIXME [perf]: can we avoid doing this?  possibly needs fressian api improvements
 		segments := make([]string, len(segmentsRaw.([]interface{})))
 		for i, dir := range segmentsRaw.([]interface{}) {
-			segments[i] = dir.(string)
+			segments[i] = dir.(fressian.UUID).String()
 		}
 		return Directory{
 			tData:    tData.(TransposedData),

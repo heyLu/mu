@@ -130,7 +130,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 }
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
-	indexRootId := root[fressian.Keyword{"", id}].(string)
+	indexRootId := root[fressian.Keyword{"", id}].(fressian.UUID).String()
 	indexRoot := index.GetRoot(store, indexRootId)
 	return index.NewSegmentedIndex(&indexRoot, store, compare)
 }
