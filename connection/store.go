@@ -122,13 +122,13 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			index.NewMergedIndex(memoryVaet, vaet, index.CompareVaet))
 	}
 
+	db := makeDb()
+
 	// get log from store
 	// create in-memory indexes
 	// create merged indexes
 	l := log.FromStore(store, logRootId, logTail)
 	if len(l.Tail) > 0 {
-		db := makeDb()
-
 		for _, tx := range l.Tail {
 			fmt.Printf("adding %d datoms from tx %d\n", len(tx.Datoms), tx.T)
 			/*for _, datom := range tx.Datoms {
@@ -141,10 +141,9 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			memoryVaet = memoryVaet.AddDatoms(vaetDatoms)
 			db = makeDb()
 		}
-		return db, l
-	} else {
-		return makeDb(), l
 	}
+
+	return db, l
 }
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
