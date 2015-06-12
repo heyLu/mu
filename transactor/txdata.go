@@ -51,6 +51,10 @@ type Datum struct {
 	V  index.Value
 }
 
+func (d Datum) Retraction() Datum {
+	return Datum{false, d.E, d.A, d.V}
+}
+
 func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	eid, err := d.E.Lookup(db)
 	if err != nil {
@@ -95,7 +99,7 @@ func (dbId DbId) Lookup(db *database.Db) (int, error) {
 	if id > 0 {
 		iter := db.Eavt().DatomsAt(
 			index.NewDatom(id, 0, index.MinValue, 0, true),
-			index.NewDatom(id, 0, index.MinValue, 0, true))
+			index.NewDatom(id, index.MaxDatom.A(), index.MinValue, 0, true))
 		datom := iter.Next()
 		if datom == nil || datom.E() != id {
 			return -1, fmt.Errorf("no entity with id %d", id)

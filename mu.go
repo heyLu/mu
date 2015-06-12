@@ -35,8 +35,8 @@ func Datum(entity transactor.TxLookup, attribute transactor.TxLookup, value inte
 	return transactor.Datum{true, entity, attribute, index.NewValue(value)}
 }
 
-func RawDatum(entity int, attribute int, value interface{}) transactor.RawDatum {
-	return transactor.RawDatum{true, entity, attribute, index.NewValue(value)}
+func RawDatum(entity int, attribute int, value interface{}) transactor.Datum {
+	return transactor.Datum{true, transactor.DbId(entity), transactor.DbId(attribute), index.NewValue(value)}
 }
 
 func Datom(entity int, attribute int, value interface{}) index.Datom {
