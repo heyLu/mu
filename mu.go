@@ -85,7 +85,7 @@ func Transact(conn connection.Connection, origDatoms []index.Datom) error {
 		datoms = append(datoms, newDatom)
 	}
 
-	return conn.TransactDatoms(datoms)
+	return conn.Index(datoms)
 }
 
 const minTx = DbPartTx * (1 << 42)

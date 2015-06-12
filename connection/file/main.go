@@ -29,7 +29,7 @@ func New(u *url.URL) (connection.Connection, error) {
 	if err != nil {
 		memConn, _ := memoryConn.New(u)
 		conn := &Connection{path, memConn}
-		err = conn.TransactDatoms(nil) // writes empty db to `path`
+		err = conn.Index(nil) // writes empty db to `path`
 		if err != nil {
 			return nil, err
 		}
@@ -59,10 +59,10 @@ func (c *Connection) Db() *database.Database {
 
 func (c *Connection) Log() *log.Log { return nil }
 
-func (c *Connection) TransactDatoms(datoms []index.Datom) error {
+func (c *Connection) Index(datoms []index.Datom) error {
 	// FIXME: write using memory index, then write to file
 	//        (don't modify if an io error occurs)
-	err := c.conn.TransactDatoms(datoms)
+	err := c.conn.Index(datoms)
 	if err != nil {
 		return err
 	}

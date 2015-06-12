@@ -28,7 +28,7 @@ func (c *storeConnection) Db() *database.Database { return c.db }
 
 func (c *storeConnection) Log() *log.Log { return c.log }
 
-func (c *storeConnection) TransactDatoms(datoms []index.Datom) error {
+func (c *storeConnection) Index(datoms []index.Datom) error {
 	// TODO: implement this
 	return fmt.Errorf("storeConnection#TransactDatoms: not implemented")
 

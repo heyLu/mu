@@ -71,7 +71,7 @@ func main() {
 			allDatoms = append(allDatoms, *datom)
 		}
 
-		err = toConn.TransactDatoms(allDatoms)
+		err = toConn.Index(allDatoms)
 		if err != nil {
 			log.Fatal(err)
 		}
