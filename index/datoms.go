@@ -44,6 +44,8 @@ func NewValue(val interface{}) Value {
 		return Value{String, val}
 	case time.Time:
 		return Value{Date, val}
+	case Value:
+		return val.(Value)
 	default:
 		log.Fatalf("invalid datom value: %#v\n", val)
 		return Value{-1, nil}
