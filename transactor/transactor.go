@@ -107,10 +107,56 @@ func Transact(conn connection.Conn, txData []TxDatum) (*TxResult, error) {
 
 // func (db *database.Db) Eavt() Index
 //                        Aevt(), Avet(), Vaet()
+// func (db *database.Db) With(txData []TxDatum) (*TxResult, error)
 // func (db *database.Db) WithDatoms(datoms []Datom) *database.Database
+//   - merges datoms into in-memory store, returns new db
+//   - db *always* has in-memory index
 // func (db *database.Db) RootId() string // transactor can use this to read and write new root
 
+type DbRoot struct {
+	IndexRootId string
+	LogRootId   string
+	LogTail     []byte
+	// IndexVersion int
+	// LogVersion int
+}
+
+func NewDatabase(store store.Store, root DbRoot) *Db {
+	// - memory index from root.LogTail
+	// - index from root.IndexRootId
+}
+
+func NewMemoryDatabase(eavt, aevt, avet, vaet Index) *Db {
+	// - memory index from the args
+	// - index nil (?)  (maybe to an empty segmented index, to avoid "fun stuff"
+	// - root id == "00000000-0000-0000-0000-0000000000"
+}
+
+type Database interface {
+	Eavt() Index
+	Aevt() Index
+	Avet() Index
+	Vaet() Index
+	// Fulltext() Index
+	WithDatoms(datoms []Datom) Database
+	With(txData []TxDatum) (*TxResult, error)
+	RootId() string
+}
+
+type Db struct {
+	memoryIndex *index.MemoryIndexSet
+	index       *index.SegmentedIndexSet
+}
+
+func (db *Db) Eavt() index.Index {
+	if db.index == nil { // maybe we *do* need an interface for Db?
+		return
+	}
+}
+
 // indexer:
+//  - only needs to know root (and also lock the store?  sufficient to only initiate
+//      indexing from the single transactor in the system.)
 //  - indexes datoms from log tail (and writes new root, dirs and segments + log segments)
 //  - notifies connections of new root
 //      (maybe new root + last indexed tx?)
