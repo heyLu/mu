@@ -66,7 +66,7 @@ type TxResult struct {
 //   - create new db with updated in-memory index
 //   - (?) check if re-index is needed
 //   - release write lock
-func Transact(conn connection.Conn, indexRootId string, txData []TxDatum) (*TxResult, error) {
+func Transact(conn connection.Conn, txData []TxDatum) (*TxResult, error) {
 	transactionLock.Lock()
 	defer transactionLock.Unlock()
 
@@ -74,11 +74,53 @@ func Transact(conn connection.Conn, indexRootId string, txData []TxDatum) (*TxRe
 	processedTxData := ExpandTxData(db, txData)
 	datoms := RealizeDatums(db, processedTxData)
 
-	// write to log
-	// create new db
+	// write to log (results in a new index root)
+	//  - wrap new datoms in a LogTx
+	//  - serialize previous LogTail + new LogTx
+	//  - write new index (db?) root (only log tail is different)
+
+	// create new db (i.e. update in-memory indexes)
 
 	return nil, nil
 }
+
+// database
+//  - access to in-memory index (for transactions)
+//  - db root (= :index/root-id, :log/root-id, :log/tail
+//    - :index/root-id (:eavt, :aevt, :avet, :vaet, :nextT)
+//    - :log/root-id ([#log-dir [0 <id>]], <id> => [], i.e. empty log segments)
+//    - :log/tail ([LogTx = :t, :id, :data])
+//  - access to merged index (for .Datoms, .DatomsAt, .SeekDatoms)
+//  - [basisT (for next tx?), nextT = basisT + 1?]
+//
+//  - we don't *have to* make the indexes public, we could just change the
+//      define `.DatomsAt` and friends on the db (like datomic does)
+//
+//          db.DatomsAt(mu.Eavt, ...) // this does not seem ... right?
+//  - the in-memory db does not need the segmented index
+//  - the backup connection should allow transactions (easy, embed the std connection,
+//      and override .Transact to always return an error)
+//  - transactions only need to change the in-memory index, but they *do*
+//      need to merge it with the on-disk index
+//  - db.With could help, but it seems to accept txData, not just "finished" datoms
+//  - db.IndexMemory *would* be an alternative
+
+// func (db *database.Db) Eavt() Index
+//                        Aevt(), Avet(), Vaet()
+// func (db *database.Db) WithDatoms(datoms []Datom) *database.Database
+// func (db *database.Db) RootId() string // transactor can use this to read and write new root
+
+// indexer:
+//  - indexes datoms from log tail (and writes new root, dirs and segments + log segments)
+//  - notifies connections of new root
+//      (maybe new root + last indexed tx?)
+
+// transactor:
+//  - should lock store for transactor ("<db-id>.locked" in store?)
+//  - either in-process or remote (determines the type of the connection)
+//  - remote transactor notifies connections of transactions as they happen
+//  - remote transactor triggers indexing
+//  - in-process transactor *does* indexing
 
 // ExpandTxData prepares txData so that it can be transacted.
 //
