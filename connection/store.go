@@ -55,6 +55,7 @@ func (c *storeConnection) Transact(datoms []index.Datom) (*transactor.TxResult, 
 	if err != nil {
 		return nil, err
 	}
+	// TODO: write new root with datoms/LogTx to store
 	c.lock.Lock()
 	c.db = txResult.DbAfter
 	c.log = newLog
