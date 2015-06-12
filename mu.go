@@ -144,6 +144,14 @@ func Datoms(db *database.Db, pattern DatomPattern) (index.Iterator, error) {
 		index.NewDatom(maxE, maxA, maxV, max.Tx(), max.Added())), nil
 }
 
+func Attribute(namespace, name string) transactor.Keyword {
+	return transactor.Keyword{fressian.Keyword{namespace, name}}
+}
+
+func LookupRef(attribute transactor.Keyword, value interface{}) transactor.LookupRef {
+	return transactor.LookupRef{attribute, value}
+}
+
 func Keyword(namespace, name string) fressian.Keyword {
 	return fressian.Keyword{namespace, name}
 }
