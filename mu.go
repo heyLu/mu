@@ -149,7 +149,7 @@ func Attribute(namespace, name string) transactor.Keyword {
 }
 
 func LookupRef(attribute transactor.Keyword, value interface{}) transactor.LookupRef {
-	return transactor.LookupRef{attribute, value}
+	return transactor.LookupRef{attribute, index.NewValue(value)}
 }
 
 func Keyword(namespace, name string) fressian.Keyword {
