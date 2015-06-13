@@ -10,6 +10,10 @@
 
 .next
 
+- mu api
+    - lookup refs should be usable as `Value`s (at least in transactions and
+        index queries)
+    - iterators should support .Reverse
 - reading transactions from the outside
     - need an edn parser?
 - tests for transactions (is it usable for simple things already?)
