@@ -70,3 +70,28 @@ func TestEav_NoMatch(t *testing.T) {
 	tu.RequireNil(t, err)
 	tu.ExpectNil(t, iter.Next())
 }
+
+func TestA(t *testing.T) {
+	iter, err := Datoms(db, A(attrName))
+	tu.RequireNil(t, err)
+	expectIterCount(t, iter, 3)
+}
+
+func TestAe(t *testing.T) {
+	iter, err := Datoms(db, Ae(attrName, Id(102)))
+	tu.RequireNil(t, err)
+
+	datom := iter.Next()
+	tu.RequireNotNil(t, datom)
+	tu.ExpectEqual(t, datom.E(), 102)
+	tu.ExpectEqual(t, datom.A(), attrNameRaw)
+	tu.ExpectEqual(t, datom.V().Val(), "Fred")
+}
+
+func expectIterCount(t *testing.T, iter index.Iterator, count int) {
+	n := 0
+	for datom := iter.Next(); datom != nil; datom = iter.Next() {
+		n += 1
+	}
+	tu.ExpectEqual(t, n, count)
+}
