@@ -19,6 +19,7 @@ const (
 	Keyword
 	String
 	Date
+	Ref
 	Max
 )
 
@@ -51,6 +52,10 @@ func NewValue(val interface{}) Value {
 		log.Fatalf("invalid datom value: %#v\n", val)
 		return Value{-1, nil}
 	}
+}
+
+func NewRef(id int) Value {
+	return Value{Ref, id}
 }
 
 func (v Value) Type() ValueType  { return v.ty }

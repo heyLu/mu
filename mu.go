@@ -34,11 +34,11 @@ func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*tra
 }
 
 func Datum(entity transactor.TxLookup, attribute transactor.TxLookup, value interface{}) transactor.Datum {
-	return transactor.Datum{true, entity, attribute, index.NewValue(value)}
+	return transactor.Datum{true, entity, attribute, transactor.NewValue(value)}
 }
 
 func RawDatum(entity int, attribute int, value interface{}) transactor.Datum {
-	return transactor.Datum{true, transactor.DbId(entity), transactor.DbId(attribute), index.NewValue(value)}
+	return transactor.Datum{true, transactor.DbId(entity), transactor.DbId(attribute), transactor.NewValue(value)}
 }
 
 func Datom(entity int, attribute int, value interface{}) index.Datom {
@@ -46,7 +46,7 @@ func Datom(entity int, attribute int, value interface{}) index.Datom {
 }
 
 func Retraction(datom index.Datom) transactor.Datum {
-	return transactor.Datum{false, transactor.DbId(datom.E()), transactor.DbId(datom.A()), datom.V()}
+	return transactor.Datum{false, transactor.DbId(datom.E()), transactor.DbId(datom.A()), transactor.NewValue(datom.V())}
 }
 
 func Datums(datoms ...transactor.TxDatum) []transactor.TxDatum {

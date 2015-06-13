@@ -48,7 +48,7 @@ type Datum struct {
 	Op bool
 	E  TxLookup
 	A  TxLookup
-	V  index.Value
+	V  Value
 }
 
 func (d Datum) Retraction() Datum {
@@ -64,7 +64,37 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []RawDatum{RawDatum{d.Op, eid, aid, d.V}}, nil
+	val, err := d.V.Get(db)
+	if err != nil {
+		return nil, err
+	}
+	return []RawDatum{RawDatum{d.Op, eid, aid, *val}}, nil
+}
+
+type Value struct {
+	val *index.Value
+	ref *LookupRef
+}
+
+func NewValue(value interface{}) Value {
+	if ref, ok := value.(LookupRef); ok {
+		return Value{val: nil, ref: &ref}
+	}
+	val := index.NewValue(value)
+	return Value{val: &val, ref: nil}
+}
+
+func (v Value) Get(db *database.Db) (*index.Value, error) {
+	if v.ref != nil {
+		id, err := v.ref.Lookup(db)
+		if err != nil {
+			return nil, err
+		}
+		ref := index.NewRef(id)
+		return &ref, nil
+	}
+	return v.val, nil
+
 }
 
 type TxMap struct {
