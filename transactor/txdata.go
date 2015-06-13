@@ -72,21 +72,21 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 }
 
 type Value struct {
-	val *index.Value
-	ref *LookupRef
+	val    *index.Value
+	lookup *TxLookup
 }
 
 func NewValue(value interface{}) Value {
-	if ref, ok := value.(LookupRef); ok {
-		return Value{val: nil, ref: &ref}
+	if lookup, ok := value.(TxLookup); ok {
+		return Value{val: nil, lookup: &lookup}
 	}
 	val := index.NewValue(value)
-	return Value{val: &val, ref: nil}
+	return Value{val: &val, lookup: nil}
 }
 
 func (v Value) Get(db *database.Db) (*index.Value, error) {
-	if v.ref != nil {
-		id, err := v.ref.Lookup(db)
+	if v.lookup != nil {
+		id, err := (*v.lookup).Lookup(db)
 		if err != nil {
 			return nil, err
 		}
