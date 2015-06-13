@@ -55,6 +55,8 @@ func NewValue(val interface{}) Value {
 		return Value{Int, val}
 	case fressian.Keyword:
 		return Value{Keyword, val}
+	case fressian.UUID:
+		return Value{UUID, val}
 	case string:
 		return Value{String, val}
 	case time.Time:
@@ -114,6 +116,22 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 			v := v.val.(time.Time)
 			ov := ov.val.(time.Time)
 			return int(v.Unix() - ov.Unix())
+		case UUID:
+			v := v.val.(fressian.UUID)
+			ov := ov.val.(fressian.UUID)
+			if v.Msb < ov.Msb {
+				return -1
+			} else if v.Msb == ov.Msb {
+				if v.Lsb < ov.Lsb {
+					return -1
+				} else if v.Lsb == ov.Lsb {
+					return 0
+				} else {
+					return 1
+				}
+			} else {
+				return 1
+			}
 		case Min:
 			return -1
 		case Max:
@@ -145,6 +163,8 @@ func (v Value) String() string {
 	case Date:
 		d := v.val.(time.Time)
 		return d.Format(time.RFC3339)
+	case UUID:
+		return v.val.(fressian.UUID).String()
 	case Min:
 		return "index.MinValue"
 	case Max:
