@@ -97,40 +97,40 @@ func Datoms(db *database.Db, pattern DatomPattern) (index.Iterator, error) {
 
 	switch pattern.idx {
 	case index.Eavt:
-		if pattern.n == 1 {
+		if pattern.n >= 1 {
 			e, err := pattern.e.Lookup(db)
 			if err != nil {
 				return nil, err
 			}
 			minE, maxE = e, e
 		}
-		if pattern.n == 2 {
-			a, err := pattern.e.Lookup(db)
-			if err != nil {
-				return nil, err
-			}
-			minA, maxA = a, a
-		}
-		if pattern.n == 3 {
-			minV, maxV = pattern.v, pattern.v
-		}
-		idx = db.Eavt()
-	case index.Aevt:
-		if pattern.n == 1 {
+		if pattern.n >= 2 {
 			a, err := pattern.a.Lookup(db)
 			if err != nil {
 				return nil, err
 			}
 			minA, maxA = a, a
 		}
-		if pattern.n == 2 {
+		if pattern.n >= 3 {
+			minV, maxV = pattern.v, pattern.v
+		}
+		idx = db.Eavt()
+	case index.Aevt:
+		if pattern.n >= 1 {
+			a, err := pattern.a.Lookup(db)
+			if err != nil {
+				return nil, err
+			}
+			minA, maxA = a, a
+		}
+		if pattern.n >= 2 {
 			e, err := pattern.e.Lookup(db)
 			if err != nil {
 				return nil, err
 			}
 			minE, maxE = e, e
 		}
-		if pattern.n == 3 {
+		if pattern.n >= 3 {
 			minV, maxV = pattern.v, pattern.v
 		}
 		idx = db.Aevt()
