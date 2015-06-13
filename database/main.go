@@ -195,7 +195,7 @@ func (db *Db) Attribute(id int) *Attribute {
 			case 41: // :db/cardinality
 				attr.cardinality = datom.Value().Val().(int)
 			case 40: // :db/valueType
-				attr.valueType = toValueType(datom.Value().Val().(int))
+				attr.valueType = index.ValueType(datom.Value().Val().(int))
 			}
 		}
 
@@ -213,22 +213,3 @@ func (a Attribute) Id() int                 { return a.id }
 func (a Attribute) Ident() fressian.Keyword { return a.ident }
 func (a Attribute) Cardinality() int        { return a.cardinality }
 func (a Attribute) Type() index.ValueType   { return a.valueType }
-
-func toValueType(internalType int) index.ValueType {
-	// TODO: maybe make index.ValueType start out with the correct numbers?
-	switch internalType {
-	case 21:
-		return index.Keyword
-	case 22:
-		return index.Int
-	case 23:
-		return index.String
-	case 24:
-		return index.Bool
-	case 25:
-		return index.Date
-	default:
-		log.Fatal("unknown :db/type:", internalType)
-		return index.ValueType(-1)
-	}
-}

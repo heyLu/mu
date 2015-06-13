@@ -13,14 +13,27 @@ import (
 type ValueType int
 
 const (
-	Min            = -1
-	Bool ValueType = iota
-	Int
+	Ref ValueType = 20 + iota
 	Keyword
+	Long
 	String
-	Date
-	Ref
-	Max
+	Bool
+	Instant
+	Fn
+	Bytes
+	Int            = Long
+	Date           = Instant
+	Min  ValueType = -1
+	Max  ValueType = 100
+)
+
+const (
+	UUID ValueType = 56 + iota
+	Double
+	Float
+	URI
+	BigInt
+	BigDec
 )
 
 type Value struct {
