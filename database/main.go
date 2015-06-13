@@ -15,6 +15,12 @@ type Db struct {
 	attributeCache map[int]Attribute
 }
 
+var Empty = NewInMemory(
+	index.NewMemoryIndex(index.CompareEavt),
+	index.NewMemoryIndex(index.CompareAevt),
+	index.NewMemoryIndex(index.CompareAvet),
+	index.NewMemoryIndex(index.CompareVaet))
+
 func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 	return &Db{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
 }
