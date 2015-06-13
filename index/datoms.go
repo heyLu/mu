@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
 	"math"
@@ -110,6 +111,31 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 	}
 }
 
+func (v Value) String() string {
+	switch v.ty {
+	case Bool, Int:
+		return fmt.Sprintf("%v", v.val)
+	case String:
+		return fmt.Sprintf("%#v", v.val)
+	case Keyword:
+		kw := v.val.(fressian.Keyword)
+		if kw.Namespace == "" {
+			return fmt.Sprintf(":%s", kw.Name)
+		} else {
+			return fmt.Sprintf(":%s/%s", kw.Namespace, kw.Name)
+		}
+	case Date:
+		d := v.val.(time.Time)
+		return d.Format(time.RFC3339)
+	case Min:
+		return "index.MinValue"
+	case Max:
+		return "index.MaxValue"
+	default:
+		return "index.InvalidValue"
+	}
+}
+
 type Datom struct {
 	entity      int
 	attribute   int
@@ -137,6 +163,10 @@ func (d Datom) Added() bool      { return d.added }
 
 func (d Datom) Retraction() Datom {
 	return Datom{d.entity, d.attribute, d.value, d.transaction, false}
+}
+
+func (d Datom) String() string {
+	return fmt.Sprintf("index.Datom{%d %d %v %d %t}", d.entity, d.attribute, d.value, d.transaction, d.added)
 }
 
 func CompareEavt(ai, bi interface{}) int {
