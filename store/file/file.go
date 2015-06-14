@@ -38,6 +38,10 @@ func (s fileStore) Get(id string) ([]byte, error) {
 }
 
 func (s fileStore) Put(id string, data []byte) error {
+	err := os.MkdirAll(path.Join(s.path, id[len(id)-2:]), 0755)
+	if err != nil {
+		return err
+	}
 	return ioutil.WriteFile(s.blobPath(id), data, 0644)
 }
 
