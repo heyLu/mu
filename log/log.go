@@ -75,13 +75,13 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 
 func NewTx(t int, datoms []index.Datom) *LogTx {
 	return &LogTx{
-		Id:     squuid().String(),
+		Id:     Squuid().String(),
 		T:      t,
 		Datoms: datoms,
 	}
 }
 
-func squuid() fressian.UUID {
+func Squuid() fressian.UUID {
 	bs := make([]byte, 16)
 	now := uint32(time.Now().Unix())
 	binary.BigEndian.PutUint32(bs[0:4], now)

@@ -18,10 +18,10 @@ import (
 )
 
 type storeConnection struct {
-	store  store.Store
-	rootId string
-	db     *database.Db
-	log    *log.Log
+	store       store.Store
+	indexRootId string
+	db          *database.Db
+	log         *log.Log
 
 	// Used to protect against dirty reads of db and log.
 	lock *sync.RWMutex
@@ -55,12 +55,50 @@ func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxR
 	if err != nil {
 		return nil, err
 	}
-	// TODO: write new root with datoms/LogTx to store
+
+	// write new root with datoms/LogTx to store
+	newLog := c.log.WithTx(tx)
+	dbRoot, err := newDbRoot(c.indexRootId, newLog.RootId, newLog.Tail)
+	if err != nil {
+		return nil, err
+	}
+	newIndexRootId := log.Squuid().String()
+	err = writeToStore(c.store, newIndexRootId, dbRoot)
+	if err != nil {
+		return nil, err
+	}
+
 	c.lock.Lock()
+	c.indexRootId = newIndexRootId
 	c.db = txResult.DbAfter
-	c.log = c.log.WithTx(tx)
+	c.log = newLog
 	c.lock.Unlock()
 	return txResult, nil
+}
+
+func newDbRoot(indexRootId, logRootId string, logTail []log.LogTx) (map[interface{}]interface{}, error) {
+	dbRoot := map[interface{}]interface{}{}
+	dbRoot[fressian.Keyword{"index", "root-id"}] = indexRootId
+	dbRoot[fressian.Keyword{"log", "root-id"}] = logRootId
+
+	buf := new(bytes.Buffer)
+	w := fressian.NewWriter(buf, log.WriteHandler)
+	err := w.WriteValue(logTail)
+	if err != nil {
+		return nil, err
+	}
+	w.Flush()
+	dbRoot[fressian.Keyword{"log", "tail"}] = buf.Bytes()
+
+	return dbRoot, nil
+}
+
+func writeToStore(store store.Store, id string, val interface{}) error {
+	buf := new(bytes.Buffer)
+	w := fressian.NewGzipWriter(buf, nil)
+	w.WriteValue(val)
+	w.Flush()
+	return store.Put(id, buf.Bytes())
 }
 
 func connectToStore(u *url.URL) (Connection, error) {
@@ -85,10 +123,10 @@ func connectToStore(u *url.URL) (Connection, error) {
 	db, log := CurrentDb(store, indexRootId, "", []byte{})
 
 	conn := &storeConnection{
-		store:  store,
-		rootId: rootId,
-		db:     db,
-		log:    log,
+		store:       store,
+		indexRootId: rootId,
+		db:          db,
+		log:         log,
 	}
 
 	return conn, nil
