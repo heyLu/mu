@@ -8,12 +8,12 @@ import (
 	"os"
 	"path"
 
-	connection ".."
-	"../../database"
-	"../../index"
-	"../../log"
-	"../../store"
-	"../../transactor"
+	"github.com/heyLu/mu/connection"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
+	"github.com/heyLu/mu/log"
+	"github.com/heyLu/mu/store"
+	"github.com/heyLu/mu/transactor"
 )
 
 func init() {

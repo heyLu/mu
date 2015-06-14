@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	c "../../comparable"
+	c "github.com/heyLu/mu/comparable"
 )
 
 func TestCompare(t *testing.T) {

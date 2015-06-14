@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/url"
 
-	"./connection"
-	_ "./connection/backup"
-	_ "./connection/file"
-	_ "./connection/memory"
-	"./database"
-	"./index"
-	"./transactor"
+	"github.com/heyLu/mu/connection"
+	_ "github.com/heyLu/mu/connection/backup"
+	_ "github.com/heyLu/mu/connection/file"
+	_ "github.com/heyLu/mu/connection/memory"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
+	"github.com/heyLu/mu/transactor"
 )
 
 const (

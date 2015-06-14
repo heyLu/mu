@@ -5,12 +5,12 @@ import (
 	"net/url"
 	"os"
 
-	connection ".."
-	"../../database"
-	"../../index/"
-	"../../log"
-	"../../transactor"
-	memoryConn "../memory"
+	"github.com/heyLu/mu/connection"
+	memoryConn "github.com/heyLu/mu/connection/memory"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
+	"github.com/heyLu/mu/log"
+	"github.com/heyLu/mu/transactor"
 )
 
 func init() {

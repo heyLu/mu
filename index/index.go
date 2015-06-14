@@ -1,8 +1,8 @@
 package index
 
 import (
-	"../comparable"
-	"../store"
+	"github.com/heyLu/mu/comparable"
+	"github.com/heyLu/mu/store"
 )
 
 const (

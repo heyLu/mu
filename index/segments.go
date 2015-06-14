@@ -4,8 +4,8 @@ import (
 	"github.com/heyLu/fressian"
 	"log"
 
-	"../comparable"
-	"../store"
+	"github.com/heyLu/mu/comparable"
+	"github.com/heyLu/mu/store"
 )
 
 type Root struct {

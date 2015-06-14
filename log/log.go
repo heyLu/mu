@@ -5,8 +5,8 @@ import (
 	"github.com/heyLu/fressian"
 	"log"
 
-	"../index"
-	"../store"
+	"github.com/heyLu/mu/index"
+	"github.com/heyLu/mu/store"
 )
 
 type Log struct {

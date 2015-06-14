@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"../comparable"
+	"github.com/heyLu/mu/comparable"
 )
 
 type ValueType int

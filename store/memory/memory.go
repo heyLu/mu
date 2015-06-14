@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	store ".."
+	"github.com/heyLu/mu/store"
 )
 
 func init() {

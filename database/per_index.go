@@ -1,7 +1,7 @@
 package database
 
 import (
-	"../index"
+	"github.com/heyLu/mu/index"
 )
 
 // FilterAvetAndVaet returns the datoms that need to be placed in the

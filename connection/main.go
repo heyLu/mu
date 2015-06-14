@@ -6,17 +6,17 @@ import (
 	"log"
 	"net/url"
 
-	"../database"
-	"../index"
-	dbLog "../log"
-	"../transactor"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
+	txlog "github.com/heyLu/mu/log"
+	"github.com/heyLu/mu/transactor"
 )
 
 type Connector func(u *url.URL) (Connection, error)
 
 type Connection interface {
 	Db() *database.Db
-	Log() *dbLog.Log
+	Log() *txlog.Log
 	Index(datoms []index.Datom) error
 	Transact(datoms []transactor.TxDatum) (*transactor.TxResult, error)
 }

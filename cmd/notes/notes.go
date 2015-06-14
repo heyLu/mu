@@ -11,9 +11,9 @@ import (
 	"os/exec"
 	"strconv"
 
-	mu "../.."
-	"../../connection"
-	"../../database"
+	"github.com/heyLu/mu"
+	"github.com/heyLu/mu/connection"
+	"github.com/heyLu/mu/database"
 )
 
 var nameAttr int

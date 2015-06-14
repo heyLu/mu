@@ -3,9 +3,9 @@ package file
 import (
 	"github.com/heyLu/fressian"
 
-	"../../collection/btset"
-	"../../database"
-	"../../index"
+	"github.com/heyLu/mu/collection/btset"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
 )
 
 var WriteHandler fressian.WriteHandler = func(w *fressian.Writer, val interface{}) error {

@@ -7,10 +7,9 @@ import (
 	"net/url"
 	"os"
 
-	"../../database"
-	"../../index"
-
-	mu "../.."
+	"github.com/heyLu/mu"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
 )
 
 func main() {

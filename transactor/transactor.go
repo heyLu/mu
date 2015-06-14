@@ -3,9 +3,9 @@ package transactor
 import (
 	"log"
 
-	"../database"
-	"../index"
-	txlog "../log"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
+	txlog "github.com/heyLu/mu/log"
 )
 
 const (

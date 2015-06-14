@@ -4,8 +4,8 @@ import (
 	"github.com/heyLu/fressian"
 	"reflect"
 
-	"../collection/btset"
-	"../comparable"
+	"github.com/heyLu/mu/collection/btset"
+	"github.com/heyLu/mu/comparable"
 )
 
 type MemoryIndex struct {

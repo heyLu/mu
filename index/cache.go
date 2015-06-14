@@ -6,7 +6,7 @@ import (
 	"github.com/heyLu/fressian"
 	"log"
 
-	"../store"
+	"github.com/heyLu/mu/store"
 )
 
 type Cache interface {
@@ -27,7 +27,7 @@ func (c *memoryCache) Put(id string, val interface{}) {
 	c.cache[id] = val
 }
 
-// FIXME: use github.com/golang/groupcache/lru instead
+// FIXME: use "github.com/golang/groupcache/lru instead
 var cache Cache = &memoryCache{make(map[string]interface{}, 100)}
 
 func GetFromCache(store store.Store, id string) interface{} {

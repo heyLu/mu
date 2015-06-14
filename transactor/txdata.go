@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/heyLu/fressian"
 
-	"../database"
-	"../index"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
 )
 
 func resolveTxData(db *database.Db, txData []TxDatum) ([]RawDatum, error) {

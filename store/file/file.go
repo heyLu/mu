@@ -6,7 +6,7 @@ import (
 	"os"
 	"path"
 
-	store ".."
+	"github.com/heyLu/mu/store"
 )
 
 func init() {

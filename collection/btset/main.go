@@ -4,7 +4,7 @@ package btset
 import (
 	"log"
 
-	c "../../comparable"
+	c "github.com/heyLu/mu/comparable"
 )
 
 func half(x int) int { return x >> 1 }

@@ -4,8 +4,8 @@ import (
 	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
 
-	"./database"
-	"./index"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
 )
 
 var (

@@ -4,7 +4,7 @@ import (
 	"github.com/heyLu/fressian"
 	"log"
 
-	"../index"
+	"github.com/heyLu/mu/index"
 )
 
 type Db struct {
