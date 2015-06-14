@@ -63,7 +63,7 @@ func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxR
 		return nil, err
 	}
 	newIndexRootId := log.Squuid().String()
-	err = writeToStore(c.store, newIndexRootId, dbRoot)
+	err = writeToStore(c.store, nil, newIndexRootId, dbRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +93,14 @@ func newDbRoot(indexRootId, logRootId string, logTail []log.LogTx) (map[interfac
 	return dbRoot, nil
 }
 
-func writeToStore(store store.Store, id string, val interface{}) error {
+func writeToStore(store store.Store, handler fressian.WriteHandler, id string, val interface{}) error {
+	fmt.Printf("writeToStore: %s -> %v\n", id, val)
 	buf := new(bytes.Buffer)
-	w := fressian.NewGzipWriter(buf, nil)
-	w.WriteValue(val)
+	w := fressian.NewGzipWriter(buf, handler)
+	err := w.WriteValue(val)
+	if err != nil {
+		return err
+	}
 	w.Flush()
 	return store.Put(id, buf.Bytes())
 }
@@ -115,7 +119,45 @@ func connectToStore(u *url.URL) (Connection, error) {
 	rootId := DbNameToId(dbName)
 
 	// TODO: read log root and log tail from the segment (and don't cache it)
-	root := index.GetFromCache(store, rootId).(map[interface{}]interface{})
+	root, err := getDbRoot(store, rootId)
+	if err != nil { // new db (not really, could be anything...)
+		fmt.Printf("new db: %s (%v): %s\n", rootId, root, err)
+		indexRootId := log.Squuid().String()
+		root, err = newDbRoot(indexRootId, "", []log.LogTx{})
+		if err != nil {
+			return nil, err
+		}
+
+		err = writeToStore(store, nil, rootId, root)
+		if err != nil {
+			return nil, err
+		}
+
+		indexRoot := make(map[interface{}]interface{})
+		eavtRootId := log.Squuid()
+		indexRoot[fressian.Keyword{"", "eavt-main"}] = eavtRootId
+		aevtRootId := log.Squuid()
+		indexRoot[fressian.Keyword{"", "aevt-main"}] = aevtRootId
+		avetRootId := log.Squuid()
+		indexRoot[fressian.Keyword{"", "avet-main"}] = avetRootId
+		vaetRootId := log.Squuid()
+		indexRoot[fressian.Keyword{"", "raet-main"}] = vaetRootId
+		indexRoot[fressian.Keyword{"", "nextT"}] = 0
+
+		err = writeToStore(store, nil, indexRootId, indexRoot)
+		if err != nil {
+			return nil, err
+		}
+
+		emptyRoot := new(index.Root)
+		for _, rootId := range []fressian.UUID{eavtRootId, aevtRootId, avetRootId, vaetRootId} {
+			err = writeToStore(store, index.SegmentWriteHandler, rootId.String(), *emptyRoot)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	}
 	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
 	logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
 	logTail := root[fressian.Keyword{"log", "tail"}].([]byte)
@@ -177,6 +219,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
 	indexRootId := root[fressian.Keyword{"", id}].(fressian.UUID).String()
+	fmt.Println("get index", id, indexRootId)
 	indexRoot := index.GetRoot(store, indexRootId)
 	return index.NewSegmentedIndex(&indexRoot, store, compare)
 }
@@ -193,7 +236,7 @@ func getDbRoot(store store.Store, id string) (map[interface{}]interface{}, error
 	}
 	r := fressian.NewReader(gz, nil)
 	val, err := r.ReadValue()
-	if err != nil {
+	if val == nil && err != nil {
 		return nil, err
 	}
 

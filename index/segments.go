@@ -28,6 +28,19 @@ type TransposedData struct {
 	addeds       []bool
 }
 
+var _ fressian.WriteHandler = SegmentWriteHandler
+
+func SegmentWriteHandler(w *fressian.Writer, val interface{}) error {
+	switch val := val.(type) {
+	case Root:
+		return w.WriteExt("index-root-node", val.tData, val.directories)
+	case TransposedData:
+		return w.WriteExt("index-tdata", val.values, val.entities, val.attributes, val.transactions, val.addeds)
+	default:
+		return fressian.DefaultHandler(w, val)
+	}
+}
+
 var SegmentReadHandlers = map[string]fressian.ReadHandler{
 	"index-root-node": func(r *fressian.Reader, tag string, fieldCount int) interface{} {
 		tData, _ := r.ReadValue()
