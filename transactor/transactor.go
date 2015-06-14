@@ -26,7 +26,7 @@ type TxResult struct {
 	Datoms   []index.Datom
 }
 
-func Transact(db *database.Db, txLog *txlog.Log, txData []TxDatum) (*txlog.Log, *TxResult, error) {
+func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error) {
 	// TODO:
 	//   - check for uniqueness
 	//   - check types of values
@@ -47,7 +47,8 @@ func Transact(db *database.Db, txLog *txlog.Log, txData []TxDatum) (*txlog.Log, 
 		Tempids:  txState.newEntityCache,
 		Datoms:   datoms,
 	}
-	return txLog, txResult, nil
+	tx := txlog.NewTx(txState.tx, datoms)
+	return tx, txResult, nil
 }
 
 type txState struct {

@@ -2,8 +2,11 @@ package log
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/binary"
 	"github.com/heyLu/fressian"
 	"log"
+	"time"
 
 	"github.com/heyLu/mu/index"
 	"github.com/heyLu/mu/store"
@@ -13,6 +16,14 @@ type Log struct {
 	store  store.Store
 	RootId string
 	Tail   []LogTx
+}
+
+func (l Log) WithTx(tx *LogTx) *Log {
+	return &Log{
+		store:  l.store,
+		RootId: l.RootId,
+		Tail:   append(l.Tail, *tx),
+	}
 }
 
 type LogTx struct {
@@ -60,4 +71,23 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 			added.(bool))
 		return &datom
 	},
+}
+
+func NewTx(t int, datoms []index.Datom) *LogTx {
+	return &LogTx{
+		Id:     squuid().String(),
+		T:      t,
+		Datoms: datoms,
+	}
+}
+
+func squuid() fressian.UUID {
+	bs := make([]byte, 16)
+	now := uint32(time.Now().Unix())
+	binary.BigEndian.PutUint32(bs[0:4], now)
+	_, err := rand.Read(bs[4:])
+	if err != nil {
+		log.Fatal("squuid (rand.Read): ", err)
+	}
+	return fressian.NewUUIDFromBytes(bs)
 }

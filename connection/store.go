@@ -51,14 +51,14 @@ func (c *storeConnection) Index(datoms []index.Datom) error {
 func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxResult, error) {
 	c.txLock.Lock()
 	defer c.txLock.Unlock()
-	newLog, txResult, err := transactor.Transact(c.db, c.log, datoms)
+	tx, txResult, err := transactor.Transact(c.db, datoms)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: write new root with datoms/LogTx to store
 	c.lock.Lock()
 	c.db = txResult.DbAfter
-	c.log = newLog
+	c.log = c.log.WithTx(tx)
 	c.lock.Unlock()
 	return txResult, nil
 }

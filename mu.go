@@ -34,7 +34,7 @@ func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*tra
 }
 
 func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
-	_, txResult, err := transactor.Transact(db, nil, txData)
+	_, txResult, err := transactor.Transact(db, txData)
 	if err != nil {
 		return nil, err
 	}
