@@ -153,12 +153,7 @@ func (v Value) String() string {
 	case String:
 		return fmt.Sprintf("%#v", v.val)
 	case Keyword:
-		kw := v.val.(fressian.Keyword)
-		if kw.Namespace == "" {
-			return fmt.Sprintf(":%s", kw.Name)
-		} else {
-			return fmt.Sprintf(":%s/%s", kw.Namespace, kw.Name)
-		}
+		return v.val.(fressian.Keyword).String()
 	case Date:
 		d := v.val.(time.Time)
 		return d.Format(time.RFC3339)
