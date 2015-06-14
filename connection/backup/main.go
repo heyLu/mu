@@ -64,7 +64,7 @@ func New(u *url.URL) (connection.Connection, error) {
 	logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
 	logTail := root[fressian.Keyword{"log", "tail"}].([]byte)
 	storeUrl, _ := url.Parse(fmt.Sprintf("files://%s/values", u.Host+u.Path))
-	store, err := store.Get(storeUrl)
+	store, err := store.Open(storeUrl)
 	if err != nil {
 		return nil, err
 	}

@@ -65,7 +65,7 @@ func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxR
 
 func connectToStore(u *url.URL) (Connection, error) {
 	// get store from url scheme
-	store, err := store.Get(u)
+	store, err := store.Open(u)
 	if err != nil {
 		return nil, err
 	}

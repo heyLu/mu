@@ -22,7 +22,7 @@ func Register(name string, open func(u *url.URL) (Store, error)) {
 	registry[name] = open
 }
 
-func Get(u *url.URL) (Store, error) {
+func Open(u *url.URL) (Store, error) {
 	name := u.Scheme
 	if open, ok := registry[name]; ok {
 		return open(u)
