@@ -24,9 +24,9 @@ type storeConnection struct {
 	log         *log.Log
 
 	// Used to protect against dirty reads of db and log.
-	lock *sync.RWMutex
+	lock sync.RWMutex
 	// Used to ensure that transaction are serialized.
-	txLock *sync.Mutex
+	txLock sync.Mutex
 }
 
 func (c *storeConnection) Db() *database.Db {
