@@ -117,10 +117,10 @@ func connectToStore(u *url.URL) (Connection, error) {
 	// TODO: read log root and log tail from the segment (and don't cache it)
 	root := index.GetFromCache(store, rootId).(map[interface{}]interface{})
 	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
-	//logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
-	//logTail := root[fressian.Keyword{"log", "tail"}].(string)
+	logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
+	logTail := root[fressian.Keyword{"log", "tail"}].([]byte)
 
-	db, log := CurrentDb(store, indexRootId, "", []byte{})
+	db, log := CurrentDb(store, indexRootId, logRootId, logTail)
 
 	conn := &storeConnection{
 		store:       store,
