@@ -13,6 +13,9 @@
         - CreateDatabase + Connect will be the general pattern (i.e. no implicit
             db creation)
     - better schema support in the transactor (mostly validation)
+    - (more of a style thing: introduce a common/util package with code that is
+       currently repeated in a bunch of places.  can't have everything because
+       that easily leads to cycles, though.)
 - reading transactions from the outside
     - need an edn parser?  yes.  take a look at clojure's parser again and see
         how long it would take to get something working.  (txs only need vectors,
