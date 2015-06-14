@@ -33,6 +33,14 @@ func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*tra
 	return conn.Transact(origDatoms)
 }
 
+func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
+	_, txResult, err := transactor.Transact(db, nil, txData)
+	if err != nil {
+		return nil, err
+	}
+	return txResult.DbAfter, nil
+}
+
 func Datum(entity transactor.TxLookup, attribute transactor.TxLookup, value interface{}) transactor.Datum {
 	return transactor.Datum{true, entity, attribute, transactor.NewValue(value)}
 }
