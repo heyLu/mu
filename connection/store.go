@@ -11,7 +11,7 @@ import (
 
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
-	log "github.com/heyLu/mu/log"
+	"github.com/heyLu/mu/log"
 	"github.com/heyLu/mu/store"
 	_ "github.com/heyLu/mu/store/file"
 	"github.com/heyLu/mu/transactor"
