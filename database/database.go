@@ -162,8 +162,8 @@ func (db *Db) Attribute(id int) *Attribute {
 		return &attr
 	} else {
 		iter := db.Eavt().DatomsAt(
-			index.NewDatom(id, -1, "", -1, false),
-			index.NewDatom(id, 10000, "", -1, false))
+			index.NewDatom(id, 0, index.MinValue, 0, true),
+			index.NewDatom(id, index.MaxDatom.A(), index.MaxValue, index.MaxDatom.Tx(), true))
 		found := false
 		attr = Attribute{
 			id: id,
