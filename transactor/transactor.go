@@ -94,6 +94,14 @@ func (txState *txState) resolveTempid(entity int) int {
 	}
 }
 
+// TODO:
+//   - cardinality checks (however, :db.cardinality/one automatically adds a retraction?)
+//   - uniqueness checks
+//
+//   - all of the above checks seem to require one pass over the data, and can only
+//       checked afterwards.  (some things can be checked while iterating over the
+//       datoms, but not all, e.g. :db.cardinality/one?)
+//   - meh, this is quite unclear still...
 func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
