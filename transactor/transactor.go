@@ -127,7 +127,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 	}
 
 	if !txState.hasTxInstant {
-		datoms = append(datoms, index.NewDatom(txState.tx, DbTxInstant, time.Now(), txState.tx, Add))
+		datoms = append(datoms, index.NewDatom(txState.tx, DbTxInstant, time.Now(), txState.tx, Assert))
 	}
 
 	return datoms

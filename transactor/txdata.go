@@ -24,7 +24,7 @@ type TxDatum interface {
 }
 
 const (
-	Add     = true
+	Assert  = true
 	Retract = false
 )
 
@@ -125,7 +125,7 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 		}
 
 		for _, v := range vs {
-			datum := RawDatum{Add, m.Id, attrId, v}
+			datum := RawDatum{Assert, m.Id, attrId, v}
 			datums = append(datums, datum)
 		}
 	}
