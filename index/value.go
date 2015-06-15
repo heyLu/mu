@@ -74,6 +74,10 @@ func (t ValueType) String() string {
 	}
 }
 
+func (t ValueType) IsValid() bool {
+	return (t >= Ref && t <= Bytes) || (t >= UUID && t <= BigDec)
+}
+
 type Value struct {
 	ty  ValueType
 	val interface{}
