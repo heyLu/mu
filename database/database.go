@@ -154,6 +154,8 @@ type Attribute struct {
 	cardinality Cardinality
 	valueType   index.ValueType
 	unique      Unique
+	indexed     bool
+	noHistory   bool
 }
 
 type Unique int
@@ -229,6 +231,10 @@ func (db *Db) Attribute(id int) *Attribute {
 				attr.cardinality = Cardinality(datom.Value().Val().(int))
 			case 42: // :db/unique
 				attr.unique = Unique(datom.Value().Val().(int))
+			case 44: // :db/index
+				attr.indexed = datom.Value().Val().(bool)
+			case 45: // :db/noHistory
+				attr.noHistory = datom.Value().Val().(bool)
 			}
 		}
 
@@ -247,3 +253,5 @@ func (a Attribute) Ident() fressian.Keyword  { return a.ident }
 func (a Attribute) Cardinality() Cardinality { return a.cardinality }
 func (a Attribute) Type() index.ValueType    { return a.valueType }
 func (a Attribute) Unique() Unique           { return a.unique }
+func (a Attribute) Indexed() bool            { return a.indexed }
+func (a Attribute) NoHistory() bool          { return a.noHistory }
