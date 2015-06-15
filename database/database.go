@@ -119,7 +119,12 @@ func (e Entity) Get(key Keyword) interface{} {
 	datoms := e.db.eavt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == e.id && datom.Attribute() == attrId {
-			val := datom.Value().Val()
+			var val interface{}
+			if datom.Value().Type() == index.Ref {
+				val = e.db.Entity(datom.Value().Val().(int))
+			} else {
+				val = datom.Value().Val()
+			}
 			e.attributeCache[key] = val
 			return val
 		}
