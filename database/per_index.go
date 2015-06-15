@@ -12,20 +12,41 @@ func FilterAvetAndVaet(db *Db, datoms []index.Datom) ([]index.Datom, []index.Dat
 	avet := make([]index.Datom, 0, len(datoms))
 	vaet := make([]index.Datom, 0, len(datoms))
 	for _, datom := range datoms {
-		if needsAvet(datom) {
+		if needsAvet(db, datom) {
 			avet = append(avet, datom)
 		}
-		if needsVaet(datom) {
+		if needsVaet(db, datom) {
 			vaet = append(vaet, datom)
 		}
 	}
 	return avet, vaet
 }
 
-func needsAvet(datom index.Datom) bool {
-	return datom.Attribute() == 10 // db/ident
+func needsAvet(db *Db, datom index.Datom) bool {
+	a := datom.Attribute()
+	switch a {
+	case 10, // :db/ident
+		39, // :fressian/tag
+		50: // :db/txInstant
+		return true
+	default:
+		attr := db.Attribute(a)
+		return attr != nil && (attr.Indexed() || attr.Unique().IsValid())
+	}
 }
 
-func needsVaet(datom index.Datom) bool {
-	return false
+func needsVaet(db *Db, datom index.Datom) bool {
+	a := datom.Attribute()
+	switch a {
+	case 11, 12, 13, 14, // :db.install/*
+		15, 16, 19, // :db/excise, :db.excise/beforeT, :db.alter/attribute
+		40, // :db/valueType
+		41, // :db/cardinality
+		42, // :db/unique
+		46: // :db/lang
+		return true
+	default:
+		attr := db.Attribute(a)
+		return attr != nil && attr.Type() == index.Ref
+	}
 }
