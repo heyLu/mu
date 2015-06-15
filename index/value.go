@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
+	"reflect"
 	"time"
 
 	"github.com/heyLu/mu/comparable"
@@ -63,6 +64,13 @@ func NewValue(val interface{}) Value {
 	case Value:
 		return val.(Value)
 	default:
+		// FIXME: this is bad, maybe put `index/value.go` or `NewValue` into it's own package?
+		rval := reflect.ValueOf(val)
+		rty := rval.Type()
+		if rty.PkgPath() == "github.com/heyLu/mu/database" && rty.Name() == "Keyword" {
+			val := rval.FieldByName("Keyword").Interface()
+			return Value{Keyword, val}
+		}
 		log.Fatalf("invalid datom value: %#v\n", val)
 		return Value{-1, nil}
 	}
