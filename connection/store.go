@@ -162,17 +162,17 @@ func CreateDatabase(u *url.URL) (bool, error) {
 		return false, err
 	}
 
-	err = createInitialDb(store, rootId)
+	err = createInitialDb(store, rootId, transactor.BootstrapTxs)
 	if err != nil {
 		return false, err
 	}
 
-	return true, fmt.Errorf("db bootstrapping not implemented")
+	return true, nil
 }
 
-func createInitialDb(store store.Store, rootId string) error {
+func createInitialDb(store store.Store, rootId string, logTail []log.LogTx) error {
 	indexRootId := log.Squuid().String()
-	root, err := newDbRoot(indexRootId, "", []log.LogTx{})
+	root, err := newDbRoot(indexRootId, "", logTail)
 	if err != nil {
 		return err
 	}
