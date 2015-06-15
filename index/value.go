@@ -35,6 +35,45 @@ const (
 	BigDec
 )
 
+func (t ValueType) String() string {
+	switch t {
+	case Ref:
+		return "Ref"
+	case Keyword:
+		return "Keyword"
+	case Long:
+		return "Long"
+	case String:
+		return "String"
+	case Bool:
+		return "Bool"
+	case Instant:
+		return "Instant"
+	case Fn:
+		return "Fn"
+	case Bytes:
+		return "Bytes"
+	case UUID:
+		return "UUID"
+	case Double:
+		return "Double"
+	case Float:
+		return "Float"
+	case URI:
+		return "URI"
+	case BigInt:
+		return "BigInt"
+	case BigDec:
+		return "BigDec"
+	case Min:
+		return "Min"
+	case Max:
+		return "Max"
+	default:
+		return "Invalid"
+	}
+}
+
 type Value struct {
 	ty  ValueType
 	val interface{}
