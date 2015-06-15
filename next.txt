@@ -15,7 +15,14 @@
     - better schema support in the transactor (mostly validation)
     - (more of a style thing: introduce a common/util package with code that is
        currently repeated in a bunch of places.  can't have everything because
-       that easily leads to cycles, though.)
+       that easily leads to cycles, though.
+
+       also, `TxLookup` (or better: `Lookup`) should live in the `database`
+       package, because `db.Entid` should take a `Lookup` argument, not just
+       `fressian.Keyword`s.  this will also allow us to move the `Keyword`
+       stuff there, so we don't have to mess around with fressian's keywords.
+       (and can still implement `Lookup` on them.))
+)
 - reading transactions from the outside
     - need an edn parser?  yes.  take a look at clojure's parser again and see
         how long it would take to get something working.  (txs only need vectors,
