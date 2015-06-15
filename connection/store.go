@@ -121,43 +121,8 @@ func connectToStore(u *url.URL) (Connection, error) {
 
 	// TODO: read log root and log tail from the segment (and don't cache it)
 	root, err := getDbRoot(store, rootId)
-	if err != nil { // new db (not really, could be anything...)
-		fmt.Printf("new db: %s (%v): %s\n", rootId, root, err)
-		indexRootId := log.Squuid().String()
-		root, err = newDbRoot(indexRootId, "", []log.LogTx{})
-		if err != nil {
-			return nil, err
-		}
-
-		err = writeToStore(store, nil, rootId, root)
-		if err != nil {
-			return nil, err
-		}
-
-		indexRoot := make(map[interface{}]interface{})
-		eavtRootId := log.Squuid()
-		indexRoot[fressian.Keyword{"", "eavt-main"}] = eavtRootId
-		aevtRootId := log.Squuid()
-		indexRoot[fressian.Keyword{"", "aevt-main"}] = aevtRootId
-		avetRootId := log.Squuid()
-		indexRoot[fressian.Keyword{"", "avet-main"}] = avetRootId
-		vaetRootId := log.Squuid()
-		indexRoot[fressian.Keyword{"", "raet-main"}] = vaetRootId
-		indexRoot[fressian.Keyword{"", "nextT"}] = 0
-
-		err = writeToStore(store, nil, indexRootId, indexRoot)
-		if err != nil {
-			return nil, err
-		}
-
-		emptyRoot := new(index.Root)
-		for _, rootId := range []fressian.UUID{eavtRootId, aevtRootId, avetRootId, vaetRootId} {
-			err = writeToStore(store, index.SegmentWriteHandler, rootId.String(), *emptyRoot)
-			if err != nil {
-				return nil, err
-			}
-		}
-
+	if err != nil {
+		return nil, err
 	}
 	indexRootId := root[fressian.Keyword{"index", "root-id"}].(string)
 	logRootId := root[fressian.Keyword{"log", "root-id"}].(string)
@@ -173,6 +138,70 @@ func connectToStore(u *url.URL) (Connection, error) {
 	}
 
 	return conn, nil
+}
+
+func CreateDatabase(u *url.URL) (bool, error) {
+	exists, err := store.Create(u)
+	if exists || err != nil {
+		return exists, err
+	}
+
+	store, err := store.Open(u)
+	if err != nil {
+		return false, err
+	}
+
+	dbName := u.Query().Get("name")
+	if dbName == "" {
+		return false, fmt.Errorf("must specify a ?name=<name> parameter")
+	}
+	rootId := DbNameToId(dbName)
+
+	err = createInitialDb(store, rootId)
+	if err != nil {
+		return false, err
+	}
+
+	return false, fmt.Errorf("db bootstrapping not implemented")
+}
+
+func createInitialDb(store store.Store, rootId string) error {
+	indexRootId := log.Squuid().String()
+	root, err := newDbRoot(indexRootId, "", []log.LogTx{})
+	if err != nil {
+		return err
+	}
+
+	err = writeToStore(store, nil, rootId, root)
+	if err != nil {
+		return err
+	}
+
+	indexRoot := make(map[interface{}]interface{})
+	eavtRootId := log.Squuid()
+	indexRoot[fressian.Keyword{"", "eavt-main"}] = eavtRootId
+	aevtRootId := log.Squuid()
+	indexRoot[fressian.Keyword{"", "aevt-main"}] = aevtRootId
+	avetRootId := log.Squuid()
+	indexRoot[fressian.Keyword{"", "avet-main"}] = avetRootId
+	vaetRootId := log.Squuid()
+	indexRoot[fressian.Keyword{"", "raet-main"}] = vaetRootId
+	indexRoot[fressian.Keyword{"", "nextT"}] = 0
+
+	err = writeToStore(store, nil, indexRootId, indexRoot)
+	if err != nil {
+		return err
+	}
+
+	emptyRoot := new(index.Root)
+	for _, rootId := range []fressian.UUID{eavtRootId, aevtRootId, avetRootId, vaetRootId} {
+		err = writeToStore(store, index.SegmentWriteHandler, rootId.String(), *emptyRoot)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func DbNameToId(dbName string) string {
