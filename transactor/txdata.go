@@ -63,7 +63,11 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
-	val, err := d.V.Get(db)
+	attr := db.Attribute(aid)
+	if attr == nil {
+		return nil, fmt.Errorf("no such attribute: %v", d.A)
+	}
+	val, err := d.V.Get(db, attr.Type() == index.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -83,14 +87,21 @@ func NewValue(value interface{}) Value {
 	return Value{val: &val, lookup: nil}
 }
 
-func (v Value) Get(db *database.Db) (*index.Value, error) {
+func (v Value) Get(db *database.Db, isRef bool) (*index.Value, error) {
 	if v.lookup != nil {
-		id, err := (*v.lookup).Lookup(db)
-		if err != nil {
-			return nil, err
+		if isRef {
+			id, err := (*v.lookup).Lookup(db)
+			if err != nil {
+				return nil, err
+			}
+			ref := index.NewRef(id)
+			return &ref, nil
+		} else if kw, ok := (*v.lookup).(database.Keyword); ok {
+			val := index.NewValue(kw.Keyword)
+			return &val, nil
+		} else {
+			return nil, fmt.Errorf("invalid value: %v", v)
 		}
-		ref := index.NewRef(id)
-		return &ref, nil
 	}
 	return v.val, nil
 
