@@ -46,8 +46,8 @@ func (d RawDatum) Resolve(db *database.Db) ([]RawDatum, error) {
 
 type Datum struct {
 	Op bool
-	E  TxLookup
-	A  TxLookup
+	E  database.HasLookup
+	A  database.HasLookup
 	V  Value
 }
 
@@ -73,11 +73,11 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 
 type Value struct {
 	val    *index.Value
-	lookup *TxLookup
+	lookup *database.HasLookup
 }
 
 func NewValue(value interface{}) Value {
-	if lookup, ok := value.(TxLookup); ok {
+	if lookup, ok := value.(database.HasLookup); ok {
 		return Value{val: nil, lookup: &lookup}
 	}
 	val := index.NewValue(value)
@@ -116,56 +116,4 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 		}
 	}
 	return datums, nil
-}
-
-type TxLookup interface {
-	Lookup(db *database.Db) (int, error)
-}
-
-type DbId int
-
-func (dbId DbId) Lookup(db *database.Db) (int, error) {
-	id := int(dbId)
-	if id > 0 {
-		iter := db.Eavt().DatomsAt(
-			index.NewDatom(id, 0, index.MinValue, 0, true),
-			index.NewDatom(id, index.MaxDatom.A(), index.MinValue, 0, true))
-		datom := iter.Next()
-		if datom == nil || datom.E() != id {
-			return -1, fmt.Errorf("no entity with id %d", id)
-		}
-	}
-	return id, nil
-}
-
-type Keyword struct {
-	fressian.Keyword
-}
-
-func (kw Keyword) Lookup(db *database.Db) (int, error) {
-	id := db.Entid(kw.Keyword)
-	if id == -1 {
-		return -1, fmt.Errorf("no :db/ident for %v", kw)
-	}
-	return id, nil
-}
-
-type LookupRef struct {
-	Attribute Keyword
-	Value     index.Value
-}
-
-func (ref LookupRef) Lookup(db *database.Db) (int, error) {
-	attrId, err := ref.Attribute.Lookup(db)
-	if err != nil {
-		return -1, err
-	}
-	iter := db.Avet().DatomsAt(
-		index.NewDatom(0, attrId, ref.Value, 0, true),
-		index.NewDatom(0, attrId, index.MaxValue, 0, true))
-	datom := iter.Next()
-	if datom == nil || datom.A() != attrId || datom.V().Compare(ref.Value) != 0 {
-		return -1, fmt.Errorf("no entity for [%v %v]\n", ref.Attribute, ref.Value)
-	}
-	return datom.E(), nil
 }

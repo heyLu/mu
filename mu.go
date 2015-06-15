@@ -41,12 +41,12 @@ func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
 	return txResult.DbAfter, nil
 }
 
-func Datum(entity transactor.TxLookup, attribute transactor.TxLookup, value interface{}) transactor.Datum {
+func Datum(entity database.HasLookup, attribute database.HasLookup, value interface{}) transactor.Datum {
 	return transactor.Datum{true, entity, attribute, transactor.NewValue(value)}
 }
 
 func RawDatum(entity int, attribute int, value interface{}) transactor.Datum {
-	return transactor.Datum{true, transactor.DbId(entity), transactor.DbId(attribute), transactor.NewValue(value)}
+	return transactor.Datum{true, database.Id(entity), database.Id(attribute), transactor.NewValue(value)}
 }
 
 func Datom(entity int, attribute int, value interface{}) index.Datom {
@@ -54,7 +54,7 @@ func Datom(entity int, attribute int, value interface{}) index.Datom {
 }
 
 func Retraction(datom index.Datom) transactor.Datum {
-	return transactor.Datum{false, transactor.DbId(datom.E()), transactor.DbId(datom.A()), transactor.NewValue(datom.V())}
+	return transactor.Datum{false, database.Id(datom.E()), database.Id(datom.A()), transactor.NewValue(datom.V())}
 }
 
 func Datums(datoms ...transactor.TxDatum) []transactor.TxDatum {
@@ -64,32 +64,32 @@ func Datums(datoms ...transactor.TxDatum) []transactor.TxDatum {
 type DatomPattern struct {
 	idx index.Type
 	n   int
-	e   transactor.TxLookup
-	a   transactor.Keyword
+	e   database.HasLookup
+	a   database.Keyword
 	v   index.Value
 }
 
-func E(entity transactor.TxLookup) DatomPattern {
+func E(entity database.HasLookup) DatomPattern {
 	return DatomPattern{idx: index.Eavt, n: 1, e: entity}
 }
 
-func Ea(entity transactor.TxLookup, attribute transactor.Keyword) DatomPattern {
+func Ea(entity database.HasLookup, attribute database.Keyword) DatomPattern {
 	return DatomPattern{idx: index.Eavt, n: 2, e: entity, a: attribute}
 }
 
-func Eav(entity transactor.TxLookup, attribute transactor.Keyword, value interface{}) DatomPattern {
+func Eav(entity database.HasLookup, attribute database.Keyword, value interface{}) DatomPattern {
 	return DatomPattern{idx: index.Eavt, n: 3, e: entity, a: attribute, v: index.NewValue(value)}
 }
 
-func A(attribute transactor.Keyword) DatomPattern {
+func A(attribute database.Keyword) DatomPattern {
 	return DatomPattern{idx: index.Aevt, n: 1, a: attribute}
 }
 
-func Ae(attribute transactor.Keyword, entity transactor.TxLookup) DatomPattern {
+func Ae(attribute database.Keyword, entity database.HasLookup) DatomPattern {
 	return DatomPattern{idx: index.Aevt, n: 2, a: attribute, e: entity}
 }
 
-func Aev(attribute transactor.Keyword, entity transactor.TxLookup, value interface{}) DatomPattern {
+func Aev(attribute database.Keyword, entity database.HasLookup, value interface{}) DatomPattern {
 	return DatomPattern{idx: index.Aevt, n: 3, a: attribute, e: entity, v: index.NewValue(value)}
 }
 
@@ -152,16 +152,16 @@ func Datoms(db *database.Db, pattern DatomPattern) (index.Iterator, error) {
 		index.NewDatom(maxE, maxA, maxV, max.Tx(), max.Added())), nil
 }
 
-func Id(id int) transactor.DbId {
-	return transactor.DbId(id)
+func Id(id int) database.Id {
+	return database.Id(id)
 }
 
-func Attribute(namespace, name string) transactor.Keyword {
-	return transactor.Keyword{fressian.Keyword{namespace, name}}
+func Attribute(namespace, name string) database.Keyword {
+	return database.Keyword{fressian.Keyword{namespace, name}}
 }
 
-func LookupRef(attribute transactor.Keyword, value interface{}) transactor.LookupRef {
-	return transactor.LookupRef{attribute, index.NewValue(value)}
+func LookupRef(attribute database.Keyword, value interface{}) database.LookupRef {
+	return database.LookupRef{attribute, index.NewValue(value)}
 }
 
 func Keyword(namespace, name string) fressian.Keyword {
