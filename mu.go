@@ -25,6 +25,15 @@ const (
 	DbPartUser       = 4  // :db.part/user
 )
 
+// CreateDatabase creates a new database at the location given
+// by the url.
+//
+// It returns true if a new database was created and false if
+// it already existed.
+func CreateDatabase(u *url.URL) (bool, error) {
+	return connection.CreateDatabase(u)
+}
+
 func Connect(u *url.URL) (connection.Connection, error) {
 	return connection.New(u)
 }
