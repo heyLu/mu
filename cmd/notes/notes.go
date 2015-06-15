@@ -6,7 +6,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
@@ -28,12 +27,8 @@ func main() {
 		Use:   os.Args[0],
 		Short: " simple note taking application",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			u, err := url.Parse(dbUrl)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			conn, err = mu.Connect(u)
+			var err error
+			conn, err = mu.Connect(dbUrl)
 			if err != nil {
 				log.Fatal(err)
 			}

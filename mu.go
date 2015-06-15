@@ -30,11 +30,19 @@ const (
 //
 // It returns true if a new database was created and false if
 // it already existed.
-func CreateDatabase(u *url.URL) (bool, error) {
+func CreateDatabase(rawUrl string) (bool, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return false, err
+	}
 	return connection.CreateDatabase(u)
 }
 
-func Connect(u *url.URL) (connection.Connection, error) {
+func Connect(rawUrl string) (connection.Connection, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, err
+	}
 	return connection.New(u)
 }
 

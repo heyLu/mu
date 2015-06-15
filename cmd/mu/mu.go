@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 
 	"github.com/heyLu/mu"
@@ -17,12 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	u, err := url.Parse(os.Args[1])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn, err := mu.Connect(u)
+	conn, err := mu.Connect(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,12 +47,8 @@ func main() {
 		if len(os.Args) >= 4 {
 			rawUrl = os.Args[3]
 		}
-		toUrl, err := url.Parse(rawUrl)
-		if err != nil {
-			log.Fatal(err)
-		}
 
-		toConn, err := mu.Connect(toUrl)
+		toConn, err := mu.Connect(rawUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
