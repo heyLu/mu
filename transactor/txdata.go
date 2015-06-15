@@ -2,7 +2,6 @@ package transactor
 
 import (
 	"fmt"
-	"github.com/heyLu/fressian"
 
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
@@ -99,7 +98,7 @@ func (v Value) Get(db *database.Db) (*index.Value, error) {
 
 type TxMap struct {
 	Id         int
-	Attributes map[fressian.Keyword][]index.Value
+	Attributes map[database.Keyword][]index.Value
 }
 
 func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {

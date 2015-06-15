@@ -164,8 +164,8 @@ func LookupRef(attribute database.Keyword, value interface{}) database.LookupRef
 	return database.LookupRef{attribute, index.NewValue(value)}
 }
 
-func Keyword(namespace, name string) fressian.Keyword {
-	return fressian.Keyword{namespace, name}
+func Keyword(namespace, name string) database.Keyword {
+	return database.Keyword{fressian.Keyword{namespace, name}}
 }
 
 func Tempid(part, id int) int {

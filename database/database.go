@@ -48,25 +48,22 @@ func (db *Db) WithDatoms(datoms []index.Datom) *Db {
 	return New(eavt, aevt, avet, vaet)
 }
 
-func (db *Db) Entid(key fressian.Keyword) int {
-	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
-	datoms := db.avet.Datoms()
-	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-		if datom.Attribute() == 10 && datom.Value().Val() == key {
-			return datom.Entity()
-		}
+func (db *Db) Entid(lookup HasLookup) int {
+	eid, err := lookup.Lookup(db)
+	if err != nil {
+		return -1
 	}
 
-	return -1
+	return eid
 }
 
-func (db *Db) Ident(entity int) *fressian.Keyword {
+func (db *Db) Ident(entity int) *Keyword {
 	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
 	datoms := db.aevt.Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == entity && datom.Attribute() == 10 {
 			key := datom.Value().Val().(fressian.Keyword)
-			return &key
+			return &Keyword{key}
 		}
 	}
 
@@ -76,13 +73,13 @@ func (db *Db) Ident(entity int) *fressian.Keyword {
 type Entity struct {
 	db             *Db
 	id             int
-	attributeCache map[fressian.Keyword]interface{}
+	attributeCache map[Keyword]interface{}
 }
 
 // Entity constructs a lazy, cached "view" of all datoms with a given
 // entity id.
 func (db *Db) Entity(id int) Entity {
-	return Entity{db, id, map[fressian.Keyword]interface{}{}}
+	return Entity{db, id, map[Keyword]interface{}{}}
 }
 
 // Datoms returns an iterator over all datoms for this entity.
@@ -91,9 +88,9 @@ func (e Entity) Datoms() index.Iterator {
 }
 
 // Keys returns a slice of all attributes of this entity.
-func (e Entity) Keys() []fressian.Keyword {
+func (e Entity) Keys() []Keyword {
 	// TODO: cache attributes here as well?
-	keys := []fressian.Keyword{}
+	keys := []Keyword{}
 	iter := e.Datoms()
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		kw := e.db.Ident(datom.Attribute())
@@ -108,7 +105,7 @@ func (e Entity) Keys() []fressian.Keyword {
 // Get retrieves the value for the attribute.
 //
 // The resulting value is cached.  If no value is found, `nil` is returned.
-func (e Entity) Get(key fressian.Keyword) interface{} {
+func (e Entity) Get(key Keyword) interface{} {
 	if val, ok := e.attributeCache[key]; ok {
 		return val
 	}
@@ -147,7 +144,7 @@ func (e Entity) Touch() {
 //
 // The returned map will only contain cached attributes.  To get a map of
 // all attributes call `.Touch` first.
-func (e Entity) AsMap() map[fressian.Keyword]interface{} {
+func (e Entity) AsMap() map[Keyword]interface{} {
 	return e.attributeCache
 }
 

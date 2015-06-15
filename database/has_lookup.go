@@ -32,11 +32,15 @@ type Keyword struct {
 }
 
 func (kw Keyword) Lookup(db *Db) (int, error) {
-	id := db.Entid(kw.Keyword)
-	if id == -1 {
+	iter := db.Avet().DatomsAt(
+		index.NewDatom(0, 10, kw, 0, true),
+		index.NewDatom(0, 10, index.MaxValue, index.MaxDatom.Tx(), true))
+	datom := iter.Next()
+	if datom == nil {
 		return -1, fmt.Errorf("no :db/ident for %v", kw)
 	}
-	return id, nil
+
+	return datom.Entity(), nil
 }
 
 type LookupRef struct {

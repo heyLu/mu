@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/heyLu/fressian"
 	"log"
 	"net/url"
 	"os"
@@ -41,12 +40,12 @@ func main() {
 		printDatoms(getIndex(db, cmd).Datoms())
 
 	case "example":
-		dbIdent := fressian.Keyword{"db", "ident"}
+		dbIdent := mu.Keyword("db", "ident")
 		fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
 		fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
 
 		dbIdentEntity := db.Entity(10)
-		dbCardinality := fressian.Keyword{"db", "cardinality"}
+		dbCardinality := mu.Keyword("db", "cardinality")
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
 	case "transact-to":
