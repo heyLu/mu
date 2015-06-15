@@ -141,9 +141,9 @@ func connectToStore(u *url.URL) (Connection, error) {
 }
 
 func CreateDatabase(u *url.URL) (bool, error) {
-	exists, err := store.Create(u)
-	if exists || err != nil {
-		return exists, err
+	_, err := store.Create(u)
+	if err != nil {
+		return false, err
 	}
 
 	store, err := store.Open(u)
@@ -157,12 +157,17 @@ func CreateDatabase(u *url.URL) (bool, error) {
 	}
 	rootId := DbNameToId(dbName)
 
+	_, err = store.Get(rootId)
+	if err == nil {
+		return false, err
+	}
+
 	err = createInitialDb(store, rootId)
 	if err != nil {
 		return false, err
 	}
 
-	return false, fmt.Errorf("db bootstrapping not implemented")
+	return true, fmt.Errorf("db bootstrapping not implemented")
 }
 
 func createInitialDb(store store.Store, rootId string) error {
