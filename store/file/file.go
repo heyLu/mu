@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	store.Register("files", open)
+	store.Register("files", create, open)
 }
 
 func open(u *url.URL) (store.Store, error) {
@@ -23,6 +23,18 @@ func open(u *url.URL) (store.Store, error) {
 	f.Close()
 
 	return &fileStore{path}, nil
+}
+
+func create(u *url.URL) (bool, error) {
+	path := u.Host + u.Path
+	err := os.Mkdir(path, 0755)
+	if err != nil && os.IsExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
 }
 
 type fileStore struct {

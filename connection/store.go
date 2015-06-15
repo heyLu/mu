@@ -14,6 +14,7 @@ import (
 	"github.com/heyLu/mu/log"
 	"github.com/heyLu/mu/store"
 	_ "github.com/heyLu/mu/store/file"
+	_ "github.com/heyLu/mu/store/memory"
 	"github.com/heyLu/mu/transactor"
 )
 

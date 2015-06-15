@@ -8,11 +8,22 @@ import (
 )
 
 func init() {
-	store.Register("memory", open)
+	store.Register("memory", create, open)
 }
 
 func open(u *url.URL) (store.Store, error) {
 	return new(memoryStore), nil
+}
+
+var dbs = map[string]bool{}
+
+func create(u *url.URL) (bool, error) {
+	name := u.Host + u.Path
+	if _, ok := dbs[name]; ok {
+		return false, nil
+	}
+	dbs[name] = true
+	return true, nil
 }
 
 type memoryStore struct {
