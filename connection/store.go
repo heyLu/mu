@@ -199,8 +199,8 @@ func createInitialDb(store store.Store, rootId string) error {
 	}
 
 	emptyRoot := new(index.Root)
-	for _, rootId := range []fressian.UUID{eavtRootId, aevtRootId, avetRootId, vaetRootId} {
-		err = writeToStore(store, index.SegmentWriteHandler, rootId.String(), *emptyRoot)
+	for _, id := range []fressian.UUID{eavtRootId, aevtRootId, avetRootId, vaetRootId} {
+		err = writeToStore(store, index.SegmentWriteHandler, id.String(), *emptyRoot)
 		if err != nil {
 			return err
 		}
