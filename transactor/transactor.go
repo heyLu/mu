@@ -2,6 +2,7 @@ package transactor
 
 import (
 	"log"
+	"time"
 
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
@@ -17,6 +18,7 @@ const (
 	DbPartDb         = 0  // :db.part/db
 	DbPartTx         = 3  // :db.part/tx
 	DbPartUser       = 4  // :db.part/user
+	DbTxInstant      = 50 // :db/txInstant
 )
 
 type TxResult struct {
@@ -56,6 +58,7 @@ type txState struct {
 	tx                int
 	maxPartDbEntity   int
 	maxPartUserEntity int
+	hasTxInstant      bool
 }
 
 func newTxState(db *database.Db) *txState {
@@ -64,6 +67,7 @@ func newTxState(db *database.Db) *txState {
 		tx:                findMaxTx(db) + 1,
 		maxPartDbEntity:   findMaxEntity(db, DbPartDb) + 1,
 		maxPartUserEntity: findMaxEntity(db, DbPartUser) + 1,
+		hasTxInstant:      false,
 	}
 }
 
@@ -80,6 +84,8 @@ func (txState *txState) resolveTempid(entity int) int {
 		case DbPartUser:
 			newEntity = txState.maxPartUserEntity
 			txState.maxPartUserEntity += 1
+		case DbPartTx:
+			newEntity = txState.tx
 		default:
 			log.Fatal("unknown partition:", Part(entity))
 		}
@@ -107,12 +113,21 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 
 		entity := datom.E
 		if entity < 0 {
+			if Part(entity) == DbPartTx && datom.A == DbTxInstant {
+				// FIXME: check for multiple :db/txInstant values?
+				//   (likely more general: check for cardinality)
+				txState.hasTxInstant = true
+			}
 			entity = txState.resolveTempid(entity)
 		}
 
 		newDatom := index.NewDatom(entity, datom.A, datom.V.Val(), txState.tx, datom.Op)
 		log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
+	}
+
+	if !txState.hasTxInstant {
+		datoms = append(datoms, index.NewDatom(txState.tx, DbTxInstant, time.Now(), txState.tx, Add))
 	}
 
 	return datoms
