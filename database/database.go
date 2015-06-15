@@ -175,10 +175,10 @@ func (db *Db) Attribute(id int) *Attribute {
 			switch datom.Attribute() {
 			case 10: // :db/ident
 				attr.ident = datom.Value().Val().(fressian.Keyword)
-			case 41: // :db/cardinality
-				attr.cardinality = datom.Value().Val().(int)
 			case 40: // :db/valueType
 				attr.valueType = index.ValueType(datom.Value().Val().(int))
+			case 41: // :db/cardinality
+				attr.cardinality = datom.Value().Val().(int)
 			}
 		}
 
