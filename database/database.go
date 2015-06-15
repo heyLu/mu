@@ -153,6 +153,32 @@ type Attribute struct {
 	ident       fressian.Keyword
 	cardinality int
 	valueType   index.ValueType
+	unique      Unique
+}
+
+type Unique int
+
+const (
+	UniqueNil      Unique = 0
+	UniqueValue    Unique = 37
+	UniqueIdentity Unique = 38
+)
+
+func (u Unique) String() string {
+	switch u {
+	case UniqueNil:
+		return "Unique(nil)"
+	case UniqueValue:
+		return "Unique(:db.unique/value)"
+	case UniqueIdentity:
+		return "Unique(:db.unique/identity)"
+	default:
+		return "Unique(invalid)"
+	}
+}
+
+func (u Unique) IsValid() bool {
+	return u == UniqueValue || u == UniqueIdentity
 }
 
 func (db *Db) Attribute(id int) *Attribute {
@@ -179,6 +205,8 @@ func (db *Db) Attribute(id int) *Attribute {
 				attr.valueType = index.ValueType(datom.Value().Val().(int))
 			case 41: // :db/cardinality
 				attr.cardinality = datom.Value().Val().(int)
+			case 42: // :db/unique
+				attr.unique = Unique(datom.Value().Val().(int))
 			}
 		}
 
@@ -196,3 +224,4 @@ func (a Attribute) Id() int                 { return a.id }
 func (a Attribute) Ident() fressian.Keyword { return a.ident }
 func (a Attribute) Cardinality() int        { return a.cardinality }
 func (a Attribute) Type() index.ValueType   { return a.valueType }
+func (a Attribute) Unique() Unique          { return a.unique }
