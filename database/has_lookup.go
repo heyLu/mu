@@ -33,7 +33,7 @@ type Keyword struct {
 
 func (kw Keyword) Lookup(db *Db) (int, error) {
 	iter := db.Avet().DatomsAt(
-		index.NewDatom(0, 10, kw, 0, true),
+		index.NewDatom(0, 10, kw.Keyword, 0, true),
 		index.NewDatom(0, 10, index.MaxValue, index.MaxDatom.Tx(), true))
 	datom := iter.Next()
 	if datom == nil {
