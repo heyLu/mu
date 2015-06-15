@@ -71,6 +71,10 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
+	if attr.Type() != val.Type() {
+		return nil, fmt.Errorf("expected value of type %v, but got %#v of type %v",
+			attr.Type(), val.Val(), val.Type())
+	}
 	return []RawDatum{RawDatum{d.Op, eid, aid, *val}}, nil
 }
 
