@@ -151,7 +151,7 @@ func (e Entity) AsMap() map[Keyword]interface{} {
 type Attribute struct {
 	id          int
 	ident       fressian.Keyword
-	cardinality int
+	cardinality Cardinality
 	valueType   index.ValueType
 	unique      Unique
 }
@@ -181,6 +181,28 @@ func (u Unique) IsValid() bool {
 	return u == UniqueValue || u == UniqueIdentity
 }
 
+type Cardinality int
+
+const (
+	CardinalityOne  = 35
+	CardinalityMany = 36
+)
+
+func (c Cardinality) String() string {
+	switch c {
+	case CardinalityOne:
+		return "CardinalityOne"
+	case CardinalityMany:
+		return "CardinalityMany"
+	default:
+		return "CardinalityInvalid"
+	}
+}
+
+func (c Cardinality) IsValid() bool {
+	return c == CardinalityOne || c == CardinalityMany
+}
+
 func (db *Db) Attribute(id int) *Attribute {
 	attr, ok := db.attributeCache[id]
 	if ok {
@@ -204,7 +226,7 @@ func (db *Db) Attribute(id int) *Attribute {
 			case 40: // :db/valueType
 				attr.valueType = index.ValueType(datom.Value().Val().(int))
 			case 41: // :db/cardinality
-				attr.cardinality = datom.Value().Val().(int)
+				attr.cardinality = Cardinality(datom.Value().Val().(int))
 			case 42: // :db/unique
 				attr.unique = Unique(datom.Value().Val().(int))
 			}
@@ -220,8 +242,8 @@ func (db *Db) Attribute(id int) *Attribute {
 	}
 }
 
-func (a Attribute) Id() int                 { return a.id }
-func (a Attribute) Ident() fressian.Keyword { return a.ident }
-func (a Attribute) Cardinality() int        { return a.cardinality }
-func (a Attribute) Type() index.ValueType   { return a.valueType }
-func (a Attribute) Unique() Unique          { return a.unique }
+func (a Attribute) Id() int                  { return a.id }
+func (a Attribute) Ident() fressian.Keyword  { return a.ident }
+func (a Attribute) Cardinality() Cardinality { return a.cardinality }
+func (a Attribute) Type() index.ValueType    { return a.valueType }
+func (a Attribute) Unique() Unique           { return a.unique }
