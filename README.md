@@ -102,9 +102,14 @@ In no particular order:
     the reified schema and history, which we hope to add in the future.
 - Why is it written in Go?
 
-    No particular reason, except that Go compiles fast, supports standalone
-    binaries and allows for use in commandline and other short running
-    applications.  I've thought about porting it to Rust, so that it can
-    export a C-style API that can be used via FFI from many languages, but
-    I'm not familar enough with it to do so while also trying to figure
-    out how to write `mu` itself.
+    There is no definitive reason for that, but it surely helped that it
+    compiles fast, supports standalone binaries and allows for use in
+    commandline and other short running applications.  It also helped
+    that I was already familar with it and have recently written a few
+    smallish applications in it.
+
+    Alternative languages I've considered writing it in are Rust and
+    Ocaml, but I'm not familar to use either of those while also
+    figuring out how to write `mu` itself.  Aside from that, the
+    only reason would be to support access to the API from C via a
+    FFI interface.
