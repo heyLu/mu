@@ -119,6 +119,13 @@ func connectToStore(u *url.URL) (Connection, error) {
 	}
 	rootId := DbNameToId(dbName)
 
+	if u.Query().Get("create") == "true" {
+		err = createInitialDb(store, rootId, transactor.BootstrapTxs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// TODO: read log root and log tail from the segment (and don't cache it)
 	root, err := getDbRoot(store, rootId)
 	if err != nil {
