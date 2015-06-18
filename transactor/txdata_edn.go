@@ -39,7 +39,7 @@ func HasLookupFromEDN(s string) (database.HasLookup, error) {
 		return nil, err
 	}
 
-	lookup, err := entityFromValue(val)
+	lookup, err := EntityFromValue(val)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func datumFromValue(val []interface{}) (*Datum, error) {
 		op = Retract
 	}
 
-	entity, err := entityFromValue(val[1])
+	entity, err := EntityFromValue(val[1])
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 		return nil, fmt.Errorf("tx map needs a :db/id")
 	}
 
-	id, err := entityFromValue(idRaw)
+	id, err := EntityFromValue(idRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 	return &txMap, nil
 }
 
-func entityFromValue(val interface{}) (database.HasLookup, error) {
+func EntityFromValue(val interface{}) (database.HasLookup, error) {
 	switch val := val.(type) {
 	case int64:
 		return database.Id(val), nil

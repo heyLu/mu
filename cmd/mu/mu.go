@@ -43,6 +43,20 @@ func main() {
 		dbCardinality := mu.Keyword("db", "cardinality")
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
+	case "datoms":
+		if len(os.Args) < 4 {
+			log.Fatal("missing datoms pattern")
+		}
+
+		iter, err := mu.DatomsString(db, os.Args[3])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for datom := iter.Next(); datom != nil; datom = iter.Next() {
+			fmt.Println(datom)
+		}
+
 	case "entity":
 		if len(os.Args) < 4 {
 			log.Fatal("missing entity id")

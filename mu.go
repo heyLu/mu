@@ -115,6 +115,15 @@ func Datoms(db *database.Db, pattern query.Pattern) (index.Iterator, error) {
 	return query.Datoms(db, pattern)
 }
 
+func DatomsString(db *database.Db, patternEDN string) (index.Iterator, error) {
+	pattern, err := query.PatternFromEDN(patternEDN)
+	if err != nil {
+		return nil, err
+	}
+
+	return Datoms(db, *pattern)
+}
+
 func Id(id int) database.Id {
 	return database.Id(id)
 }
