@@ -42,6 +42,21 @@ func main() {
 		dbCardinality := mu.Keyword("db", "cardinality")
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
+	case "transact":
+		if len(os.Args) < 4 {
+			log.Fatal("Missing tx data")
+		}
+
+		txRes, err := mu.TransactString(conn, os.Args[3])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("datoms from tx:")
+		for _, datom := range txRes.Datoms {
+			fmt.Println(datom)
+		}
+
 	case "transact-to":
 		rawUrl := "memory://test"
 		if len(os.Args) >= 4 {
