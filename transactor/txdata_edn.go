@@ -96,26 +96,9 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 		return nil, fmt.Errorf("tx map needs a :db/id")
 	}
 
-	var id database.HasLookup
-	switch idRaw := idRaw.(type) {
-	case int64:
-		id = database.Id(idRaw)
-	case []interface{}:
-		var err error
-		id, err = lookupRefFromValue(idRaw)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		if tagged, ok := idRaw.(edn.Tagged); ok && tagged.Tag == dbIdSym {
-			var err error
-			id, err = idFromValue(tagged)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf(":db/id must be an integer, a lookup ref or a #db/id[part id], but was %v", idRaw)
-		}
+	id, err := entityFromValue(idRaw)
+	if err != nil {
+		return nil, err
 	}
 
 	attributes := map[database.Keyword][]Value{}
@@ -174,7 +157,16 @@ func entityFromValue(val interface{}) (database.HasLookup, error) {
 
 		return lookup, nil
 	default:
-		return nil, fmt.Errorf("invalid entity %v", val)
+		if tagged, ok := val.(edn.Tagged); ok && tagged.Tag == dbIdSym {
+			id, err := idFromValue(tagged)
+			if err != nil {
+				return nil, err
+			}
+
+			return id, nil
+		} else {
+			return nil, fmt.Errorf("entity id must be an integer, a lookup ref or a #db/id[part id], but was %v", val)
+		}
 	}
 }
 
