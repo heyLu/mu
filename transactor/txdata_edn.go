@@ -38,8 +38,8 @@ func txDatumFromValue(val interface{}) (TxDatum, error) {
 	switch val := val.(type) {
 	case []interface{}:
 		return datumFromValue(val)
-	/*case map[interface{}]interface{}:
-	return txMapFromValue(val)*/
+	case map[interface{}]interface{}:
+		return txMapFromValue(val)
 	default:
 		return nil, fmt.Errorf("don't know how to convert %v to a tx datum", val)
 	}
@@ -86,6 +86,54 @@ func datumFromValue(val []interface{}) (*Datum, error) {
 		V:  *value,
 	}
 	return &datum, nil
+}
+
+var dbId = edn.Keyword{Namespace: "db", Name: "id"}
+
+func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
+	idRaw, ok := val[dbId]
+	if !ok {
+		return nil, fmt.Errorf("tx map needs a :db/id")
+	}
+
+	var id int
+	switch idRaw := idRaw.(type) {
+	case int64:
+		id = int(idRaw)
+	default:
+		return nil, fmt.Errorf(":db/id must be an integer, but was %v", idRaw)
+	}
+
+	attributes := map[database.Keyword][]index.Value{}
+	for kRaw, v := range val {
+		k, ok := kRaw.(edn.Keyword)
+		if !ok {
+			return nil, fmt.Errorf("attribute key must be a keyword, but was %v", kRaw)
+		}
+
+		if k == dbId {
+			continue
+		}
+
+		kw := toKeyword(k)
+
+		vsRaw, ok := v.(map[interface{}]bool)
+		if ok {
+			vs := make([]index.Value, 0, len(vsRaw))
+			for v, _ := range vsRaw {
+				vs = append(vs, index.NewValue(v))
+			}
+			attributes[kw] = vs
+		} else {
+			attributes[kw] = []index.Value{index.NewValue(v)}
+		}
+	}
+
+	txMap := TxMap{
+		Id:         id,
+		Attributes: attributes,
+	}
+	return &txMap, nil
 }
 
 func entityFromValue(val interface{}) (database.HasLookup, error) {
