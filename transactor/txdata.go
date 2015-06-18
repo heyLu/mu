@@ -112,11 +112,16 @@ func (v Value) Get(db *database.Db, isRef bool) (*index.Value, error) {
 }
 
 type TxMap struct {
-	Id         int
+	Id         database.HasLookup
 	Attributes map[database.Keyword][]index.Value
 }
 
 func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
+	id, err := m.Id.Lookup(db)
+	if err != nil {
+		return nil, err
+	}
+
 	datums := make([]RawDatum, 0, len(m.Attributes))
 	for k, vs := range m.Attributes {
 		attrId := db.Entid(k)
@@ -125,7 +130,7 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 		}
 
 		for _, v := range vs {
-			datum := RawDatum{Assert, m.Id, attrId, v}
+			datum := RawDatum{Assert, id, attrId, v}
 			datums = append(datums, datum)
 		}
 	}

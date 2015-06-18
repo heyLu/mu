@@ -96,10 +96,10 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 		return nil, fmt.Errorf("tx map needs a :db/id")
 	}
 
-	var id int
+	var id database.HasLookup
 	switch idRaw := idRaw.(type) {
 	case int64:
-		id = int(idRaw)
+		id = database.Id(idRaw)
 	default:
 		return nil, fmt.Errorf(":db/id must be an integer, but was %v", idRaw)
 	}
