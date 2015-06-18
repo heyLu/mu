@@ -12,7 +12,7 @@ func init() {
 }
 
 func open(u *url.URL) (store.Store, error) {
-	return new(memoryStore), nil
+	return &memoryStore{map[string][]byte{}}, nil
 }
 
 var dbs = map[string]bool{}
