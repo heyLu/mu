@@ -95,6 +95,8 @@ func NewValue(val interface{}) Value {
 		return Value{Bool, val}
 	case int:
 		return Value{Int, val}
+	case int64:
+		return Value{Int, int(val.(int64))}
 	case fressian.Keyword:
 		return Value{Keyword, val}
 	case fressian.UUID:

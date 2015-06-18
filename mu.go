@@ -50,6 +50,15 @@ func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*tra
 	return conn.Transact(origDatoms)
 }
 
+func TransactString(conn connection.Connection, txDataEDN string) (*transactor.TxResult, error) {
+	txData, err := transactor.TxDataFromEDN(txDataEDN)
+	if err != nil {
+		return nil, err
+	}
+
+	return Transact(conn, txData)
+}
+
 func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
 	_, txResult, err := transactor.Transact(db, txData)
 	if err != nil {
