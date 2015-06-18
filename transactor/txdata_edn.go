@@ -33,6 +33,20 @@ func TxDataFromEDN(s string) ([]TxDatum, error) {
 	return txData, nil
 }
 
+func HasLookupFromEDN(s string) (database.HasLookup, error) {
+	val, err := edn.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+
+	lookup, err := entityFromValue(val)
+	if err != nil {
+		return nil, err
+	}
+
+	return lookup, err
+}
+
 func txDatumFromValue(val interface{}) (TxDatum, error) {
 	switch val := val.(type) {
 	case []interface{}:

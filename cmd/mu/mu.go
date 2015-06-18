@@ -8,6 +8,7 @@ import (
 	"github.com/heyLu/mu"
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
+	"github.com/heyLu/mu/transactor"
 )
 
 func main() {
@@ -41,6 +42,26 @@ func main() {
 		dbIdentEntity := db.Entity(10)
 		dbCardinality := mu.Keyword("db", "cardinality")
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
+
+	case "entity":
+		if len(os.Args) < 4 {
+			log.Fatal("missing entity id")
+		}
+
+		lookup, err := transactor.HasLookupFromEDN(os.Args[3])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		eid := db.Entid(lookup)
+		if eid == -1 {
+			log.Fatal("no such entity")
+		}
+
+		entity := db.Entity(eid)
+		for _, k := range entity.Keys() {
+			fmt.Printf("%-20v%v\n", k, entity.Get(k))
+		}
 
 	case "transact":
 		if len(os.Args) < 4 {
