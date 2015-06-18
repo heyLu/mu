@@ -13,10 +13,6 @@
        currently repeated in a bunch of places.  can't have everything because
        that easily leads to cycles, though.)
 )
-- reading transactions from the outside
-    - need an edn parser?  yes.  take a look at clojure's parser again and see
-        how long it would take to get something working.  (txs only need vectors,
-        maps and basic types, tagged values can be added later.)
 - tests for transactions (is it usable for simple things already?)
     - maybe write a backend for `gol`?  (or a simpler note taking thing.)
       (would need id generation, though.)
@@ -39,6 +35,7 @@
 
 .log
 
+- reading tx data from edn
 - first attempts at creating new dbs with log & segments
 - better transactions ((mostly) typed interface)
 - realization how the merging of in-memory and persisted index works
