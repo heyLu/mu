@@ -41,6 +41,11 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 		return nil, nil, err
 	}
 
+	err = checkTypes(db, datums)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	datoms := assignIds(txState, db, datums)
 
 	txResult := &TxResult{
