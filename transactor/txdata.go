@@ -127,7 +127,7 @@ func (v Value) Get(db *database.Db, isRef bool) (*index.Value, error) {
 
 type TxMap struct {
 	Id         database.HasLookup
-	Attributes map[database.Keyword][]index.Value
+	Attributes map[database.Keyword][]Value
 }
 
 func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
@@ -143,8 +143,15 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 			return nil, fmt.Errorf("no such attribute: %v", k)
 		}
 
+		attr := db.Attribute(attrId)
+
 		for _, v := range vs {
-			datum := RawDatum{Assert, id, attrId, v}
+			v, err := v.Get(db, attr.Type() == index.Ref)
+			if err != nil {
+				return nil, err
+			}
+
+			datum := RawDatum{Assert, id, attrId, *v}
 			datums = append(datums, datum)
 		}
 	}

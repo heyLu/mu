@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/heyLu/mu/database"
-	"github.com/heyLu/mu/index"
 )
 
 func TxDataFromEDN(s string) ([]TxDatum, error) {
@@ -110,7 +109,7 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 		return nil, fmt.Errorf(":db/id must be an integer or a lookup ref, but was %v", idRaw)
 	}
 
-	attributes := map[database.Keyword][]index.Value{}
+	attributes := map[database.Keyword][]Value{}
 	for kRaw, v := range val {
 		k, ok := kRaw.(edn.Keyword)
 		if !ok {
@@ -125,13 +124,23 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 
 		vsRaw, ok := v.(map[interface{}]bool)
 		if ok {
-			vs := make([]index.Value, 0, len(vsRaw))
+			vs := make([]Value, 0, len(vsRaw))
 			for v, _ := range vsRaw {
-				vs = append(vs, index.NewValue(v))
+				v, err := datumValueFromValue(v)
+				if err != nil {
+					return nil, err
+				}
+
+				vs = append(vs, *v)
 			}
 			attributes[kw] = vs
 		} else {
-			attributes[kw] = []index.Value{index.NewValue(v)}
+			v, err := datumValueFromValue(v)
+			if err != nil {
+				return nil, err
+			}
+
+			attributes[kw] = []Value{*v}
 		}
 	}
 
