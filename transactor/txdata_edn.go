@@ -100,8 +100,14 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 	switch idRaw := idRaw.(type) {
 	case int64:
 		id = database.Id(idRaw)
+	case []interface{}:
+		var err error
+		id, err = lookupRefFromValue(idRaw)
+		if err != nil {
+			return nil, err
+		}
 	default:
-		return nil, fmt.Errorf(":db/id must be an integer, but was %v", idRaw)
+		return nil, fmt.Errorf(":db/id must be an integer or a lookup ref, but was %v", idRaw)
 	}
 
 	attributes := map[database.Keyword][]index.Value{}
@@ -143,24 +149,43 @@ func entityFromValue(val interface{}) (database.HasLookup, error) {
 	case edn.Keyword:
 		return toKeyword(val), nil
 	case []interface{}:
-		if len(val) != 2 {
-			return nil, fmt.Errorf("lookup ref must be of the form [kw val], but was %v", val)
+		lookup, err := lookupRefFromValue(val)
+		if err != nil {
+			return nil, err
 		}
 
-		kw, ok := val[0].(edn.Keyword)
-		if !ok {
-			return nil, fmt.Errorf("lookup ref must be of the form [kw val], but was %v", val)
-		}
-
-		lookupRef := database.LookupRef{
-			Attribute: toKeyword(kw),
-			Value:     index.NewValue(val[1]),
-		}
-
-		return lookupRef, nil
+		return lookup, nil
 	default:
 		return nil, fmt.Errorf("invalid entity %v", val)
 	}
+}
+
+func lookupRefFromValue(val []interface{}) (database.HasLookup, error) {
+	if len(val) != 2 {
+		return nil, fmt.Errorf("lookup ref must be of the form [kw val], but was %v", val)
+	}
+
+	kw, ok := val[0].(edn.Keyword)
+	if !ok {
+		return nil, fmt.Errorf("lookup ref must be of the form [kw val], but was %v", val)
+	}
+
+	vv, err := datumValueFromValue(val[1])
+	if err != nil {
+		return nil, err
+	}
+
+	v, err := vv.Get(nil, false)
+	if err != nil {
+		return nil, err
+	}
+
+	lookupRef := database.LookupRef{
+		Attribute: toKeyword(kw),
+		Value:     *v,
+	}
+
+	return lookupRef, nil
 }
 
 func attributeFromValue(val interface{}) (database.HasLookup, error) {
