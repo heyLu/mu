@@ -95,7 +95,7 @@ func newDbRoot(indexRootId, logRootId string, logTail []log.LogTx) (map[interfac
 }
 
 func writeToStore(store store.Store, handler fressian.WriteHandler, id string, val interface{}) error {
-	fmt.Printf("writeToStore: %s -> %v\n", id, val)
+	//fmt.Printf("writeToStore: %s -> %v\n", id, val)
 	buf := new(bytes.Buffer)
 	w := fressian.NewGzipWriter(buf, handler)
 	err := w.WriteValue(val)
@@ -248,7 +248,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	l := log.FromStore(store, logRootId, logTail)
 	if len(l.Tail) > 0 {
 		for _, tx := range l.Tail {
-			fmt.Printf("adding %d datoms from tx %d\n", len(tx.Datoms), tx.T)
+			//fmt.Printf("adding %d datoms from tx %d\n", len(tx.Datoms), tx.T)
 			/*for _, datom := range tx.Datoms {
 				fmt.Println(datom)
 			}*/
@@ -261,7 +261,7 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {
 	indexRootId := root[fressian.Keyword{"", id}].(fressian.UUID).String()
-	fmt.Println("get index", id, indexRootId)
+	//fmt.Println("get index", id, indexRootId)
 	indexRoot := index.GetRoot(store, indexRootId)
 	return index.NewSegmentedIndex(&indexRoot, store, compare)
 }

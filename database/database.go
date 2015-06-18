@@ -213,7 +213,7 @@ func (c Cardinality) IsValid() bool {
 func (db *Db) Attribute(id int) *Attribute {
 	attr, ok := db.attributeCache[id]
 	if ok {
-		log.Println("attribute from cache:", attr)
+		//log.Println("attribute from cache:", attr)
 		return &attr
 	} else {
 		iter := db.Eavt().DatomsAt(
@@ -248,7 +248,7 @@ func (db *Db) Attribute(id int) *Attribute {
 		}
 
 		db.attributeCache[id] = attr
-		log.Println("attribute from db:", attr)
+		//log.Println("attribute from db:", attr)
 		return &attr
 	}
 }

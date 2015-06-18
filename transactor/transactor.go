@@ -34,7 +34,7 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 	//   - check types of values
 	//   - ... (a lot)
 	txState := newTxState(db)
-	log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
+	//log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
 
 	datums, err := resolveTxData(db, txData)
 	if err != nil {
@@ -110,12 +110,12 @@ func (txState *txState) resolveTempid(entity int) int {
 func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
-		log.Println("processing", datom)
+		//log.Println("processing", datom)
 
 		// if db already contains a value for the attribute, retract it before adding the new value.
 		// (assumes the attribute has cardinality one.)
 		if prev, ok := previousValue(db, datom); datom.E >= 0 && ok {
-			log.Println("retracting", prev)
+			//log.Println("retracting", prev)
 			datoms = append(datoms, prev.Retraction())
 
 			// retractions don't need to be `added` or get new entity ids
@@ -135,7 +135,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 		}
 
 		newDatom := index.NewDatom(entity, datom.A, datom.V.Val(), txState.tx, datom.Op)
-		log.Println("adding", newDatom)
+		//log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
 	}
 
