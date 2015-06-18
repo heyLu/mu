@@ -88,6 +88,7 @@ func datumFromValue(val []interface{}) (*Datum, error) {
 }
 
 var dbId = edn.Keyword{Namespace: "db", Name: "id"}
+var dbIdSym = edn.Symbol{Namespace: "db", Name: "id"}
 
 func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 	idRaw, ok := val[dbId]
@@ -106,7 +107,15 @@ func txMapFromValue(val map[interface{}]interface{}) (*TxMap, error) {
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf(":db/id must be an integer or a lookup ref, but was %v", idRaw)
+		if tagged, ok := idRaw.(edn.Tagged); ok && tagged.Tag == dbIdSym {
+			var err error
+			id, err = idFromValue(tagged)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf(":db/id must be an integer, a lookup ref or a #db/id[part id], but was %v", idRaw)
+		}
 	}
 
 	attributes := map[database.Keyword][]Value{}
@@ -222,6 +231,37 @@ func datumValueFromValue(val interface{}) (*Value, error) {
 	default:
 		return nil, fmt.Errorf("invalid value %v", val)
 	}
+}
+
+func idFromValue(id edn.Tagged) (database.HasLookup, error) {
+	val, ok := id.Value.([]interface{})
+	if !ok || len(val) != 2 {
+		return nil, fmt.Errorf("db id must be of the form #db/id [part id], but was #db/id %v", id.Value)
+	}
+
+	partKw, ok := val[0].(edn.Keyword)
+	if !ok {
+		return nil, fmt.Errorf("db id partition must be a keyword, but was %v", val[0])
+	}
+
+	var part int
+	switch partKw {
+	case edn.Keyword{Namespace: "db.part", Name: "db"}:
+		part = 0
+	case edn.Keyword{Namespace: "db.part", Name: "tx"}:
+		part = 3
+	case edn.Keyword{Namespace: "db.part", Name: "user"}:
+		part = 4
+	default:
+		return nil, fmt.Errorf("unknown partition %v", partKw)
+	}
+
+	eid, ok := val[1].(int64)
+	if !ok || eid >= 0 {
+		return nil, fmt.Errorf("db id value must be an negative integer, but was %v", val[1])
+	}
+
+	return database.Id(-(part*(1<<42) - int(eid))), nil
 }
 
 func toKeyword(kw edn.Keyword) database.Keyword {
