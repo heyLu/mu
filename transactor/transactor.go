@@ -30,9 +30,13 @@ type TxResult struct {
 
 func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error) {
 	// TODO:
-	//   - check for uniqueness
-	//   - check types of values
-	//   - ... (a lot)
+	//   - automatically retract value "overwrites"  (for :db.cardinality/one
+	//       attributes, :db.unique/identity attributes need special handling)
+	//   - enforce :db.cardinality/one, allow :db.cardinality/many
+	//   - enforce :db.unique/value and :db.unique/identity
+	//   - prevent the same values being asserted multiple time
+	//   - (maybe: check attribute modifications, require :db.install/attribute
+	//       and friends for schema changes)
 	txState := newTxState(db)
 	//log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
 
