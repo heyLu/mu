@@ -32,9 +32,36 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 	// TODO:
 	//   - automatically retract value "overwrites"  (for :db.cardinality/one
 	//       attributes, :db.unique/identity attributes need special handling)
+	//       - should be handled by enforcing :db.cardinality/one behavior below
 	//   - enforce :db.cardinality/one, allow :db.cardinality/many
+	//       - check for repeated :db.cardinality/one attributes
+	//       - if there is already a :db.cardinality/one value in the db,
+	//           add a retraction for it
+	//       - only allow multiple values in tx for :db.cardinality/many
+	//           (might be enough to check for :db.cardinality/one, and let
+	//            the rest through)
 	//   - enforce :db.unique/value and :db.unique/identity
+	//       - for :db.unique/value return an error if there is an entity
+	//           with that attribute and value, use the avet index for it
+	//       - for :db.unique/identity, check if there is an entity with
+	//           that attribute and value, and if so assign the attributes
+	//           from this tx to that entity.  need to do other attribute
+	//           checking for after doing that.  (e.g. to enforce that
+	//           :db/unique attributes on the entity are valid.)
 	//   - prevent the same values being asserted multiple time
+	//       - after processing and checking the tx, check for duplicates
+	//           in the tx itself, and for duplicate values of existing
+	//           entities, and remove them from the transaction.  (the
+	//           "check for already existing" check seems quite a bit
+	//           expensive, though.)
+	//   - assign entity ids like datomic
+	//        - part * (1 << 42) + nextT + 1 + newEntityIndex
+	//        - nextT becomes the basis of the the resulting db value
+	//        - nextT for the new db value is nextT + numNewEntities + 1
+	//        - this is quite interesting as the tx id is encoded in the
+	//           entity id, and you can find entities that are created
+	//           at or after a certain transactions  (and it's also easier
+	//           to generate new entity ids, but that's just a bonus)
 	//   - (maybe: check attribute modifications, require :db.install/attribute
 	//       and friends for schema changes)
 	txState := newTxState(db)
