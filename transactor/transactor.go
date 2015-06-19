@@ -64,6 +64,19 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 	//           to generate new entity ids, but that's just a bonus)
 	//   - (maybe: check attribute modifications, require :db.install/attribute
 	//       and friends for schema changes)
+	//        - might be easiest to not allow changes to :db.part/db
+	//            entities for now (and explicit in which changes are allowed,
+	//            schema alterations can come later)
+	//   - regarding transacting datoms in the :db.part/db
+	//       - unused value with a :db/ident is allowed (for "enums"?)
+	//       - entities with :db/valueType, :db/cardinality & friends
+	//           are *required* to be followed by :db.install/...
+	//           - e.g. "just :db/ident or you're an attribute (or maybe
+	//               also a partition, db fn, ...)
+	//       - partitions are entities with a :db/ident and :db.install/_partition
+	//       - mhh... maybe *that's* how partitions (and attributes)
+	//           are identified, via the corresponding :db.install/* attribute
+	//           on the :db.part/db entity?
 	txState := newTxState(db)
 	//log.Println("max entities", txState.maxPartDbEntity, txState.maxPartUserEntity)
 
