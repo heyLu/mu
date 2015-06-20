@@ -108,6 +108,7 @@ type txState struct {
 	maxPartDbEntity   int
 	maxPartUserEntity int
 	hasTxInstant      bool
+	attributeValues   map[int][]index.Value
 }
 
 func newTxState(db *database.Db) *txState {
@@ -117,6 +118,7 @@ func newTxState(db *database.Db) *txState {
 		maxPartDbEntity:   findMaxEntity(db, DbPartDb) + 1,
 		maxPartUserEntity: findMaxEntity(db, DbPartUser) + 1,
 		hasTxInstant:      false,
+		attributeValues:   map[int][]index.Value{},
 	}
 }
 

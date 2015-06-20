@@ -98,6 +98,19 @@ In no particular order:
     written in JavaScript and intended for use in web applications and
     does not support some Datomic features that we'd like to have, notably
     the reified schema and history, which we hope to add in the future.
+- When should I use it?
+
+    First of all, if you're already happy with Datomic and/or DataScript,
+    you shouldn't.  `mu` is not intended to replace them.
+
+    However, if you are in a situation where you would want to use
+    something like sqlite, but want "more" (indexes, flexible schema,
+    api, and in the future, history and powerful queries), then you
+    might want to have a closer look.
+
+    For now, you don't want to use it with large data sets, or anything
+    non-experimental.  In general, it is usable in "personal scale"
+    projects.
 - Why is it written in Go?
 
     There is no definitive reason for that, but it surely helped that it
