@@ -25,15 +25,13 @@ Using `mu` currently means using it's Go API.  Here's a small example:
 import (
     "fmt"
     "github.com/heyLu/mu"
-    "net/url"
 )
 
 func main() {
-    u, _ := url.Parse("file://posts.db")
-    conn, err := mu.Connect(u)
+    conn, err := mu.Connect("file://posts.db")
     db, _ := conn.Db()
 
-    iter := db.Datoms()
+    iter := db.Eavt().Datoms()
     for datom := iter.Next(); datom != nil; datom = iter.Next() {
         fmt.Println(datom)
     }
