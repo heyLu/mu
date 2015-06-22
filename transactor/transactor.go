@@ -110,18 +110,6 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 	for _, datom := range origDatoms {
 		//log.Println("processing", datom)
 
-		// if db already contains a value for the attribute, retract it before adding the new value.
-		// (assumes the attribute has cardinality one.)
-		/*if prev, ok := previousValue(db, datom); datom.E >= 0 && ok {
-			//log.Println("retracting", prev)
-			datoms = append(datoms, prev.Retraction())
-
-			// retractions don't need to be `added` or get new entity ids
-			if !datom.Op {
-				continue
-			}
-		}*/
-
 		entity := datom.E
 		if entity < 0 {
 			if Part(entity) == DbPartTx && datom.A == DbTxInstant {
