@@ -43,6 +43,18 @@ func main() {
 		dbCardinality := mu.Keyword("db", "cardinality")
 		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
+	case "create-database":
+		isNew, err := mu.CreateDatabase(os.Args[1])
+		if err != nil {
+			log.Fatal("create-database: ", err)
+		}
+
+		if isNew {
+			fmt.Println("created new database")
+		} else {
+			fmt.Println("database already exists")
+		}
+
 	case "datoms":
 		if len(os.Args) < 4 {
 			log.Fatal("missing datoms pattern")
