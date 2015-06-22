@@ -53,11 +53,12 @@ func CompareEavt(ai, bi interface{}) int {
 	}
 
 	cmp = a.value.Compare(b.value)
-	if cmp != 0 {
+	return cmp
+	/*if cmp != 0 {
 		return cmp
 	}
 
-	return a.transaction - b.transaction
+	return a.transaction - b.transaction*/
 }
 
 func CompareAevt(ai, bi interface{}) int {
@@ -75,11 +76,12 @@ func CompareAevt(ai, bi interface{}) int {
 	}
 
 	cmp = a.value.Compare(b.value)
-	if cmp != 0 {
+	return cmp
+	/*if cmp != 0 {
 		return cmp
 	}
 
-	return a.transaction - b.transaction
+	return a.transaction - b.transaction*/
 }
 
 func CompareAvet(ai, bi interface{}) int {
@@ -97,11 +99,12 @@ func CompareAvet(ai, bi interface{}) int {
 	}
 
 	cmp = a.entity - b.entity
-	if cmp != 0 {
+	return cmp
+	/*if cmp != 0 {
 		return cmp
 	}
 
-	return a.transaction - b.transaction
+	return a.transaction - b.transaction*/
 }
 
 func CompareVaet(ai, bi interface{}) int {
@@ -119,9 +122,10 @@ func CompareVaet(ai, bi interface{}) int {
 	}
 
 	cmp = a.entity - b.entity
-	if cmp != 0 {
+	return cmp
+	/*if cmp != 0 {
 		return cmp
 	}
 
-	return a.transaction - b.transaction
+	return a.transaction - b.transaction*/
 }
