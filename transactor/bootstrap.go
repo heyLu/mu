@@ -4,9 +4,20 @@ import (
 	"github.com/heyLu/fressian"
 	"time"
 
+	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
 	"github.com/heyLu/mu/log"
 )
+
+func init() {
+	db := database.Empty
+	for _, tx := range BootstrapTxs {
+		db = db.WithDatoms(tx.Datoms)
+	}
+	InitialDb = db
+}
+
+var InitialDb *database.Db
 
 var BootstrapTxs = []log.LogTx{
 	log.LogTx{
