@@ -55,6 +55,10 @@ func main() {
 			fmt.Println("database already exists")
 		}
 
+	case "info":
+		fmt.Println("basisT:", db.BasisT())
+		fmt.Println("nextT:", db.NextT())
+
 	case "datoms":
 		if len(os.Args) < 4 {
 			log.Fatal("missing datoms pattern")
