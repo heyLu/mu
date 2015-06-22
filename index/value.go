@@ -193,6 +193,8 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 
 func (v Value) String() string {
 	switch v.ty {
+	case Ref:
+		return fmt.Sprintf("ref(%v)", v.val)
 	case Bool, Int:
 		return fmt.Sprintf("%v", v.val)
 	case String:
