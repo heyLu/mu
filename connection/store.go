@@ -231,6 +231,8 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 	aevt := getIndex(indexRoot, "aevt-main", store, index.CompareAevtIndex)
 	avet := getIndex(indexRoot, "avet-main", store, index.CompareAvetIndex)
 	vaet := getIndex(indexRoot, "raet-main", store, index.CompareVaetIndex)
+	nextT := indexRoot[fressian.Keyword{"", "nextT"}].(int)
+	basisT := 0
 
 	memoryEavt := index.NewMemoryIndex(index.CompareEavt)
 	memoryAevt := index.NewMemoryIndex(index.CompareAevt)
@@ -253,11 +255,17 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			/*for _, datom := range tx.Datoms {
 				fmt.Println(datom)
 			}*/
+			basisT = nextT
+			nextT = tx.T
 			db = db.WithDatoms(tx.Datoms)
 		}
 	}
 
-	return db, l
+	if nextT < 1000 {
+		basisT = 63
+		nextT = 999
+	}
+	return db.WithDatomsT(basisT, nextT+1, nil), l
 }
 
 func getIndex(root map[interface{}]interface{}, id string, store store.Store, compare index.CompareFn) *index.SegmentedIndex {

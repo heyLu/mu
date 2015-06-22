@@ -54,7 +54,7 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 		Tempids:  txState.newEntityCache,
 		Datoms:   datoms,
 	}
-	tx := txlog.NewTx(txState.tx, datoms)
+	tx := txlog.NewTx(db.NextT(), datoms)
 	return tx, txResult, nil
 }
 

@@ -22,7 +22,7 @@ var InitialDb *database.Db
 var BootstrapTxs = []log.LogTx{
 	log.LogTx{
 		Id: "557ebd16-5ac9-72bf-4537-d79c1ac73dbf",
-		T:  13194139533312,
+		T:  0,
 		Datoms: []index.Datom{
 			index.NewDatom(0, 10, fressian.Keyword{Namespace: "db.part", Name: "db"}, 13194139533312, true),
 			index.NewDatom(1, 10, fressian.Keyword{Namespace: "db", Name: "add"}, 13194139533312, true),
@@ -70,7 +70,7 @@ var BootstrapTxs = []log.LogTx{
 	},
 	log.LogTx{
 		Id: "557ebd16-6862-e198-da45-b3e3a57b0f85",
-		T:  13194139533366,
+		T:  54,
 		Datoms: []index.Datom{
 			index.NewDatom(0, 11, 0, 13194139533366, true),
 			index.NewDatom(0, 11, 3, 13194139533366, true),
@@ -174,7 +174,7 @@ var BootstrapTxs = []log.LogTx{
 	},
 	log.LogTx{
 		Id: "557ebd16-f9de-b62a-af68-1e01f49bc7ab",
-		T:  13194139533368,
+		T:  56,
 		Datoms: []index.Datom{
 			index.NewDatom(0, 12, 56, 13194139533368, true),
 			index.NewDatom(0, 12, 57, 13194139533368, true),
@@ -204,7 +204,7 @@ var BootstrapTxs = []log.LogTx{
 	},
 	log.LogTx{
 		Id: "557ebd16-b996-dbd4-e22b-3096b4f70a73",
-		T:  13194139533375,
+		T:  63,
 		Datoms: []index.Datom{
 			index.NewDatom(0, 62, "Name of the system partition. The system partition includes the core of datomic, as well as user schemas: type definitions, attribute definitions, partition definitions, and data function definitions.", 13194139533375, true),
 			index.NewDatom(1, 62, "Primitive assertion. All transactions eventually reduce to a collection of primitive assertions and retractions of facts, e.g. [:db/add fred :age 42].", 13194139533375, true),
