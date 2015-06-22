@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/heyLu/fressian"
 	"log"
+	"math/big"
+	"net/url"
 	"time"
 
 	"github.com/heyLu/mu/comparable"
@@ -97,6 +99,10 @@ func NewValue(val interface{}) Value {
 		return Value{Int, val}
 	case int64:
 		return Value{Int, int(val.(int64))}
+	case float32:
+		return Value{Float, val}
+	case float64:
+		return Value{Double, val}
 	case fressian.Keyword:
 		return Value{Keyword, val}
 	case fressian.UUID:
@@ -105,6 +111,10 @@ func NewValue(val interface{}) Value {
 		return Value{String, val}
 	case time.Time:
 		return Value{Date, val}
+	case *url.URL:
+		return Value{URI, val}
+	case *big.Int:
+		return Value{BigInt, val}
 	case Value:
 		return val.(Value)
 	default:
@@ -176,6 +186,40 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 			} else {
 				return 1
 			}
+		case Float:
+			v := v.val.(float32)
+			ov := ov.val.(float32)
+			if v < ov {
+				return -1
+			} else if v == ov {
+				return 0
+			} else {
+				return 1
+			}
+		case Double:
+			v := v.val.(float64)
+			ov := ov.val.(float64)
+			if v < ov {
+				return -1
+			} else if v == ov {
+				return 0
+			} else {
+				return 1
+			}
+		case URI:
+			v := v.val.(*url.URL).String()
+			ov := ov.val.(*url.URL).String()
+			if v < ov {
+				return -1
+			} else if v == ov {
+				return 0
+			} else {
+				return 1
+			}
+		case BigInt:
+			v := v.val.(*big.Int)
+			ov := ov.val.(*big.Int)
+			return v.Cmp(ov)
 		case Min:
 			return -1
 		case Max:
@@ -195,7 +239,7 @@ func (v Value) String() string {
 	switch v.ty {
 	case Ref:
 		return fmt.Sprintf("ref(%v)", v.val)
-	case Bool, Int:
+	case Bool, Int, Float, Double, URI:
 		return fmt.Sprintf("%v", v.val)
 	case String:
 		return fmt.Sprintf("%#v", v.val)
@@ -206,6 +250,8 @@ func (v Value) String() string {
 		return d.Format(time.RFC3339)
 	case UUID:
 		return v.val.(fressian.UUID).String()
+	case BigInt:
+		return fmt.Sprintf("%vN", v.val)
 	case Min:
 		return "index.MinValue"
 	case Max:
