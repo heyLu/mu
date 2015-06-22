@@ -134,7 +134,6 @@ func connectToStore(u *url.URL) (Connection, error) {
 		}
 	}
 
-	// TODO: read log root and log tail from the segment (and don't cache it)
 	root, err := getDbRoot(store, rootId)
 	if err != nil {
 		return nil, err
