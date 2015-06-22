@@ -19,24 +19,6 @@ func resolveTxData(db *database.Db, txData []TxDatum) ([]RawDatum, error) {
 	return datums, nil
 }
 
-/*func checkTypes(db *database.Db, datums []RawDatum) error {
-	for _, datum := range datums {
-		val := datum.V
-
-		attr := db.Attribute(datum.A)
-		if attr == nil {
-			return fmt.Errorf("unknown attribute %d", datum.A)
-		}
-
-		if attr.Type() != val.Type() {
-			return fmt.Errorf("expected value of type %v, but got %#v of type %v",
-				attr.Type(), val.Val(), val.Type())
-		}
-	}
-
-	return nil
-}*/
-
 type TxDatum interface {
 	Resolve(db *database.Db) ([]RawDatum, error)
 }
