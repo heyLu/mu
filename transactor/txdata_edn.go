@@ -225,7 +225,7 @@ func attributeFromValue(val interface{}) (database.HasLookup, error) {
 
 func datumValueFromValue(val interface{}) (*Value, error) {
 	switch val := val.(type) {
-	case int64, string, time.Time:
+	case bool, int64, string, time.Time:
 		v := NewValue(val)
 		return &v, nil
 	case edn.Keyword:
