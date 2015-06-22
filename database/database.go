@@ -12,6 +12,8 @@ type Db struct {
 	aevt           *index.MergedIndex
 	avet           *index.MergedIndex
 	vaet           *index.MergedIndex
+	basisT         int
+	nextT          int
 	attributeCache map[int]Attribute
 }
 
@@ -22,7 +24,14 @@ var Empty = NewInMemory(
 	index.NewMemoryIndex(index.CompareVaet))
 
 func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
-	return &Db{eavt, aevt, avet, vaet, make(map[int]Attribute, 100)}
+	return &Db{
+		eavt:           eavt,
+		aevt:           aevt,
+		avet:           avet,
+		vaet:           vaet,
+		basisT:         0,
+		nextT:          1000,
+		attributeCache: make(map[int]Attribute, 100)}
 }
 
 func NewInMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
@@ -39,13 +48,23 @@ func (db *Db) Aevt() index.Index { return db.aevt }
 func (db *Db) Avet() index.Index { return db.avet }
 func (db *Db) Vaet() index.Index { return db.vaet }
 
+func (db *Db) BasisT() int { return db.basisT }
+func (db *Db) NextT() int  { return db.nextT }
+
 func (db *Db) WithDatoms(datoms []index.Datom) *Db {
+	return db.WithDatomsT(db.basisT, db.nextT, datoms)
+}
+
+func (db *Db) WithDatomsT(basisT, nextT int, datoms []index.Datom) *Db {
 	eavt := db.eavt.AddDatoms(datoms)
 	aevt := db.aevt.AddDatoms(datoms)
 	avetDatoms, vaetDatoms := FilterAvetAndVaet(db, datoms)
 	avet := db.avet.AddDatoms(avetDatoms)
 	vaet := db.vaet.AddDatoms(vaetDatoms)
-	return New(eavt, aevt, avet, vaet)
+	newDb := New(eavt, aevt, avet, vaet)
+	newDb.basisT = basisT
+	newDb.nextT = nextT
+	return newDb
 }
 
 func (db *Db) Entid(lookup HasLookup) int {
