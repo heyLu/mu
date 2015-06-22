@@ -2,6 +2,7 @@ package transactor
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
@@ -70,6 +71,13 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	val, err := d.V.Get(db, attr.Type() == index.Ref)
 	if err != nil {
 		return nil, err
+	}
+	if attr.Type() == index.URI && val.Type() == index.String {
+		u, err := url.Parse(val.Val().(string))
+		if err != nil {
+			return nil, err
+		}
+		*val = index.NewValue(u)
 	}
 	return []RawDatum{RawDatum{d.Op, eid, aid, *val}}, nil
 }
