@@ -139,7 +139,7 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 		case Keyword:
 			v := v.val.(fressian.Keyword)
 			ov := ov.val.(fressian.Keyword)
-			if v.Namespace < ov.Namespace && v.Name < ov.Name {
+			if v.Namespace < ov.Namespace || (v.Namespace == ov.Namespace && v.Name < ov.Name) {
 				return -1
 			} else if v.Namespace == ov.Namespace && v.Name == ov.Name {
 				return 0
