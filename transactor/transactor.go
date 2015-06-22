@@ -50,7 +50,7 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 
 	txResult := &TxResult{
 		DbBefore: db,
-		DbAfter:  db.WithDatoms(datoms),
+		DbAfter:  db.WithDatomsT(db.NextT(), txState.nextId, datoms),
 		Tempids:  txState.newEntityCache,
 		Datoms:   datoms,
 	}
@@ -59,22 +59,22 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 }
 
 type txState struct {
-	newEntityCache    map[int]int
-	tx                int
-	maxPartDbEntity   int
-	maxPartUserEntity int
-	hasTxInstant      bool
-	attributeValues   map[int][]index.Value
+	newEntityCache  map[int]int
+	tx              int
+	nextId          int
+	nextPartDbId    int
+	hasTxInstant    bool
+	attributeValues map[int][]index.Value
 }
 
 func newTxState(db *database.Db) *txState {
 	return &txState{
-		newEntityCache:    map[int]int{},
-		tx:                findMaxTx(db) + 1,
-		maxPartDbEntity:   findMaxEntity(db, DbPartDb) + 1,
-		maxPartUserEntity: findMaxEntity(db, DbPartUser) + 1,
-		hasTxInstant:      false,
-		attributeValues:   map[int][]index.Value{},
+		newEntityCache:  map[int]int{},
+		tx:              3*(1<<42) + db.NextT(),
+		nextId:          db.NextT() + 1,
+		nextPartDbId:    findMaxEntity(db, 0) + 1,
+		hasTxInstant:    false,
+		attributeValues: map[int][]index.Value{},
 	}
 }
 
@@ -84,13 +84,14 @@ func (txState *txState) resolveTempid(entity int) int {
 		return newEntity
 	} else {
 		newEntity := -1
-		switch Part(entity) {
+		part := Part(entity)
+		switch part {
 		case DbPartDb:
-			newEntity = txState.maxPartDbEntity
-			txState.maxPartDbEntity += 1
+			newEntity = txState.nextPartDbId
+			txState.nextPartDbId += 1
 		case DbPartUser:
-			newEntity = txState.maxPartUserEntity
-			txState.maxPartUserEntity += 1
+			newEntity = part*(1<<42) + txState.nextId
+			txState.nextId += 1
 		case DbPartTx:
 			newEntity = txState.tx
 		default:
@@ -130,25 +131,6 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 	}
 
 	return datoms
-}
-
-const minTx = DbPartTx * (1 << 42)
-
-func findMaxTx(db *database.Db) int {
-	maxTx := -1
-	// FIXME [perf]: implement `.Reverse()` for iterators
-	// FIXME [perf]: start in the correct partition (only works if transactions have some attributes, such as :db/txInstant)
-	iter := db.Eavt().Datoms()
-	for datom := iter.Next(); datom != nil; datom = iter.Next() {
-		if datom.Tx() > maxTx {
-			maxTx = datom.Tx()
-		}
-	}
-	if maxTx < minTx {
-		return minTx - 1
-	} else {
-		return maxTx
-	}
 }
 
 func findMaxEntity(db *database.Db, part int) int {
