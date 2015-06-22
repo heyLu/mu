@@ -91,12 +91,18 @@ func (e Entity) Datoms() index.Iterator {
 func (e Entity) Keys() []Keyword {
 	// TODO: cache attributes here as well?
 	keys := []Keyword{}
+	prevKeys := map[Keyword]bool{}
+
 	iter := e.Datoms()
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		kw := e.db.Ident(datom.Attribute())
 		if kw == nil {
 			log.Fatal("attribute has no `:db/ident`:", datom.Attribute())
 		}
+		if _, ok := prevKeys[*kw]; ok {
+			continue
+		}
+		prevKeys[*kw] = true
 		keys = append(keys, *kw)
 	}
 	return keys
@@ -114,6 +120,8 @@ func (e Entity) Get(key Keyword) interface{} {
 	if attrId == -1 {
 		return nil
 	}
+	hasMany := e.db.Attribute(attrId).Cardinality() == CardinalityMany
+	vals := []interface{}{}
 
 	// FIXME [perf]: use `.DatomsAt` (or `e.Datoms`)
 	datoms := e.db.eavt.Datoms()
@@ -125,9 +133,18 @@ func (e Entity) Get(key Keyword) interface{} {
 			} else {
 				val = datom.Value().Val()
 			}
-			e.attributeCache[key] = val
-			return val
+
+			if hasMany {
+				vals = append(vals, val)
+			} else {
+				e.attributeCache[key] = val
+				return val
+			}
 		}
+	}
+
+	if hasMany {
+		return vals
 	}
 
 	return nil
