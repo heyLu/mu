@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/heyLu/edn"
 	"github.com/heyLu/fressian"
+	"math/big"
 	"time"
 
 	"github.com/heyLu/mu/database"
@@ -225,7 +226,7 @@ func attributeFromValue(val interface{}) (database.HasLookup, error) {
 
 func datumValueFromValue(val interface{}) (*Value, error) {
 	switch val := val.(type) {
-	case bool, int64, string, time.Time:
+	case bool, int64, float64, string, time.Time, *big.Int:
 		v := NewValue(val)
 		return &v, nil
 	case edn.Keyword:
