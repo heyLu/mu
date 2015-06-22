@@ -117,25 +117,31 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
+	rId := resolvedId(id)
 
 	datums := make([]RawDatum, 0, len(m.Attributes))
 	for k, vs := range m.Attributes {
-		attrId := db.Entid(k)
-		if attrId == -1 {
-			return nil, fmt.Errorf("no such attribute: %v", k)
+		attrId, err := k.Lookup(db)
+		if err != nil {
+			return nil, err
 		}
-
-		attr := db.Attribute(attrId)
+		rAttrId := resolvedId(attrId)
 
 		for _, v := range vs {
-			v, err := v.Get(db, attr.Type() == index.Ref)
+			datum := Datum{Op: Assert, E: rId, A: rAttrId, V: v}
+			rawDatum, err := datum.Resolve(db)
 			if err != nil {
 				return nil, err
 			}
 
-			datum := RawDatum{Assert, id, attrId, *v}
-			datums = append(datums, datum)
+			datums = append(datums, rawDatum[0])
 		}
 	}
 	return datums, nil
+}
+
+type resolvedId int
+
+func (id resolvedId) Lookup(db *database.Db) (int, error) {
+	return int(id), nil
 }
