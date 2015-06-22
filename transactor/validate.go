@@ -63,6 +63,8 @@ func checkTypes(db *database.Db, datums []RawDatum) error {
 }
 
 func validateUniqueness(db *database.Db, datums []RawDatum) error {
+	mergedIds := make(map[int]int)
+
 	for i, datum := range datums {
 		attr := db.Attribute(datum.A)
 
@@ -76,6 +78,8 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 			if datum.E < 0 {
 				prev, ok := existsUniqueValue(db, datum.A, datum.V)
 				if ok {
+					log.Printf("merging %d with %d\n", datum.E, prev.E())
+					mergedIds[datum.E] = prev.E()
 					datums[i].E = prev.E()
 				}
 			} else {
@@ -85,6 +89,9 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 				}
 			}
 		case database.UniqueNil:
+			if id, ok := mergedIds[datum.E]; ok {
+				datums[i].E = id
+			}
 		default:
 			return fmt.Errorf("invalid unique value for attribute %d: %v", datum.A, attr.Unique())
 		}
@@ -98,6 +105,7 @@ func existsUniqueValue(db *database.Db, attrId int, val index.Value) (*index.Dat
 		index.NewDatom(0, attrId, val, 0, true),
 		index.NewDatom(index.MaxDatom.E(), attrId, val, index.MaxDatom.Tx(), true))
 	datom := iter.Next()
+	log.Println("exists unique value?", attrId, val, datom)
 	return datom, datom != nil
 }
 
