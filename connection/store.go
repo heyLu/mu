@@ -20,6 +20,7 @@ import (
 
 type storeConnection struct {
 	store       store.Store
+	dbRootId    string
 	indexRootId string
 	db          *database.Db
 	log         *log.Log
@@ -63,14 +64,13 @@ func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxR
 	if err != nil {
 		return nil, err
 	}
-	newIndexRootId := log.Squuid().String()
-	err = writeToStore(c.store, nil, newIndexRootId, dbRoot)
+
+	err = writeToStore(c.store, nil, c.dbRootId, dbRoot)
 	if err != nil {
 		return nil, err
 	}
 
 	c.lock.Lock()
-	c.indexRootId = newIndexRootId
 	c.db = txResult.DbAfter
 	c.log = newLog
 	c.lock.Unlock()
@@ -139,7 +139,8 @@ func connectToStore(u *url.URL) (Connection, error) {
 
 	conn := &storeConnection{
 		store:       store,
-		indexRootId: rootId,
+		dbRootId:    rootId,
+		indexRootId: indexRootId,
 		db:          db,
 		log:         log,
 	}
