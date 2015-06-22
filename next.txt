@@ -8,7 +8,6 @@
 
 - mu api
     - iterators should support .Reverse
-    - better schema support in the transactor (mostly validation)
     - (more of a style thing: introduce a common/util package with code that is
        currently repeated in a bunch of places.  can't have everything because
        that easily leads to cycles, though.)
@@ -22,8 +21,6 @@
     - after that: attaching more data to the notes
 - compress db files in the `file` backend by default (disable with `&compress=false`)
     - maybe do this in `fressian`, instead of here?  e.g. `NewWriterWithCompress` or similar?  (`NewGzipWriter` sounds better...)
-- transactions
-    - don't allow transacting the same values twice (this is actually about `:db/unique`, i think)
 - notes
     - add a `server` subcommand (a smallish http server that provides an api and a simple web interface)
 - mu cli
@@ -35,6 +32,7 @@
 
 .log
 
+- transaction validation
 - reading tx data from edn
 - first attempts at creating new dbs with log & segments
 - better transactions ((mostly) typed interface)
