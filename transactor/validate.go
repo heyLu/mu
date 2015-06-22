@@ -58,6 +58,7 @@ func checkTypes(db *database.Db, datums []RawDatum) error {
 				attr.Type(), val.Val(), val.Type())
 		}
 
+		// TODO: maybe do this in `index/value.go#Compare`?
 		if attr.Type() == index.Ref {
 			datums[i].V = index.NewValue(val.Val())
 		}
