@@ -82,14 +82,16 @@ func main() {
 			log.Fatal("Missing tx data")
 		}
 
-		txRes, err := mu.TransactString(conn, os.Args[3])
-		if err != nil {
-			log.Fatal(err)
-		}
+		for _, arg := range os.Args[3:] {
+			txRes, err := mu.TransactString(conn, arg)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		fmt.Println("datoms from tx:")
-		for _, datom := range txRes.Datoms {
-			fmt.Println(datom)
+			fmt.Println("datoms from tx:")
+			for _, datom := range txRes.Datoms {
+				fmt.Println(datom)
+			}
 		}
 
 	case "transact-to":
