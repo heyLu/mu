@@ -45,7 +45,7 @@ func validate(db *database.Db, datums []RawDatum) ([]RawDatum, error) {
 }
 
 func checkTypes(db *database.Db, datums []RawDatum) error {
-	for _, datum := range datums {
+	for i, datum := range datums {
 		val := datum.V
 
 		attr := db.Attribute(datum.A)
@@ -56,6 +56,10 @@ func checkTypes(db *database.Db, datums []RawDatum) error {
 		if attr.Type() != val.Type() {
 			return fmt.Errorf("expected value of type %v, but got %#v of type %v",
 				attr.Type(), val.Val(), val.Type())
+		}
+
+		if attr.Type() == index.Ref {
+			datums[i].V = index.NewValue(val.Val())
 		}
 	}
 
