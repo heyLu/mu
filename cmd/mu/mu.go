@@ -110,6 +110,15 @@ func main() {
 			}
 		}
 
+	case "log":
+		for _, tx := range conn.Log().Tail {
+			fmt.Println(tx.T)
+			for _, datom := range tx.Datoms {
+				fmt.Println(" ", datom)
+			}
+			fmt.Println()
+		}
+
 	case "transact-to":
 		rawUrl := "memory://test"
 		if len(os.Args) >= 4 {
