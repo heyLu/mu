@@ -89,11 +89,14 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 				}
 			}
 		case database.UniqueNil:
-			if id, ok := mergedIds[datum.E]; ok {
-				datums[i].E = id
-			}
 		default:
 			return fmt.Errorf("invalid unique value for attribute %d: %v", datum.A, attr.Unique())
+		}
+	}
+
+	for i, datum := range datums {
+		if id, ok := mergedIds[datum.E]; ok {
+			datums[i].E = id
 		}
 	}
 
