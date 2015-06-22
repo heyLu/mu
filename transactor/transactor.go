@@ -44,6 +44,10 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 
 	datoms := assignIds(txState, db, datums)
 
+	if !txState.hasTxInstant {
+		datoms = append(datoms, index.NewDatom(txState.tx, DbTxInstant, time.Now(), txState.tx, Assert))
+	}
+
 	txResult := &TxResult{
 		DbBefore: db,
 		DbAfter:  db.WithDatoms(datoms),
@@ -123,10 +127,6 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 		newDatom := index.NewDatom(entity, datom.A, datom.V.Val(), txState.tx, datom.Op)
 		//log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
-	}
-
-	if !txState.hasTxInstant {
-		datoms = append(datoms, index.NewDatom(txState.tx, DbTxInstant, time.Now(), txState.tx, Assert))
 	}
 
 	return datoms
