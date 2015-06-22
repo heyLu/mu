@@ -85,7 +85,7 @@ func Transact(db *database.Db, txData []TxDatum) (*txlog.LogTx, *TxResult, error
 		return nil, nil, err
 	}
 
-	err = checkTypes(db, datums)
+	datums, err = validate(db, datums)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -160,7 +160,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 
 		// if db already contains a value for the attribute, retract it before adding the new value.
 		// (assumes the attribute has cardinality one.)
-		if prev, ok := previousValue(db, datom); datom.E >= 0 && ok {
+		/*if prev, ok := previousValue(db, datom); datom.E >= 0 && ok {
 			//log.Println("retracting", prev)
 			datoms = append(datoms, prev.Retraction())
 
@@ -168,7 +168,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 			if !datom.Op {
 				continue
 			}
-		}
+		}*/
 
 		entity := datom.E
 		if entity < 0 {

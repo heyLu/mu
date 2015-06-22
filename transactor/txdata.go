@@ -19,7 +19,7 @@ func resolveTxData(db *database.Db, txData []TxDatum) ([]RawDatum, error) {
 	return datums, nil
 }
 
-func checkTypes(db *database.Db, datums []RawDatum) error {
+/*func checkTypes(db *database.Db, datums []RawDatum) error {
 	for _, datum := range datums {
 		val := datum.V
 
@@ -35,7 +35,7 @@ func checkTypes(db *database.Db, datums []RawDatum) error {
 	}
 
 	return nil
-}
+}*/
 
 type TxDatum interface {
 	Resolve(db *database.Db) ([]RawDatum, error)
