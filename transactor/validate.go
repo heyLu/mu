@@ -41,6 +41,11 @@ func validate(db *database.Db, datums []RawDatum) ([]RawDatum, error) {
 		return nil, err
 	}
 
+	err = validateSchema(db, newDatums)
+	if err != nil {
+		return nil, err
+	}
+
 	return newDatums, nil
 }
 
@@ -205,6 +210,28 @@ func existingAttribute(db *database.Db, entity int, attribute int) *index.Datom 
 	datom := iter.Next()
 	log.Println("existingAttribute", datom)
 	return datom
+}
+
+// - unused value with a :db/ident is allowed (for "enums"?)
+// - entities with :db/valueType, :db/cardinality & friends
+//     are *required* to be followed by :db.install/...
+//     - e.g. "just :db/ident or you're an attribute (or maybe
+//         also a partition, db fn, ...)
+// - partitions are entities with a :db/ident and :db.install/_partition
+// - mhh... maybe *that's* how partitions (and attributes)
+//     are identified, via the corresponding :db.install/* attribute
+//     on the :db.part/db entity?
+// - (maybe: check attribute modifications, require :db.install/attribute
+//     and friends for schema changes)
+//      - might be easiest to not allow changes to :db.part/db
+//          entities for now (and explicit in which changes are allowed,
+//          schema alterations can come later)
+func validateSchema(db *database.Db, datums []RawDatum) error {
+	/*entities := map[int]map[int]index.Value{}
+	for _, datum := range datums {
+
+	}*/
+	return nil
 }
 
 // Ok, let's say we have the following attributes:
