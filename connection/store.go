@@ -58,6 +58,14 @@ func (c *storeConnection) Transact(datoms []transactor.TxDatum) (*transactor.TxR
 		return nil, err
 	}
 
+	/*newIndexRootId := log.Squuid().String()
+	indexRoot := GetFromCache(c.indexRootId).(map[interface{}]interface{})
+	indexRoot[fressian.Keyword{"", "nextT"}] = txResult.DbAfter.NextT()
+	err = writeToStore(c.store, nil, newIndexRootId, indexRoot)
+	if err != nil {
+		return nil, err
+	}*/
+
 	// write new root with datoms/LogTx to store
 	newLog := c.log.WithTx(tx)
 	dbRoot, err := newDbRoot(c.indexRootId, newLog.RootId, newLog.Tail)
