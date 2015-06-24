@@ -1,3 +1,4 @@
+// Package mu provides the user-facing api for the mu database.
 package mu
 
 import (
@@ -13,6 +14,8 @@ import (
 	"github.com/heyLu/mu/query"
 	"github.com/heyLu/mu/transactor"
 )
+
+type Db database.Db
 
 const (
 	DbIdent          = 10 // :db/ident
@@ -38,6 +41,23 @@ func CreateDatabase(rawUrl string) (bool, error) {
 	return connection.CreateDatabase(u)
 }
 
+// Connect connects to the database specified at the location
+// given by the url.
+//
+// The following formats are supported:
+//
+//  - memory://<path>?name=<name>
+//      Connects to an in-memory database with the given name.
+//  - files://<path-to-dir>?name=<name>
+//      Connects to an on-disk database in the directory with
+//      the given name.  A single directory may contain multiple
+//      databases with different names.
+//  - file://<path-to-file>
+//      Connects to a single-file database.  This database will
+//      not support the future history api, only the log.
+//  - backup://<path-to-backup>[?root=<t>]
+//      Connects to a datomic backup, with an optional root if
+//      the directory contains multiple backups.
 func Connect(rawUrl string) (connection.Connection, error) {
 	u, err := url.Parse(rawUrl)
 	if err != nil {
@@ -46,10 +66,23 @@ func Connect(rawUrl string) (connection.Connection, error) {
 	return connection.New(u)
 }
 
-func Transact(conn connection.Connection, origDatoms []transactor.TxDatum) (*transactor.TxResult, error) {
-	return conn.Transact(origDatoms)
+// Transact adds the datoms given by the txData to the connection.
+//
+// The result contains a reference to the database before and after
+// the transaction, the datoms that were transacted and a map from
+// tempids to the assigned ids.
+func Transact(conn connection.Connection, txData []transactor.TxDatum) (*transactor.TxResult, error) {
+	return conn.Transact(txData)
 }
 
+// TransactString adds the datoms given by the txData to the
+// connection.
+//
+// The txData is given as EDN data, which is parsed and converted
+// to the format accepted by Transact.
+//
+// Apart from the different input, the behavior is the same as
+// that of Transact.
 func TransactString(conn connection.Connection, txDataEDN string) (*transactor.TxResult, error) {
 	txData, err := transactor.TxDataFromEDN(txDataEDN)
 	if err != nil {
@@ -59,6 +92,8 @@ func TransactString(conn connection.Connection, txDataEDN string) (*transactor.T
 	return Transact(conn, txData)
 }
 
+// With returns a database with the txData added as if it were
+// transacted.
 func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
 	_, txResult, err := transactor.Transact(db, txData)
 	if err != nil {
@@ -111,10 +146,18 @@ func Aev(attribute database.Keyword, entity database.HasLookup, value interface{
 	return query.Aev(attribute, entity, value)
 }
 
+// Datoms returns an iterator matching the given pattern.
 func Datoms(db *database.Db, pattern query.Pattern) (index.Iterator, error) {
 	return query.Datoms(db, pattern)
 }
 
+// DatomsString parses a pattern from the string and returns
+// an iterator.
+//
+// The pattern must be a string in EDN format of the form
+// [e a v], where e, a and v may be variables or values.
+//
+// See Datoms for details.
 func DatomsString(db *database.Db, patternEDN string) (index.Iterator, error) {
 	pattern, err := query.PatternFromEDN(patternEDN)
 	if err != nil {
@@ -140,6 +183,8 @@ func Keyword(namespace, name string) database.Keyword {
 	return database.Keyword{fressian.Keyword{namespace, name}}
 }
 
+// Tempid creates a temporary id in the given partition for
+// use in a transaction.
 func Tempid(part, id int) int {
 	sign := -1
 	if id > 0 {
@@ -149,6 +194,7 @@ func Tempid(part, id int) int {
 	return -(part*(1<<42) + sign*id)
 }
 
+// Part returns the partition id of the given entity id.
 func Part(id int) int {
 	sign := 1
 	if id < 0 {
