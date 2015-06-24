@@ -8,9 +8,6 @@
 
 - mu api
     - iterators should support .Reverse
-    - (more of a style thing: introduce a common/util package with code that is
-       currently repeated in a bunch of places.  can't have everything because
-       that easily leads to cycles, though.)
 - tests for transactions (is it usable for simple things already?)
     - maybe write a backend for `gol`?  (or a simpler note taking thing.)
       (would need id generation, though.)
