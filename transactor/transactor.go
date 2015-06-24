@@ -110,6 +110,7 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 		entity := datom.E
 		if entity < 0 {
 			if Part(entity) == DbPartTx && datom.A == DbTxInstant {
+				// FIXME: ensure that :db/txInstant is greater than the last
 				txState.hasTxInstant = true
 			}
 			entity = txState.resolveTempid(entity)
