@@ -102,14 +102,6 @@ func (txState *txState) resolveTempid(entity int) int {
 	}
 }
 
-// TODO: assign entity ids like datomic
-// - part * (1 << 42) + nextT + 1 + newEntityIndex
-// - nextT becomes the basis of the the resulting db value
-// - nextT for the new db value is nextT + numNewEntities + 1
-// - this is quite interesting as the tx id is encoded in the
-//    entity id, and you can find entities that are created
-//    at or after a certain transactions  (and it's also easier
-//    to generate new entity ids, but that's just a bonus)
 func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index.Datom {
 	datoms := make([]index.Datom, 0, len(origDatoms))
 	for _, datom := range origDatoms {
