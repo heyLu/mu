@@ -67,15 +67,15 @@ func With(db *database.Db, txData []transactor.TxDatum) (*database.Db, error) {
 	return txResult.DbAfter, nil
 }
 
-func Datum(entity database.HasLookup, attribute database.HasLookup, value interface{}) transactor.Datum {
+func NewDatum(entity database.HasLookup, attribute database.HasLookup, value interface{}) transactor.Datum {
 	return transactor.Datum{true, entity, attribute, transactor.NewValue(value)}
 }
 
-func RawDatum(entity int, attribute int, value interface{}) transactor.Datum {
+func NewDatumRaw(entity int, attribute int, value interface{}) transactor.Datum {
 	return transactor.Datum{true, database.Id(entity), database.Id(attribute), transactor.NewValue(value)}
 }
 
-func Datom(entity int, attribute int, value interface{}) index.Datom {
+func NewDatom(entity int, attribute int, value interface{}) index.Datom {
 	return index.NewDatom(entity, attribute, value, -1, false)
 }
 

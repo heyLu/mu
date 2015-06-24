@@ -66,8 +66,8 @@ func main() {
 			content := getContentFrom(args, 1, "")
 			_, err := mu.Transact(conn,
 				mu.Datums(
-					mu.RawDatum(mu.Tempid(mu.DbPartUser, -1), nameAttr, args[0]),
-					mu.RawDatum(mu.Tempid(mu.DbPartUser, -1), contentAttr, content),
+					mu.NewDatumRaw(mu.Tempid(mu.DbPartUser, -1), nameAttr, args[0]),
+					mu.NewDatumRaw(mu.Tempid(mu.DbPartUser, -1), contentAttr, content),
 				))
 			if err != nil {
 				log.Fatal(err)
@@ -94,7 +94,7 @@ func main() {
 			if prevContent == content {
 				fmt.Println("no changes")
 			} else {
-				_, err := mu.Transact(conn, mu.Datums(mu.RawDatum(noteId, contentAttr, content)))
+				_, err := mu.Transact(conn, mu.Datums(mu.NewDatumRaw(noteId, contentAttr, content)))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -112,7 +112,7 @@ func main() {
 			datoms := mu.Datums()
 			for _, idOrTitle := range args {
 				noteId := findNote(db, idOrTitle)
-				iter := db.Eavt().DatomsAt(mu.Datom(noteId, -1, ""), mu.Datom(noteId, 10000, ""))
+				iter := db.Eavt().DatomsAt(mu.NewDatom(noteId, -1, ""), mu.NewDatom(noteId, 10000, ""))
 				for datom := iter.Next(); datom != nil; datom = iter.Next() {
 					datoms = append(datoms, mu.Retraction(*datom))
 				}
@@ -130,8 +130,8 @@ func main() {
 		Short:   "list all notes",
 		Run: func(cmd *cobra.Command, args []string) {
 			iter := db.Aevt().DatomsAt(
-				mu.Datom(mu.PartStart(mu.DbPartUser), nameAttr, ""),
-				mu.Datom(mu.PartEnd(mu.DbPartUser), nameAttr, ""))
+				mu.NewDatom(mu.PartStart(mu.DbPartUser), nameAttr, ""),
+				mu.NewDatom(mu.PartEnd(mu.DbPartUser), nameAttr, ""))
 			for datom := iter.Next(); datom != nil; datom = iter.Next() {
 				fmt.Printf("%d: %s\n", datom.Entity(), datom.Value().Val())
 			}
@@ -188,13 +188,13 @@ func initializeDb(conn connection.Connection) {
 	_, err := mu.Transact(conn,
 		mu.Datums(
 			// :name attribute (type string, cardinality one)
-			mu.RawDatum(nameId, mu.DbIdent, mu.Keyword("", "name")),
-			mu.RawDatum(nameId, mu.DbType, mu.DbTypeString),
-			mu.RawDatum(nameId, mu.DbCardinality, mu.DbCardinalityOne),
+			mu.NewDatumRaw(nameId, mu.DbIdent, mu.Keyword("", "name")),
+			mu.NewDatumRaw(nameId, mu.DbType, mu.DbTypeString),
+			mu.NewDatumRaw(nameId, mu.DbCardinality, mu.DbCardinalityOne),
 			// :content attribute (type string, cardinality one)
-			mu.RawDatum(contentId, mu.DbIdent, mu.Keyword("", "content")),
-			mu.RawDatum(contentId, mu.DbType, mu.DbTypeString),
-			mu.RawDatum(contentId, mu.DbCardinality, mu.DbCardinalityOne),
+			mu.NewDatumRaw(contentId, mu.DbIdent, mu.Keyword("", "content")),
+			mu.NewDatumRaw(contentId, mu.DbType, mu.DbTypeString),
+			mu.NewDatumRaw(contentId, mu.DbCardinality, mu.DbCardinalityOne),
 		))
 	if err != nil {
 		log.Fatal("could not initialize database: ", err)
@@ -205,8 +205,8 @@ func findNote(db *database.Db, idOrTitle string) int {
 	entity, err := strconv.Atoi(idOrTitle)
 	if err != nil {
 		iter := db.Aevt().DatomsAt(
-			mu.Datom(mu.PartStart(mu.DbPartUser), nameAttr, ""),
-			mu.Datom(mu.PartEnd(mu.DbPartUser), nameAttr, ""))
+			mu.NewDatom(mu.PartStart(mu.DbPartUser), nameAttr, ""),
+			mu.NewDatom(mu.PartEnd(mu.DbPartUser), nameAttr, ""))
 		for datom := iter.Next(); datom != nil; datom = iter.Next() {
 			if datom.Value().Val() == idOrTitle {
 				return datom.Entity()
@@ -216,7 +216,7 @@ func findNote(db *database.Db, idOrTitle string) int {
 		fmt.Println("no such note:", idOrTitle)
 		os.Exit(1)
 	} else {
-		iter := db.Eavt().SeekDatoms(mu.Datom(entity, nameAttr, ""))
+		iter := db.Eavt().SeekDatoms(mu.NewDatom(entity, nameAttr, ""))
 		datom := iter.Next()
 		if datom == nil || datom.Entity() != entity || datom.Attribute() != nameAttr {
 			fmt.Println("no such note:", idOrTitle)

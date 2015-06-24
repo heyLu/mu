@@ -145,7 +145,7 @@ func main() {
 
 	case "test-transact":
 		fmt.Println("transact(conn, [[0 1 \"Jane\" 0 true]])")
-		nameIsJane := mu.RawDatum(0, 1, "Jane")
+		nameIsJane := mu.NewDatumRaw(0, 1, "Jane")
 		_, err := mu.Transact(conn, mu.Datums(nameIsJane))
 		if err != nil {
 			log.Fatal(err)
@@ -154,7 +154,7 @@ func main() {
 		printDatoms(newDb.Eavt().Datoms())
 
 		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 true]])")
-		nameIsJane = mu.RawDatum(0, 1, "Jane Lane")
+		nameIsJane = mu.NewDatumRaw(0, 1, "Jane Lane")
 		_, err = mu.Transact(conn, mu.Datums(nameIsJane))
 		if err != nil {
 			log.Fatal(err)
