@@ -23,7 +23,6 @@ func main() {
 	}
 
 	db := conn.Db()
-	fmt.Println(db)
 
 	cmd := "eavt"
 	if len(os.Args) >= 3 {
@@ -33,15 +32,6 @@ func main() {
 	switch cmd {
 	case "eavt", "aevt", "avet", "vaet":
 		printDatoms(getIndex(db, cmd).Datoms())
-
-	case "example":
-		dbIdent := mu.Keyword("db", "ident")
-		fmt.Printf("%#v -> %d\n", dbIdent, db.Entid(dbIdent))
-		fmt.Printf("%d -> %#v\n", 10, db.Ident(10))
-
-		dbIdentEntity := db.Entity(10)
-		dbCardinality := mu.Keyword("db", "cardinality")
-		fmt.Printf("(:db/cardinality (entity db %d)) ;=> %#v\n", 10, dbIdentEntity.Get(dbCardinality))
 
 	case "create-database":
 		isNew, err := mu.CreateDatabase(os.Args[1])
@@ -118,57 +108,6 @@ func main() {
 			}
 			fmt.Println()
 		}
-
-	case "transact-to":
-		rawUrl := "memory://test"
-		if len(os.Args) >= 4 {
-			rawUrl = os.Args[3]
-		}
-
-		toConn, err := mu.Connect(rawUrl)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		allDatoms := make([]index.Datom, 0, 1000)
-		datoms := db.Eavt().Datoms()
-		for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-			allDatoms = append(allDatoms, *datom)
-		}
-
-		err = toConn.Index(allDatoms)
-		if err != nil {
-			log.Fatal(err)
-		}
-		toDb := toConn.Db()
-		printDatoms(toDb.Eavt().Datoms())
-
-	case "test-transact":
-		fmt.Println("transact(conn, [[0 1 \"Jane\" 0 true]])")
-		nameIsJane := mu.NewDatumRaw(0, 1, "Jane")
-		_, err := mu.Transact(conn, mu.Datums(nameIsJane))
-		if err != nil {
-			log.Fatal(err)
-		}
-		newDb := conn.Db()
-		printDatoms(newDb.Eavt().Datoms())
-
-		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 true]])")
-		nameIsJane = mu.NewDatumRaw(0, 1, "Jane Lane")
-		_, err = mu.Transact(conn, mu.Datums(nameIsJane))
-		if err != nil {
-			log.Fatal(err)
-		}
-		newDb = conn.Db()
-		printDatoms(newDb.Eavt().Datoms())
-
-		fmt.Println("transact(conn, [[0 1 \"Jane Lane\" 0 false]])")
-		_, err = mu.Transact(conn, mu.Datums(nameIsJane.Retraction()))
-		if err != nil {
-			log.Fatal(err)
-		}
-		newDb = conn.Db()
-		printDatoms(newDb.Eavt().Datoms())
 
 	default:
 		fmt.Println("unknown command:", cmd)
