@@ -11,7 +11,7 @@ import (
 	_ "github.com/heyLu/mu/connection/memory"
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
-	"github.com/heyLu/mu/query"
+	"github.com/heyLu/mu/pattern"
 	"github.com/heyLu/mu/transactor"
 )
 
@@ -120,33 +120,33 @@ func Datums(datoms ...transactor.TxDatum) []transactor.TxDatum {
 	return datoms
 }
 
-func E(entity database.HasLookup) query.Pattern {
-	return query.E(entity)
+func E(entity database.HasLookup) pattern.Pattern {
+	return pattern.E(entity)
 }
 
-func Ea(entity database.HasLookup, attribute database.Keyword) query.Pattern {
-	return query.Ea(entity, attribute)
+func Ea(entity database.HasLookup, attribute database.Keyword) pattern.Pattern {
+	return pattern.Ea(entity, attribute)
 }
 
-func Eav(entity database.HasLookup, attribute database.Keyword, value interface{}) query.Pattern {
-	return query.Eav(entity, attribute, value)
+func Eav(entity database.HasLookup, attribute database.Keyword, value interface{}) pattern.Pattern {
+	return pattern.Eav(entity, attribute, value)
 }
 
-func A(attribute database.Keyword) query.Pattern {
-	return query.A(attribute)
+func A(attribute database.Keyword) pattern.Pattern {
+	return pattern.A(attribute)
 }
 
-func Ae(attribute database.Keyword, entity database.HasLookup) query.Pattern {
-	return query.Ae(attribute, entity)
+func Ae(attribute database.Keyword, entity database.HasLookup) pattern.Pattern {
+	return pattern.Ae(attribute, entity)
 }
 
-func Aev(attribute database.Keyword, entity database.HasLookup, value interface{}) query.Pattern {
-	return query.Aev(attribute, entity, value)
+func Aev(attribute database.Keyword, entity database.HasLookup, value interface{}) pattern.Pattern {
+	return pattern.Aev(attribute, entity, value)
 }
 
 // Datoms returns an iterator matching the given pattern.
-func Datoms(db *database.Db, pattern query.Pattern) (index.Iterator, error) {
-	return query.Datoms(db, pattern)
+func Datoms(db *database.Db, p pattern.Pattern) (index.Iterator, error) {
+	return pattern.Datoms(db, p)
 }
 
 // DatomsString parses a pattern from the string and returns
@@ -157,7 +157,7 @@ func Datoms(db *database.Db, pattern query.Pattern) (index.Iterator, error) {
 //
 // See Datoms for details.
 func DatomsString(db *database.Db, patternEDN string) (index.Iterator, error) {
-	pattern, err := query.PatternFromEDN(patternEDN)
+	pattern, err := pattern.PatternFromEDN(patternEDN)
 	if err != nil {
 		return nil, err
 	}
