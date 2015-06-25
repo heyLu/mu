@@ -15,8 +15,6 @@ import (
 	"github.com/heyLu/mu/transactor"
 )
 
-type Db database.Db
-
 const (
 	DbIdent          = 10 // :db/ident
 	DbCardinality    = 41 // :db/cardinality
