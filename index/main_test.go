@@ -37,9 +37,9 @@ func TestValueCompare(t *testing.T) {
 	expectEq(t, NewValue("b"), NewValue("b"))
 	expectGt(t, NewValue("c"), NewValue("b"))
 
-	expectLt(t, NewValue(0), NewValue(""))
-	expectLt(t, NewValue(0), NewValue(fressian.Keyword{"", ""}))
+	expectLt(t, NewValue(fressian.Keyword{"", ""}), NewValue(0))
 	expectLt(t, NewValue(fressian.Keyword{"", ""}), NewValue(""))
+	expectLt(t, NewValue(0), NewValue(""))
 }
 
 func expectLt(t *testing.T, v1, v2 Value) {
