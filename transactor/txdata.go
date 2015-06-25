@@ -153,3 +153,68 @@ type resolvedId int
 func (id resolvedId) Lookup(db *database.Db) (int, error) {
 	return int(id), nil
 }
+
+type TxFn func(db *database.Db) ([]RawDatum, error)
+
+func (f TxFn) Resolve(db *database.Db) ([]RawDatum, error) {
+	return f(db)
+}
+
+func FnRetractEntity(id database.HasLookup) TxFn {
+	retractEntity := func(db *database.Db) ([]RawDatum, error) {
+		eid, err := id.Lookup(db)
+		if err != nil {
+			return nil, err
+		}
+
+		datums := make([]RawDatum, 0)
+		iter := db.Eavt().DatomsAt(
+			index.NewDatom(eid, 0, index.MinValue, 0, true),
+			index.NewDatom(eid, index.MaxDatom.A(), index.MaxValue, index.MaxDatom.Tx(), true))
+		for datom := iter.Next(); datom != nil; datom = iter.Next() {
+			datum := RawDatum{Op: Retract, E: datom.E(), A: datom.A(), V: datom.V()}
+			datums = append(datums, datum)
+		}
+
+		return datums, nil
+	}
+
+	return TxFn(retractEntity)
+}
+
+func FnCompareAndSwap(entity database.HasLookup, attribute database.HasLookup, oldValue *index.Value, newValue *index.Value) TxFn {
+	compareAndSwap := func(db *database.Db) ([]RawDatum, error) {
+		eid, err := entity.Lookup(db)
+		if err != nil {
+			return nil, err
+		}
+
+		aid, err := attribute.Lookup(db)
+		if err != nil {
+			return nil, err
+		}
+
+		datums := make([]RawDatum, 0)
+
+		iter := db.Eavt().DatomsAt(
+			index.NewDatom(eid, aid, oldValue, 0, true),
+			index.NewDatom(eid, aid, oldValue, index.MaxDatom.Tx(), true))
+		datom := iter.Next()
+		if oldValue == nil { // old value must not exist
+			if datom != nil {
+				return nil, fmt.Errorf("cas failed, expected nil, but got %v", datom.V())
+			}
+		} else {
+			if datom == nil || datom.V().Compare(oldValue) != 0 {
+				return nil, fmt.Errorf("cas failed, expected %v, but got %v", oldValue, datom.V())
+			}
+
+			datums = append(datums, RawDatum{Op: Retract, E: eid, A: aid, V: *oldValue})
+		}
+
+		datums = append(datums, RawDatum{Op: Assert, E: eid, A: aid, V: *newValue})
+		return datums, nil
+	}
+
+	return TxFn(compareAndSwap)
+}
