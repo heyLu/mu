@@ -1,7 +1,6 @@
 package transactor
 
 import (
-	"fmt"
 	"github.com/heyLu/fressian"
 	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
@@ -38,8 +37,7 @@ func TestResolve(t *testing.T) {
 	_, err := datum.Resolve(db)
 	tu.ExpectNil(t, err)
 
-	datum.V = NewValue(10)
+	datum.A = database.Keyword{fressian.Keyword{"does", "not-exist"}}
 	_, err = datum.Resolve(db)
-	fmt.Println(err)
 	tu.ExpectNotNil(t, err)
 }
