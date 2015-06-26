@@ -13,6 +13,7 @@ import (
 	"github.com/heyLu/mu"
 	"github.com/heyLu/mu/connection"
 	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/transactor"
 )
 
 var nameAttr int
@@ -116,10 +117,7 @@ func main() {
 			datoms := mu.Datums()
 			for _, idOrTitle := range args {
 				noteId := findNote(db, idOrTitle)
-				iter := db.Eavt().DatomsAt(mu.NewDatom(noteId, -1, ""), mu.NewDatom(noteId, 10000, ""))
-				for datom := iter.Next(); datom != nil; datom = iter.Next() {
-					datoms = append(datoms, mu.Retraction(*datom))
-				}
+				datoms = append(datoms, transactor.FnRetractEntity(mu.Id(noteId)))
 			}
 			_, err := mu.Transact(conn, datoms)
 			if err != nil {
