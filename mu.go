@@ -19,7 +19,7 @@ const (
 	DbIdent          = 10 // :db/ident
 	DbCardinality    = 41 // :db/cardinality
 	DbCardinalityOne = 35 // :db.cardinality/one
-	DbType           = 12 // :db/valueType
+	DbType           = 40 // :db/valueType
 	DbTypeString     = 23 // :db.type/string
 	DbPartDb         = 0  // :db.part/db
 	DbPartTx         = 3  // :db.part/tx
