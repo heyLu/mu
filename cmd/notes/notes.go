@@ -27,24 +27,28 @@ func main() {
 		Use:   os.Args[0],
 		Short: " simple note taking application",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			var err error
+			isNew, err := mu.CreateDatabase(dbUrl)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			conn, err = mu.Connect(dbUrl)
 			if err != nil {
 				log.Fatal(err)
 			}
 			//defer conn.Disconnect()
 
+			if isNew {
+				fmt.Println("initializing database")
+				initializeDb(conn)
+			}
+
 			db = conn.Db()
 
 			nameAttr = db.Entid(mu.Keyword("", "name"))
 			contentAttr = db.Entid(mu.Keyword("", "content"))
 			if nameAttr == -1 || contentAttr == -1 {
-				fmt.Println("initializing database")
-				initializeDb(conn)
-
-				db = conn.Db()
-				nameAttr = db.Entid(mu.Keyword("", "name"))
-				contentAttr = db.Entid(mu.Keyword("", "content"))
+				log.Fatal("invalid db")
 			}
 		},
 	}
