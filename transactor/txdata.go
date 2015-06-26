@@ -72,7 +72,13 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
-	if attr.Type() == index.URI && val.Type() == index.String {
+	if attr.Type() == index.Ref && val.Type() == index.Long {
+		ref, err := database.Id(val.Val().(int)).Lookup(db)
+		if err != nil {
+			return nil, err
+		}
+		*val = index.NewRef(ref)
+	} else if attr.Type() == index.URI && val.Type() == index.String {
 		u, err := url.Parse(val.Val().(string))
 		if err != nil {
 			return nil, err
