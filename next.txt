@@ -6,6 +6,25 @@
 
 .next
 
+- some ideas
+  - tests!  (we really need those, at least "api-level" tests, that
+    ensure our public interfaces don't break.  unused things tend
+    to break, for example the `file` backend does not support
+    mu.CreateDatabase ...)
+    - txs  (validation, uniqueness, tempid resolution, redundant
+      datoms, schema validation/modification)
+    - index  (sort order, iterator "bounds")
+    - connection  (fails if not existing, multiple dbs, values
+      persisted)
+  - `db.AsOf(...)`
+  - `mu.EntidAt(...)`  (maybe as `EntidAtT`, `EntidAtTime` and
+    `EntidAtTx` variants?  although an interface would be
+    preferred, but that would only be possible via wrapping.)
+  - indexing  (the log tail just growing bigger doesn't seem so nice)
+  - use it somewhere ...  (maybe something to replace pinboard with?)
+  - the log could be written without parsing it again, by simply
+    appending the new `LogTx` to it.  (this will only work if we
+    can ensure the order in which we write a map.)
 - mu api
     - iterators should support .Reverse
 - tests for transactions (is it usable for simple things already?)
