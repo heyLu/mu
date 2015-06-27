@@ -379,3 +379,25 @@ func (i *mergeIterator) Next() *Datom {
 		return datom
 	}
 }
+
+type filterIterator struct {
+	pred func(datom *Datom) bool
+	iter Iterator
+}
+
+func FilterIterator(iter Iterator, pred func(datom *Datom) bool) Iterator {
+	return &filterIterator{pred: pred, iter: iter}
+}
+
+func (i *filterIterator) Next() *Datom {
+	datom := i.iter.Next()
+	if datom == nil {
+		return nil
+	}
+
+	for datom != nil && !i.pred(datom) {
+		datom = i.iter.Next()
+	}
+
+	return datom
+}
