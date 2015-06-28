@@ -143,6 +143,10 @@ func (db *Db) Filter(filter Filter) *Db {
 	return &newDb
 }
 
+func (db *Db) IsFiltered() bool {
+	return db.filter != nil
+}
+
 func (db *Db) BasisT() int { return db.basisT }
 func (db *Db) NextT() int  { return db.nextT }
 

@@ -87,11 +87,11 @@ func TestEavtDatomsFilter(t *testing.T) {
 	})
 
 	// ensure the original db wasn't changed
-	tu.ExpectNil(t, db.filter)
+	tu.ExpectEqual(t, db.IsFiltered(), false)
 	expectIter(t, datoms, db.Eavt().Datoms())
 
 	// check that the filtered db contains only matching datoms
-	tu.ExpectNotNil(t, filteredDb.filter)
+	tu.ExpectEqual(t, filteredDb.IsFiltered(), true)
 	expectIter(t, []index.Datom{datoms[1], datoms[3]}, filteredDb.Eavt().Datoms())
 }
 
@@ -104,10 +104,10 @@ func TestEavtDatomsFilterMultiple(t *testing.T) {
 		return datom.E() == 11
 	})
 
-	tu.ExpectNotNil(t, filteredDb1.filter)
+	tu.ExpectEqual(t, filteredDb1.IsFiltered(), true)
 	expectIter(t, []index.Datom{datoms[1], datoms[3]}, filteredDb1.Eavt().Datoms())
 
-	tu.ExpectNotNil(t, filteredDb2.filter)
+	tu.ExpectEqual(t, filteredDb2.IsFiltered(), true)
 	expectIter(t, []index.Datom{datoms[3]}, filteredDb2.Eavt().Datoms())
 }
 
