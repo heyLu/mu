@@ -96,8 +96,10 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 		iter = withoutRetractions(iter)
 	}
 	if i.db.filter != nil {
+		rawDb := *i.db
+		rawDb.filter = nil
 		filter := func(datom *index.Datom) bool {
-			return i.db.filter(i.db, datom)
+			return i.db.filter(&rawDb, datom)
 		}
 		iter = index.FilterIterator(iter, filter)
 	}
