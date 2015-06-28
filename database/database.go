@@ -127,8 +127,9 @@ func (db *Db) Filter(filter Filter) *Db {
 	if newDb.filter == nil {
 		newDb.filter = filter
 	} else {
+		prevFilter := db.filter
 		newDb.filter = func(db *Db, datom *index.Datom) bool {
-			return db.filter(db, datom) && filter(db, datom)
+			return prevFilter(db, datom) && filter(db, datom)
 		}
 	}
 	return &newDb

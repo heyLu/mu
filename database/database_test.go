@@ -95,6 +95,22 @@ func TestEavtDatomsFilter(t *testing.T) {
 	expectIter(t, []index.Datom{datoms[1], datoms[3]}, filteredDb.Eavt().Datoms())
 }
 
+func TestEavtDatomsFilterMultiple(t *testing.T) {
+	db := Empty.WithDatoms(datoms)
+	filteredDb1 := db.Filter(func(db *Db, datom *index.Datom) bool {
+		return datom.A() == 2
+	})
+	filteredDb2 := filteredDb1.Filter(func(db *Db, datom *index.Datom) bool {
+		return datom.E() == 11
+	})
+
+	tu.ExpectNotNil(t, filteredDb1.filter)
+	expectIter(t, []index.Datom{datoms[1], datoms[3]}, filteredDb1.Eavt().Datoms())
+
+	tu.ExpectNotNil(t, filteredDb2.filter)
+	expectIter(t, []index.Datom{datoms[3]}, filteredDb2.Eavt().Datoms())
+}
+
 func TestAevtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, []index.Datom{
