@@ -86,7 +86,7 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 			return datom.Tx() >= minTx
 		})
 	}
-	if i.db.asOf != -1 {
+	if i.db.asOf >= 0 {
 		maxTx := 3*(1<<42) + i.db.asOf
 		iter = index.FilterIterator(iter, func(datom *index.Datom) bool {
 			return datom.Tx() <= maxTx
