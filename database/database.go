@@ -17,8 +17,11 @@ type Db struct {
 	useHistory     bool
 	asOf           int
 	since          int
+	filter         Filter
 	attributeCache map[int]Attribute
 }
+
+type Filter func(db *Db, datom *index.Datom) bool
 
 var Empty = NewInMemory(
 	index.NewMemoryIndex(index.CompareEavt),
@@ -37,6 +40,7 @@ func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 		useHistory:     false,
 		asOf:           -1,
 		since:          -1,
+		filter:         nil,
 		attributeCache: make(map[int]Attribute, 100)}
 }
 
@@ -91,6 +95,12 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 	if !i.db.useHistory {
 		iter = withoutRetractions(iter)
 	}
+	if i.db.filter != nil {
+		filter := func(datom *index.Datom) bool {
+			return i.db.filter(i.db, datom)
+		}
+		iter = index.FilterIterator(iter, filter)
+	}
 	return iter
 }
 
@@ -109,6 +119,18 @@ func (db *Db) AsOf(t int) *Db {
 func (db *Db) Since(t int) *Db {
 	newDb := *db
 	newDb.since = t
+	return &newDb
+}
+
+func (db *Db) Filter(filter Filter) *Db {
+	newDb := *db
+	if newDb.filter == nil {
+		newDb.filter = filter
+	} else {
+		newDb.filter = func(db *Db, datom *index.Datom) bool {
+			return db.filter(db, datom) && filter(db, datom)
+		}
+	}
 	return &newDb
 }
 

@@ -80,6 +80,21 @@ func TestEavtDatomsAsOf(t *testing.T) {
 	expectIter(t, datoms[0:4], asOfDb.Eavt().Datoms())
 }
 
+func TestEavtDatomsFilter(t *testing.T) {
+	db := Empty.WithDatoms(datoms)
+	filteredDb := db.Filter(func(db *Db, datom *index.Datom) bool {
+		return datom.A() == 2
+	})
+
+	// ensure the original db wasn't changed
+	tu.ExpectNil(t, db.filter)
+	expectIter(t, datoms, db.Eavt().Datoms())
+
+	// check that the filtered db contains only matching datoms
+	tu.ExpectNotNil(t, filteredDb.filter)
+	expectIter(t, []index.Datom{datoms[1], datoms[3]}, filteredDb.Eavt().Datoms())
+}
+
 func TestAevtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, []index.Datom{
