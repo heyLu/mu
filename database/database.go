@@ -116,10 +116,18 @@ func (db *Db) AsOf(t int) *Db {
 	return &newDb
 }
 
+func (db *Db) AsOfT() int {
+	return db.asOf
+}
+
 func (db *Db) Since(t int) *Db {
 	newDb := *db
 	newDb.since = t
 	return &newDb
+}
+
+func (db *Db) SinceT() int {
+	return db.since
 }
 
 func (db *Db) Filter(filter Filter) *Db {

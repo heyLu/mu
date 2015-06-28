@@ -59,11 +59,11 @@ func TestEavtDatomsSince(t *testing.T) {
 	sinceDb := db.Since(1001)
 
 	// ensure the original db wasn't changed
-	tu.ExpectEqual(t, db.since, -1)
+	tu.ExpectEqual(t, db.SinceT(), -1)
 	expectIter(t, datoms, db.Eavt().Datoms())
 
 	// check that the since db contains the datoms since 1001
-	tu.ExpectEqual(t, sinceDb.since, 1001)
+	tu.ExpectEqual(t, sinceDb.SinceT(), 1001)
 	expectIter(t, datoms[2:], sinceDb.Eavt().Datoms())
 }
 
@@ -72,11 +72,11 @@ func TestEavtDatomsAsOf(t *testing.T) {
 	asOfDb := db.AsOf(1001)
 
 	// ensure the original db wasn't changed
-	tu.ExpectEqual(t, db.asOf, -1)
+	tu.ExpectEqual(t, db.AsOfT(), -1)
 	expectIter(t, datoms, db.Eavt().Datoms())
 
 	// check that the as of db only contains the datom from 1001 and earlier
-	tu.ExpectEqual(t, asOfDb.asOf, 1001)
+	tu.ExpectEqual(t, asOfDb.AsOfT(), 1001)
 	expectIter(t, datoms[0:4], asOfDb.Eavt().Datoms())
 }
 
