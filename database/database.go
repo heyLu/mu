@@ -43,10 +43,34 @@ func NewInMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
 		index.NewMergedIndex(vaet, empty, index.CompareVaet))
 }
 
-func (db *Db) Eavt() index.Index { return db.eavt }
-func (db *Db) Aevt() index.Index { return db.aevt }
-func (db *Db) Avet() index.Index { return db.avet }
-func (db *Db) Vaet() index.Index { return db.vaet }
+func (db *Db) Eavt() index.Index { return db.index(db.eavt) }
+func (db *Db) Aevt() index.Index { return db.index(db.aevt) }
+func (db *Db) Avet() index.Index { return db.index(db.avet) }
+func (db *Db) Vaet() index.Index { return db.index(db.vaet) }
+
+func (db *Db) index(index index.Index) index.Index {
+	return &dbIndex{
+		db:    db,
+		index: index,
+	}
+}
+
+type dbIndex struct {
+	db    *Db
+	index index.Index
+}
+
+func (i *dbIndex) Datoms() index.Iterator {
+	return i.index.Datoms()
+}
+
+func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
+	return i.index.DatomsAt(start, end)
+}
+
+func (i *dbIndex) SeekDatoms(start index.Datom) index.Iterator {
+	return i.index.SeekDatoms(start)
+}
 
 func (db *Db) BasisT() int { return db.basisT }
 func (db *Db) NextT() int  { return db.nextT }
