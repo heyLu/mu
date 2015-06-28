@@ -54,11 +54,7 @@ func (mi MemoryIndex) AddDatoms(datoms []Datom) *MemoryIndex {
 	set := mi.datoms
 	for i := 0; i < len(datoms); i++ {
 		datom := datoms[i]
-		if datom.Added() {
-			set = set.Conj(&datom)
-		} else {
-			set = set.Disj(&datom)
-		}
+		set = set.Conj(&datom)
 	}
 	return &MemoryIndex{set}
 }

@@ -61,15 +61,15 @@ type dbIndex struct {
 }
 
 func (i *dbIndex) Datoms() index.Iterator {
-	return i.index.Datoms()
+	return withoutRetractions(i.index.Datoms())
 }
 
 func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
-	return i.index.DatomsAt(start, end)
+	return withoutRetractions(i.index.DatomsAt(start, end))
 }
 
 func (i *dbIndex) SeekDatoms(start index.Datom) index.Iterator {
-	return i.index.SeekDatoms(start)
+	return withoutRetractions(i.index.SeekDatoms(start))
 }
 
 func (db *Db) BasisT() int { return db.basisT }
