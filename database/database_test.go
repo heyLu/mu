@@ -54,6 +54,19 @@ func TestEavtDatomsHistory(t *testing.T) {
 		historyDb.Eavt().Datoms())
 }
 
+func TestEavtDatomsSince(t *testing.T) {
+	db := Empty.WithDatoms(datoms)
+	sinceDb := db.Since(1001)
+
+	// ensure the original db wasn't changed
+	tu.ExpectEqual(t, db.since, 0)
+	expectIter(t, datoms, db.Eavt().Datoms())
+
+	// check that the since db contains the datoms since 1001
+	tu.ExpectEqual(t, sinceDb.since, 1001)
+	expectIter(t, datoms[2:], sinceDb.Eavt().Datoms())
+}
+
 func TestAevtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, []index.Datom{
