@@ -25,6 +25,9 @@
   - the log could be written without parsing it again, by simply
     appending the new `LogTx` to it.  (this will only work if we
     can ensure the order in which we write a map.)
+  - replace the `file` backend with `bolt` (or `sqlite`).  (both
+    would store the entire db in a single file, and would not require
+    workarounds as `file` does.)
 - mu api
     - iterators should support .Reverse
 - tests for transactions (is it usable for simple things already?)
