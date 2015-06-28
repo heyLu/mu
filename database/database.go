@@ -64,13 +64,14 @@ func (i *dbIndex) Datoms() index.Iterator {
 	return i.DatomsAt(index.MinDatom, index.MaxDatom)
 }
 
+func (i *dbIndex) SeekDatoms(start index.Datom) index.Iterator {
+	return i.DatomsAt(start, index.MaxDatom)
+}
+
 func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 	return withoutRetractions(i.index.DatomsAt(start, end))
 }
 
-func (i *dbIndex) SeekDatoms(start index.Datom) index.Iterator {
-	return i.DatomsAt(start, index.MaxDatom)
-}
 
 func (db *Db) BasisT() int { return db.basisT }
 func (db *Db) NextT() int  { return db.nextT }
