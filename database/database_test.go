@@ -8,16 +8,16 @@ import (
 )
 
 var datoms = []index.Datom{
-	index.NewDatom(10, 1, "Jane", 1000, true),
-	index.NewDatom(10, 2, 7, 1000, true),
-	index.NewDatom(11, 1, "Alice", 1001, true),
-	index.NewDatom(11, 2, 13, 1001, true),
-	index.NewDatom(12, 1, "Fred", 1002, true),
+	index.NewDatom(10, 1, "Jane", tToTx(1000), true),
+	index.NewDatom(10, 2, 7, tToTx(1000), true),
+	index.NewDatom(11, 1, "Alice", tToTx(1001), true),
+	index.NewDatom(11, 2, 13, tToTx(1001), true),
+	index.NewDatom(12, 1, "Fred", tToTx(1002), true),
 }
 
 var datoms2 = []index.Datom{
-	index.NewDatom(10, 1, "Jane", 1003, false),
-	index.NewDatom(10, 1, "Jane Lane", 1003, true),
+	index.NewDatom(10, 1, "Jane", tToTx(1003), false),
+	index.NewDatom(10, 1, "Jane Lane", tToTx(1003), true),
 }
 
 func TestEavtDatoms(t *testing.T) {
@@ -92,4 +92,8 @@ func expectDatom(t *testing.T, d1, d2 index.Datom) {
 	tu.ExpectEqual(t, d1.Value().Compare(d2.Value()), 0)
 	tu.ExpectEqual(t, d1.Transaction(), d2.Transaction())
 	tu.ExpectEqual(t, d1.Added(), d2.Added())
+}
+
+func tToTx(t int) int {
+	return 3*(1<<42) + t
 }
