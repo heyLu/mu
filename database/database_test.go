@@ -15,15 +15,39 @@ var datoms = []index.Datom{
 	index.NewDatom(12, 1, "Fred", 1002, true),
 }
 
+var datoms2 = []index.Datom{
+	index.NewDatom(10, 1, "Jane", 1003, false),
+	index.NewDatom(10, 1, "Jane Lane", 1003, true),
+}
+
 func TestEavtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, datoms, db.Eavt().Datoms())
+}
+
+func TestEavtDatomsWithRetractions(t *testing.T) {
+	db := Empty.WithDatoms(datoms).WithDatoms(datoms2)
+
+	expectIter(t,
+		append([]index.Datom{datoms2[1]}, datoms[1:]...),
+		db.Eavt().Datoms())
 }
 
 func TestAevtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, []index.Datom{
 		datoms[0],
+		datoms[2],
+		datoms[4],
+		datoms[1],
+		datoms[3],
+	}, db.Aevt().Datoms())
+}
+
+func TestAevtDatomsWithRetractions(t *testing.T) {
+	db := Empty.WithDatoms(datoms).WithDatoms(datoms2)
+	expectIter(t, []index.Datom{
+		datoms2[1],
 		datoms[2],
 		datoms[4],
 		datoms[1],
