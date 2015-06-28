@@ -129,7 +129,7 @@ func CompareEavtIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
-	return tData.transactions[idx] - datom.transaction
+	return datom.transaction - tData.transactions[idx]
 }
 
 func CompareAevtIndex(tData TransposedData, idx int, datom Datom) int {
@@ -149,7 +149,7 @@ func CompareAevtIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
-	return tData.transactions[idx] - datom.transaction
+	return datom.transaction - tData.transactions[idx]
 }
 
 func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
@@ -169,7 +169,7 @@ func CompareAvetIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
-	return tData.transactions[idx] - datom.transaction
+	return datom.transaction - tData.transactions[idx]
 }
 
 func CompareVaetIndex(tData TransposedData, idx int, datom Datom) int {
@@ -189,7 +189,7 @@ func CompareVaetIndex(tData TransposedData, idx int, datom Datom) int {
 		return cmp
 	}
 
-	return tData.transactions[idx] - datom.transaction
+	return datom.transaction - tData.transactions[idx]
 }
 
 // Find finds the closest (first) datom that is greater or equal to `datom`.
