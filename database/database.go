@@ -34,7 +34,7 @@ func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 		basisT:         0,
 		nextT:          1000,
 		useHistory:     false,
-		since:          0,
+		since:          -1,
 		attributeCache: make(map[int]Attribute, 100)}
 }
 
