@@ -33,6 +33,27 @@ func TestEavtDatomsWithRetractions(t *testing.T) {
 		db.Eavt().Datoms())
 }
 
+func TestEavtDatomsHistory(t *testing.T) {
+	db := Empty.WithDatoms(datoms).WithDatoms(datoms2)
+	historyDb := db.History()
+
+	// ensure the original db wasn't changed
+	tu.ExpectEqual(t, db.useHistory, false)
+	expectIter(t,
+		append([]index.Datom{datoms2[1]}, datoms[1:]...),
+		db.Eavt().Datoms())
+
+	// check that the history db contains all datoms (including retractions)
+	tu.ExpectEqual(t, historyDb.useHistory, true)
+	expectIter(t,
+		append([]index.Datom{
+			datoms2[0],
+			datoms[0],
+			datoms2[1],
+		}, datoms[1:]...),
+		historyDb.Eavt().Datoms())
+}
+
 func TestAevtDatoms(t *testing.T) {
 	db := Empty.WithDatoms(datoms)
 	expectIter(t, []index.Datom{

@@ -14,6 +14,7 @@ type Db struct {
 	vaet           *index.MergedIndex
 	basisT         int
 	nextT          int
+	useHistory     bool
 	attributeCache map[int]Attribute
 }
 
@@ -31,6 +32,7 @@ func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 		vaet:           vaet,
 		basisT:         0,
 		nextT:          1000,
+		useHistory:     false,
 		attributeCache: make(map[int]Attribute, 100)}
 }
 
@@ -69,9 +71,18 @@ func (i *dbIndex) SeekDatoms(start index.Datom) index.Iterator {
 }
 
 func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
-	return withoutRetractions(i.index.DatomsAt(start, end))
+	iter := i.index.DatomsAt(start, end)
+	if !i.db.useHistory {
+		iter = withoutRetractions(iter)
+	}
+	return iter
 }
 
+func (db *Db) History() *Db {
+	newDb := *db
+	newDb.useHistory = true
+	return &newDb
+}
 
 func (db *Db) BasisT() int { return db.basisT }
 func (db *Db) NextT() int  { return db.nextT }
