@@ -35,7 +35,11 @@ func SegmentWriteHandler(w *fressian.Writer, val interface{}) error {
 	case Root:
 		return w.WriteExt("index-root-node", val.tData, val.directories)
 	case TransposedData:
-		return w.WriteExt("index-tdata", val.values, val.entities, val.attributes, val.transactions, val.addeds)
+		transactions := make([]int, len(val.transactions))
+		for i, tx := range val.transactions {
+			transactions[i] = tx % (3 * (1 << 42))
+		}
+		return w.WriteExt("index-tdata", val.values, val.entities, val.attributes, transactions, val.addeds)
 	default:
 		return fressian.DefaultHandler(w, val)
 	}
@@ -61,11 +65,15 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 		as, _ := r.ReadValue()
 		txs, _ := r.ReadValue()
 		addeds, _ := r.ReadValue()
+		transactions := make([]int, len(txs.([]int)))
+		for i, tx := range txs.([]int) {
+			transactions[i] = 3*(1<<42) + tx
+		}
 		return TransposedData{
 			entities:     es.([]int),
 			attributes:   as.([]int),
 			values:       vs.([]interface{}),
-			transactions: txs.([]int),
+			transactions: transactions,
 			addeds:       addeds.([]bool),
 		}
 	},
@@ -236,7 +244,7 @@ func (t TransposedData) DatomAt(idx int) Datom {
 		attribute: t.attributes[idx],
 		// FIXME [perf]: check if NewValue is a problem, think about avoiding
 		value:       NewValue(t.values[idx]),
-		transaction: 3*(1<<42) + t.transactions[idx],
+		transaction: t.transactions[idx],
 		added:       t.addeds[idx],
 	}
 }
