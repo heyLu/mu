@@ -15,6 +15,7 @@ type Db struct {
 	basisT         int
 	nextT          int
 	useHistory     bool
+	asOf           int
 	since          int
 	attributeCache map[int]Attribute
 }
@@ -34,6 +35,7 @@ func New(eavt, aevt, avet, vaet *index.MergedIndex) *Db {
 		basisT:         0,
 		nextT:          1000,
 		useHistory:     false,
+		asOf:           -1,
 		since:          -1,
 		attributeCache: make(map[int]Attribute, 100)}
 }
@@ -80,6 +82,12 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 			return datom.Tx() >= minTx
 		})
 	}
+	if i.db.asOf != -1 {
+		maxTx := 3*(1<<42) + i.db.asOf
+		iter = index.FilterIterator(iter, func(datom *index.Datom) bool {
+			return datom.Tx() <= maxTx
+		})
+	}
 	if !i.db.useHistory {
 		iter = withoutRetractions(iter)
 	}
@@ -89,6 +97,12 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 func (db *Db) History() *Db {
 	newDb := *db
 	newDb.useHistory = true
+	return &newDb
+}
+
+func (db *Db) AsOf(t int) *Db {
+	newDb := *db
+	newDb.asOf = t
 	return &newDb
 }
 
