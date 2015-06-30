@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,12 +13,14 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	flag.Parse()
+
+	if flag.NArg() < 1 {
 		fmt.Printf("Usage: %s <url>\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	conn, err := mu.Connect(os.Args[1])
+	conn, err := mu.Connect(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,8 +28,8 @@ func main() {
 	db := conn.Db()
 
 	cmd := "eavt"
-	if len(os.Args) >= 3 {
-		cmd = os.Args[2]
+	if flag.NArg() >= 2 {
+		cmd = flag.Arg(1)
 	}
 
 	switch cmd {
@@ -34,7 +37,7 @@ func main() {
 		printDatoms(getIndex(db, cmd).Datoms())
 
 	case "create-database":
-		isNew, err := mu.CreateDatabase(os.Args[1])
+		isNew, err := mu.CreateDatabase(flag.Arg(0))
 		if err != nil {
 			log.Fatal("create-database: ", err)
 		}
@@ -50,11 +53,11 @@ func main() {
 		fmt.Println("nextT:", db.NextT())
 
 	case "datoms":
-		if len(os.Args) < 4 {
+		if flag.NArg() < 3 {
 			log.Fatal("missing datoms pattern")
 		}
 
-		iter, err := mu.DatomsString(db, os.Args[3])
+		iter, err := mu.DatomsString(db, flag.Arg(2))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -64,11 +67,11 @@ func main() {
 		}
 
 	case "entity":
-		if len(os.Args) < 4 {
+		if flag.NArg() < 3 {
 			log.Fatal("missing entity id")
 		}
 
-		lookup, err := transactor.HasLookupFromEDN(os.Args[3])
+		lookup, err := transactor.HasLookupFromEDN(flag.Arg(2))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,11 +87,11 @@ func main() {
 		}
 
 	case "transact":
-		if len(os.Args) < 4 {
+		if flag.NArg() < 3 {
 			log.Fatal("Missing tx data")
 		}
 
-		for _, arg := range os.Args[3:] {
+		for _, arg := range flag.Args()[2:] {
 			txRes, err := mu.TransactString(conn, arg)
 			if err != nil {
 				log.Fatal(err)
