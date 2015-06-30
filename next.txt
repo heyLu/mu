@@ -16,10 +16,6 @@
     - index  (sort order, iterator "bounds")
     - connection  (fails if not existing, multiple dbs, values
       persisted)
-  - `db.AsOf(...)`
-  - `mu.EntidAt(...)`  (maybe as `EntidAtT`, `EntidAtTime` and
-    `EntidAtTx` variants?  although an interface would be
-    preferred, but that would only be possible via wrapping.)
   - indexing  (the log tail just growing bigger doesn't seem so nice)
   - use it somewhere ...  (maybe something to replace pinboard with?)
   - the log could be written without parsing it again, by simply
