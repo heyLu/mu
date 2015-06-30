@@ -3,6 +3,7 @@ package database
 import (
 	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
+	"time"
 
 	"github.com/heyLu/mu/index"
 )
@@ -78,6 +79,26 @@ func TestEavtDatomsAsOf(t *testing.T) {
 	// check that the as of db only contains the datom from 1001 and earlier
 	tu.ExpectEqual(t, asOfDb.AsOfT(), 1001)
 	expectIter(t, datoms[0:4], asOfDb.Eavt().Datoms())
+}
+
+func TestTAtTime(t *testing.T) {
+	dbTxInstant := 50
+	db := Empty.WithDatoms([]index.Datom{
+		index.NewDatom(0, dbTxInstant, time.Unix(0, 0), tToTx(1000), true),
+		index.NewDatom(0, dbTxInstant, time.Unix(100, 0), tToTx(1001), true),
+		index.NewDatom(0, dbTxInstant, time.Unix(10000, 0), tToTx(1002), true),
+	})
+	db.nextT = 1003
+
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(-1, 0)), 1000)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(0, 0)), 1000)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(1, 0)), 1001)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(100, 0)), 1001)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(101, 0)), 1002)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(9999, 0)), 1002)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(10000, 0)), 1002)
+	tu.ExpectEqual(t, db.tAtTime(time.Unix(10001, 0)), db.NextT())
+	tu.ExpectEqual(t, db.tAtTime(time.Now()), db.NextT())
 }
 
 func TestEavtDatomsFilter(t *testing.T) {

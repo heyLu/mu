@@ -3,6 +3,7 @@ package database
 import (
 	"github.com/heyLu/fressian"
 	"log"
+	"time"
 
 	"github.com/heyLu/mu/index"
 )
@@ -147,6 +148,20 @@ func (db *Db) Filter(filter Filter) *Db {
 
 func (db *Db) IsFiltered() bool {
 	return db.filter != nil
+}
+
+const dbTxInstant = 50
+
+func (db *Db) tAtTime(t time.Time) int {
+	iter := db.Avet().DatomsAt(
+		index.NewDatom(index.MinDatom.E(), dbTxInstant, t, index.MaxDatom.Tx(), true),
+		index.NewDatom(index.MaxDatom.E(), dbTxInstant, index.MaxValue, index.MinDatom.Tx(), true))
+	datom := iter.Next()
+	if datom == nil {
+		return db.NextT()
+	} else {
+		return datom.Tx() % (3 * (1 << 42))
+	}
 }
 
 func (db *Db) BasisT() int { return db.basisT }
