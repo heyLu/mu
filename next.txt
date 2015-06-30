@@ -24,6 +24,12 @@
   - replace the `file` backend with `bolt` (or `sqlite`).  (both
     would store the entire db in a single file, and would not require
     workarounds as `file` does.)
+  - a better api for iterating over indexes
+    - iterators are cumbersome to create, they always need full
+      datoms as input, a kind of flexibility that we don't always
+      need
+    - also, ensure that the sorting changes (highest tx first) did
+      not produce problems elsewhere
 - mu api
     - iterators should support .Reverse
 - tests for transactions (is it usable for simple things already?)
