@@ -158,6 +158,17 @@ func (db *Db) IsFiltered() bool {
 	return db.filter != nil
 }
 
+func (db *Db) EntidAt(part HasLookup, t int) int {
+	partId, err := part.Lookup(db)
+	if err != nil {
+		// FIXME: panic instead?
+		return -1
+	}
+
+	// FIXME: disallow values which are neither t values nor tx ids
+	return partId*(1<<42) + (t % (3 * (1 << 42)))
+}
+
 const dbTxInstant = 50
 
 // tAtTime returns the t of the transaction whose txInstant is "closest"

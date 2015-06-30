@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/heyLu/fressian"
 	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
 	"time"
@@ -160,6 +161,20 @@ func TestAevtDatomsWithRetractions(t *testing.T) {
 		datoms[1],
 		datoms[3],
 	}, db.Aevt().Datoms())
+}
+
+func TestEntidAt(t *testing.T) {
+	dbIdent := 10
+	db := Empty.WithDatoms([]index.Datom{
+		index.NewDatom(3, dbIdent, fressian.Keyword{"db.part", "tx"}, tToTx(0), true),
+		index.NewDatom(4, dbIdent, fressian.Keyword{"db.part", "user"}, tToTx(0), true),
+	})
+
+	tu.ExpectEqual(t, db.EntidAt(Id(5), 1000), -1)
+	tu.ExpectEqual(t, db.EntidAt(Id(3), 1000), 13194139534312)
+	tu.ExpectEqual(t, db.EntidAt(Id(3), 13194139534312), 13194139534312)
+	tu.ExpectEqual(t, db.EntidAt(Id(4), 1000), 17592186045416)
+	tu.ExpectEqual(t, db.EntidAt(Id(4), 13194139534312), 17592186045416)
 }
 
 func expectIter(t *testing.T, expected []index.Datom, iter index.Iterator) {
