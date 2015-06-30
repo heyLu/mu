@@ -13,13 +13,15 @@ import (
 )
 
 var config struct {
-	asOf  int
-	since int
+	asOf       int
+	since      int
+	useHistory bool
 }
 
 func main() {
 	flag.IntVar(&config.asOf, "asof", -1, "the t of the database to go back to (-1 means current)")
 	flag.IntVar(&config.since, "since", -1, "the t of the database to begin")
+	flag.BoolVar(&config.useHistory, "history", false, "whether to include the history")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -38,6 +40,9 @@ func main() {
 	}
 	if config.since != -1 {
 		db = db.Since(config.since)
+	}
+	if config.useHistory {
+		db = db.History()
 	}
 
 	cmd := "eavt"
