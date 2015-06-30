@@ -12,7 +12,14 @@ import (
 	"github.com/heyLu/mu/transactor"
 )
 
+var config struct {
+	asOf  int
+	since int
+}
+
 func main() {
+	flag.IntVar(&config.asOf, "asof", -1, "the t of the database to go back to (-1 means current)")
+	flag.IntVar(&config.since, "since", -1, "the t of the database to begin")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -26,6 +33,12 @@ func main() {
 	}
 
 	db := conn.Db()
+	if config.asOf != -1 {
+		db = db.AsOf(config.asOf)
+	}
+	if config.since != -1 {
+		db = db.Since(config.since)
+	}
 
 	cmd := "eavt"
 	if flag.NArg() >= 2 {
