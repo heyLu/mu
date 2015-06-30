@@ -152,6 +152,13 @@ func (db *Db) IsFiltered() bool {
 
 const dbTxInstant = 50
 
+// tAtTime returns the t of the transaction whose txInstant is "closest"
+// to the time.
+//
+// If the time is smaller than the txInstant of the first transaction,
+// it returns the t of the first transaction.  If the time is between
+// two transactions, it returns the later one.  If the time after any
+// transaction, it returns db.NextT().
 func (db *Db) tAtTime(t time.Time) int {
 	iter := db.Avet().DatomsAt(
 		index.NewDatom(index.MinDatom.E(), dbTxInstant, t, index.MaxDatom.Tx(), true),
