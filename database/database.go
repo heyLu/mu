@@ -115,7 +115,7 @@ func (db *Db) History() *Db {
 
 func (db *Db) AsOf(t int) *Db {
 	newDb := *db
-	newDb.asOf = t
+	newDb.asOf = t % (3 * (1 << 42))
 	return &newDb
 }
 
@@ -129,7 +129,7 @@ func (db *Db) AsOfT() int {
 
 func (db *Db) Since(t int) *Db {
 	newDb := *db
-	newDb.since = t
+	newDb.since = t % (3 * (1 << 42))
 	return &newDb
 }
 

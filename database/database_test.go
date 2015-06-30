@@ -66,6 +66,10 @@ func TestEavtDatomsSince(t *testing.T) {
 	// check that the since db contains the datoms since 1001
 	tu.ExpectEqual(t, sinceDb.SinceT(), 1001)
 	expectIter(t, datoms[2:], sinceDb.Eavt().Datoms())
+
+	// check that transaction ids also work
+	sinceDb = db.Since(tToTx(1001))
+	tu.ExpectEqual(t, sinceDb.SinceT(), 1001)
 }
 
 func TestEavtDatomsAsOf(t *testing.T) {
@@ -79,6 +83,10 @@ func TestEavtDatomsAsOf(t *testing.T) {
 	// check that the as of db only contains the datom from 1001 and earlier
 	tu.ExpectEqual(t, asOfDb.AsOfT(), 1001)
 	expectIter(t, datoms[0:4], asOfDb.Eavt().Datoms())
+
+	// check that transaction ids also work
+	asOfDb = db.AsOf(tToTx(1001))
+	tu.ExpectEqual(t, asOfDb.AsOfT(), 1001)
 }
 
 func TestTAtTime(t *testing.T) {
