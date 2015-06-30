@@ -163,6 +163,19 @@ func TestSlice(t *testing.T) {
 	}
 }
 
+func TestSliceStart(t *testing.T) {
+	set := NewComparable()
+	for _, i := range []int{0, 5, 10, 100, 1000} {
+		set = set.Conj(c.Int(i))
+	}
+
+	iter := Slice(set, c.Int(0), c.Int(1000))
+	tu.ExpectEqual(t, iter.First(), c.Int(0))
+
+	iter = Slice(set, c.Int(1), c.Int(1000))
+	tu.ExpectEqual(t, iter.First(), c.Int(5))
+}
+
 func BenchmarkConj(b *testing.B) {
 	set := NewComparable()
 	for i := 0; i < b.N; i++ {
