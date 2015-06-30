@@ -169,6 +169,10 @@ func (db *Db) EntidAt(part HasLookup, t int) int {
 	return partId*(1<<42) + (t % (3 * (1 << 42)))
 }
 
+func (db *Db) EntidAtTime(part HasLookup, t time.Time) int {
+	return db.EntidAt(part, db.tAtTime(t))
+}
+
 const dbTxInstant = 50
 
 // tAtTime returns the t of the transaction whose txInstant is "closest"

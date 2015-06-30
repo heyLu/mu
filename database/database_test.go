@@ -177,6 +177,24 @@ func TestEntidAt(t *testing.T) {
 	tu.ExpectEqual(t, db.EntidAt(Id(4), 13194139534312), 17592186045416)
 }
 
+func TestEntidAtTime(t *testing.T) {
+	dbIdent := 10
+	dbTxInstant := 50
+	db := Empty.WithDatoms([]index.Datom{
+		index.NewDatom(3, dbIdent, fressian.Keyword{"db.part", "tx"}, tToTx(0), true),
+		index.NewDatom(4, dbIdent, fressian.Keyword{"db.part", "user"}, tToTx(0), true),
+		index.NewDatom(0, dbTxInstant, time.Unix(0, 0), tToTx(1000), true),
+		index.NewDatom(0, dbTxInstant, time.Unix(100, 0), tToTx(1001), true),
+	})
+	db.nextT = 1002
+
+	tu.ExpectEqual(t, db.EntidAtTime(Id(3), time.Unix(-1, 0)), 13194139534312)
+	tu.ExpectEqual(t, db.EntidAtTime(Id(3), time.Unix(0, 0)), 13194139534312)
+	tu.ExpectEqual(t, db.EntidAtTime(Id(3), time.Unix(1, 0)), 13194139534313)
+	tu.ExpectEqual(t, db.EntidAtTime(Id(3), time.Unix(100, 0)), 13194139534313)
+	tu.ExpectEqual(t, db.EntidAtTime(Id(3), time.Unix(101, 0)), db.EntidAt(Id(3), db.NextT()))
+}
+
 func expectIter(t *testing.T, expected []index.Datom, iter index.Iterator) {
 	i := 0
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
