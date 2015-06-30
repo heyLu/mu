@@ -27,7 +27,7 @@ func (l Log) WithTx(tx *LogTx) *Log {
 }
 
 type LogTx struct {
-	Id     string
+	Id     fressian.UUID
 	T      int
 	Datoms []index.Datom
 }
@@ -42,7 +42,7 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 	txs := make([]LogTx, len(tail))
 	for i, txRaw := range tail {
 		tx := txRaw.(map[interface{}]interface{})
-		id := tx[fressian.Keyword{"", "id"}].(string)
+		id := tx[fressian.Keyword{"", "id"}].(fressian.UUID)
 		t := tx[fressian.Keyword{"", "t"}].(int)
 		dataRaw := tx[fressian.Keyword{"", "data"}].([]interface{})
 		data := make([]index.Datom, len(dataRaw))
@@ -75,7 +75,7 @@ var ReadHandlers = map[string]fressian.ReadHandler{
 
 func NewTx(t int, datoms []index.Datom) *LogTx {
 	return &LogTx{
-		Id:     Squuid().String(),
+		Id:     Squuid(),
 		T:      t,
 		Datoms: datoms,
 	}
