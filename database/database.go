@@ -119,6 +119,10 @@ func (db *Db) AsOf(t int) *Db {
 	return &newDb
 }
 
+func (db *Db) AsOfTime(t time.Time) *Db {
+	return db.AsOf(db.tAtTime(t))
+}
+
 func (db *Db) AsOfT() int {
 	return db.asOf
 }
@@ -127,6 +131,10 @@ func (db *Db) Since(t int) *Db {
 	newDb := *db
 	newDb.since = t
 	return &newDb
+}
+
+func (db *Db) SinceTime(t time.Time) *Db {
+	return db.Since(db.tAtTime(t))
 }
 
 func (db *Db) SinceT() int {
