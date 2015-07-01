@@ -119,8 +119,7 @@ In no particular order:
     that I was already familar with it and have recently written a few
     smallish applications in it.
 
-    Alternative languages I've considered writing it in are Rust and
-    Ocaml, but I'm not familar to use either of those while also
-    figuring out how to write `mu` itself.  Aside from that, the
-    only reason would be to support access to the API from C via a
-    FFI interface.
+    Alternative languages I've considered using are Rust and Ocaml,
+    but I'm not familar to use either of those while also figuring out
+    how to write `mu` itself.  Aside from that, the main benefit would
+    be to support access to the API from C via a FFI interface.
