@@ -7,8 +7,7 @@ up your data.  It is part research project, part utility in use at
 give feedback), but don't expect that it won't mess up things.*
 
 `mu` is a database that stores tuples, with a lightweight schema mechanism
-and a design that will support custom query languages and immutable storage
-in the future.
+and a design that will support a powerful query language in the future.
 
 It is inspired by [Datomic](http://datomic.com) and [DataScript](https://github.com/tonsky/datascript)
 and follows Datomic's API closely.
@@ -103,7 +102,7 @@ In no particular order:
 
     However, if you are in a situation where you would want to use
     something like sqlite, but want "more" (indexes, flexible schema,
-    api, and in the future, history and powerful queries), then you
+    api, history, and in the future, powerful queries), then you
     might want to have a closer look.
 
     For now, you don't want to use it with large data sets, or anything
