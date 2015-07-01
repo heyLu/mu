@@ -67,6 +67,7 @@ Thanks for your interest!  Please take the following things into consideration:
 - some areas for improvements:
     - compatibility with Datomic's API
     - documentation and examples
+    - extensive testing
     - performance
 
 `mu` is currently distributed under the [`MIT` license](./LICENSE).  By
