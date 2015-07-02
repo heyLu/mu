@@ -42,7 +42,16 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 	txs := make([]LogTx, len(tail))
 	for i, txRaw := range tail {
 		tx := txRaw.(map[interface{}]interface{})
-		id := tx[fressian.Keyword{"", "id"}].(fressian.UUID)
+		var id *fressian.UUID
+		// FIXME: remove this as soon as possible
+		switch rawId := tx[fressian.Keyword{"", "id"}].(type) {
+		case fressian.UUID:
+			*id = rawId
+		case string:
+			id, _ = fressian.NewUUIDFromString(rawId)
+		default:
+			log.Fatal("invalid log id: ", rawId)
+		}
 		t := tx[fressian.Keyword{"", "t"}].(int)
 		dataRaw := tx[fressian.Keyword{"", "data"}].([]interface{})
 		data := make([]index.Datom, len(dataRaw))
@@ -50,7 +59,7 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 			datom := datomRaw.(*index.Datom)
 			data[i] = *datom
 		}
-		txs[i] = LogTx{id, t, data}
+		txs[i] = LogTx{*id, t, data}
 	}
 	return &Log{store, logRootId, txs}
 }
