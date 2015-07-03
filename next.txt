@@ -30,6 +30,8 @@
       need
     - also, ensure that the sorting changes (highest tx first) did
       not produce problems elsewhere
+  - port pull api and query implementation from datascript, to get
+      to "feature completeness" sooner
 - mu api
     - iterators should support .Reverse
 - tests for transactions (is it usable for simple things already?)
