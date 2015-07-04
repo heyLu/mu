@@ -12,6 +12,7 @@ import (
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
 	"github.com/heyLu/mu/pattern"
+	"github.com/heyLu/mu/query"
 	"github.com/heyLu/mu/transactor"
 )
 
@@ -208,4 +209,8 @@ func PartStart(part int) int {
 
 func PartEnd(part int) int {
 	return (part + 1) * (1 << 42)
+}
+
+func Q(q query.Query, inputs ...interface{}) (interface{}, error) {
+	return query.Q(q, inputs...)
 }
