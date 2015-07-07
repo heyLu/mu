@@ -6,6 +6,29 @@ import (
 	"github.com/heyLu/mu/index"
 )
 
+// Inventing types ...
+//
+// getterFn :: Map Symbol Value -> Symbol -> (Tuple -> Value)
+// keyTupleFn :: [(Tuple -> Value)] -> (Tuple -> [Value])
+// hashJoin :: Rel -> Rel -> Rel
+// collapseRels :: [Rel] -> Rel -> [Rel]
+// lookupPatternColl :: [Tuple] -> Pattern
+//
+// now to the interesting stuff ...
+//
+// Tuple = [Value] (or a type that supports indexed access to Values)
+// Pattern = [PatternValue]
+// PatternValue = Symbol | Value | LookupRef
+//
+// It should be possible to use `index.Value` as Value, in fact, to
+// be able to compare values it's *required*, at least with the current
+// comparsion functions.
+//
+// However, because Go has no sum types (or union types), we either
+// have to invent an interface to support access, make it untyped
+// (via `interface{}`) or use an empty internal marker interface,
+// that we wrap values in when "parsing" the query.
+
 func intersectKeys(m1, m2 map[edn.Symbol]int) []edn.Symbol {
 	keys := make([]edn.Symbol, 0)
 	for k1, _ := range m1 {
