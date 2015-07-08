@@ -28,6 +28,9 @@ import (
 // have to invent an interface to support access, make it untyped
 // (via `interface{}`) or use an empty internal marker interface,
 // that we wrap values in when "parsing" the query.
+//
+// New problem: slices can't be map keys, but we need that for
+// hashAttrs, to be able to join on multiple attributes.
 
 type queryContext struct{}
 
@@ -48,6 +51,7 @@ func resolveClause(context queryContext, clause queryClause) queryContext {
 		// get pattern source from context
 		// "run" pattern against the db
 		// "join" resulting relation with the ones in the context
+		return queryContext{}
 	default:
 		panic("unknown clause type")
 	}
@@ -76,10 +80,10 @@ func relAttrsKeys(attrs map[edn.Symbol]int) []edn.Symbol {
 var lookupAttrs map[interface{}]bool
 var lookupSource interface{}
 
-func getterFn(attrs map[edn.Symbol]int, attr edn.Symbol) func([]value) value {
+func getterFn(attrs map[edn.Symbol]int, attr edn.Symbol) func(tuple) value {
 	idx := attrs[attr]
 	if _, ok := lookupAttrs[attr]; ok {
-		return func(tuple []value) value {
+		return func(tuple tuple) value {
 			eid := tuple[idx]
 			if eid, ok := eid.(int); ok {
 				return eid
@@ -89,17 +93,17 @@ func getterFn(attrs map[edn.Symbol]int, attr edn.Symbol) func([]value) value {
 			}
 		}
 	} else {
-		return func(tuple []value) value {
+		return func(tuple tuple) value {
 			return tuple[idx]
 		}
 	}
 }
 
-func tupleKeyFn(getters ...func([]value) value) func([]value) []value {
+func tupleKeyFn(getters ...func(tuple) value) func(tuple) []value {
 	/*if len(getters) == 1 {
 		return getters[0]
 	} else {*/
-	return func(tuple []value) []value {
+	return func(tuple tuple) []value {
 		res := make([]value, len(getters))
 		for i, getter := range getters {
 			res[i] = getter(tuple)
@@ -109,15 +113,15 @@ func tupleKeyFn(getters ...func([]value) value) func([]value) []value {
 	//}
 }
 
-func hashAttrs(keyFn func([]interface{}) interface{}, tuples [][]interface{}) map[interface{}][]interface{} {
-	m := make(map[interface{}][]interface{}, 0)
+func hashAttrs(keyFn func(tuple) []value, tuples []tuple) map[[]value][]tuple {
+	m := make(map[[]value][]tuple, 0)
 	for _, tuple := range tuples {
 		key := keyFn(tuple)
 		vals, ok := m[key]
 		if ok {
 			m[key] = append(vals, key)
 		} else {
-			m[key] = []interface{}{key}
+			m[key] = []tuple{key}
 		}
 	}
 	return m
@@ -199,6 +203,8 @@ type pattern struct {
 	source edn.Symbol
 	values []value
 }
+
+type tuple []value
 
 type value interface{}
 
