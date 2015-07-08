@@ -29,6 +29,30 @@ import (
 // (via `interface{}`) or use an empty internal marker interface,
 // that we wrap values in when "parsing" the query.
 
+type queryContext struct{}
+
+// can be a pattern, rule invocation, predicate, fn w/ binding
+type queryClause interface{}
+
+type pattern struct {
+	source  edn.Symbol
+	pattern []patternValue
+}
+
+// can be a variable, placeholder, constant or lookup ref
+type patternValue interface{}
+
+func resolveClause(context queryContext, clause queryClause) queryContext {
+	switch clause := clause.(type) {
+	case pattern:
+		// get pattern source from context
+		// "run" pattern against the db
+		// "join" resulting relation with the ones in the context
+	default:
+		panic("unknown clause type")
+	}
+}
+
 func intersectKeys(m1, m2 map[edn.Symbol]int) []edn.Symbol {
 	keys := make([]edn.Symbol, 0)
 	for k1, _ := range m1 {
