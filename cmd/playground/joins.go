@@ -183,8 +183,7 @@ func newHashKey(vals []value) indexed {
 	case 2:
 		return key2{val1: vals[0], val2: vals[1]}
 	case 3:
-		return key3{val1: vals[0], val2: vals[1],
-			val3: vals[2]}
+		return key3{val1: vals[0], val2: vals[1], val3: vals[2]}
 	default:
 		panic("unsupported join arity")
 	}
