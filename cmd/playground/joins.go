@@ -4,23 +4,34 @@ import (
 	"fmt"
 )
 
+// indexed is an interface for values that support access to fields by
+// index.
 type indexed interface {
 	valueAt(idx int) value
 }
 
+// a tuple is an indexed collection of values.
 type tuple []value
 
 func (t tuple) valueAt(idx int) value { return t[idx] }
 
+// a value is any (scalar) value we support in queries.
 type value interface{}
 
+// a variable is a name for values to query for.
 type variable interface{}
 
+// a relation contains tuples which have values for a given set of
+// attributes.
+//
+// the relation knows at which indices the attribute values are stored
+// in the tuples.
 type relation struct {
 	attrs  map[variable]int
 	tuples []tuple
 }
 
+// getterFn returns a function that extracts the attribute from a tuple.
 func getterFn(attrs map[variable]int, attr variable) func(tuple) value {
 	idx := attrs[attr]
 	return func(tuple tuple) value {
@@ -28,6 +39,8 @@ func getterFn(attrs map[variable]int, attr variable) func(tuple) value {
 	}
 }
 
+// hashKeyFn returns a function that given a tuple returns the
+// values the getters return for it in a slice.
 func hashKeyFn(getters ...func(tuple) value) func(tuple) indexed {
 	return func(tuple tuple) indexed {
 		vals := make([]value, len(getters))
@@ -38,6 +51,7 @@ func hashKeyFn(getters ...func(tuple) value) func(tuple) indexed {
 	}
 }
 
+// hashAttrs groups the tuples using the key from KeyFn.
 func hashAttrs(keyFn func(tuple) indexed, tuples []tuple) map[indexed][]tuple {
 	m := make(map[indexed][]tuple, 0)
 	for _, tuple_ := range tuples {
@@ -51,6 +65,7 @@ func hashAttrs(keyFn func(tuple) indexed, tuples []tuple) map[indexed][]tuple {
 	return m
 }
 
+// intersectKeys returns a slice of keys that exist in both maps.
 func intersectKeys(attrs1, attrs2 map[variable]int) []variable {
 	keys := make([]variable, 0)
 	for attr1, _ := range attrs1 {
@@ -75,6 +90,8 @@ func joinTuples(tuple1 tuple, idxs1 []int, tuple2 tuple, idxs2 []int) tuple {
 	return newTuple
 }
 
+// hashJoin returns a new relation with tuples that are joined
+// based on the attributes common to both relations.
 func hashJoin(rel1, rel2 relation) relation {
 	// join on the attributes both have in common
 	commonAttrs := intersectKeys(rel1.attrs, rel2.attrs)
@@ -176,6 +193,8 @@ func main() {
 	}
 }
 
+// newHashKey returns a value implementing indexed that contains
+// the given values.
 func newHashKey(vals []value) indexed {
 	switch len(vals) {
 	case 1:
