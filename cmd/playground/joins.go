@@ -195,6 +195,10 @@ func main() {
 
 // newHashKey returns a value implementing indexed that contains
 // the given values.
+//
+// For now the maximum number of values supported is three.  This limit
+// is arbitrary and can easily be changed.  We will change it based on
+// how much joins queries need in practice.
 func newHashKey(vals []value) indexed {
 	switch len(vals) {
 	case 1:
