@@ -31,6 +31,14 @@ import (
 //
 // New problem: slices can't be map keys, but we need that for
 // hashAttrs, to be able to join on multiple attributes.
+//
+// Alternatives for slices as map keys
+//
+// - explicit structs for n-way joins (will fail when trying to
+//     join on too many attributes)
+// - use a different map implementation (which?  do they exist?)
+// - the really bad: convert value slice to a string
+// - or maybe avoid the map completely
 
 type queryContext struct{}
 
