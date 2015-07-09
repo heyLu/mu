@@ -118,7 +118,18 @@ func hashJoin(rel1, rel2 relation) relation {
 			}
 		}
 	}
-	return relation{}
+	// return the new relation
+	newAttrs := make(map[variable]int, 0)
+	i = 0
+	for _, attr := range keepAttrs1 {
+		newAttrs[attr] = i
+		i += 1
+	}
+	for _, attr := range keepAttrs2 {
+		newAttrs[attr] = i
+		i += 1
+	}
+	return relation{attrs: newAttrs, tuples: newTuples}
 }
 
 func main() {
