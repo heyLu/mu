@@ -63,8 +63,8 @@ func intersectKeys(attrs1, attrs2 map[variable]int) []variable {
 
 // joinTuples returns a new tuple with the values from tuple1 and tuple2 at indexes idxs1 and idxs2, respectively.
 func joinTuples(tuple1 tuple, idxs1 []int, tuple2 tuple, idxs2 []int) tuple {
-	l1 := len(tuple1)
-	l2 := len(tuple2)
+	l1 := len(idxs1)
+	l2 := len(idxs2)
 	newTuple := make(tuple, l1+l2)
 	for i, idx := range idxs1 {
 		newTuple[i] = tuple1.valueAt(idx)
