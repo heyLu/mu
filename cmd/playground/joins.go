@@ -13,13 +13,13 @@ func main() {
 	println(val)
 
 	println()
-	m := map[join3][]value{}
+	m := map[indexed][]value{}
 	println(m)
 }
 
-type join1 struct{ val1 value }
+type key1 struct{ val1 value }
 
-func (j join1) valueAt(idx int) value {
+func (j key1) valueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
@@ -28,9 +28,9 @@ func (j join1) valueAt(idx int) value {
 	}
 }
 
-type join2 struct{ val1, val2 value }
+type key2 struct{ val1, val2 value }
 
-func (j join2) valueAt(idx int) value {
+func (j key2) valueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
@@ -41,9 +41,9 @@ func (j join2) valueAt(idx int) value {
 	}
 }
 
-type join3 struct{ val1, val2, val3 value }
+type key3 struct{ val1, val2, val3 value }
 
-func (j join3) valueAt(idx int) value {
+func (j key3) valueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
