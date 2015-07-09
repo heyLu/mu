@@ -153,6 +153,27 @@ func main() {
 		fmt.Println(k)
 		fmt.Printf("  %v\n", v)
 	}
+
+	likesAttrs := map[variable]int{
+		"name":  0,
+		"likes": 1,
+	}
+	likesTuples := []tuple{
+		tuple{"Jane", "pancakes"},
+		tuple{"Alice", "the stars"},
+		tuple{"Fred", "Alice"},
+		tuple{"Fred", "Little Fred"},
+	}
+
+	namesAndAges := relation{attrs: attrs, tuples: tuples}
+	likes := relation{attrs: likesAttrs, tuples: likesTuples}
+	joined := hashJoin(namesAndAges, likes)
+
+	fmt.Println()
+	fmt.Println(joined.attrs)
+	for _, tuple := range joined.tuples {
+		fmt.Println(tuple)
+	}
 }
 
 func newHashKey(vals []value) indexed {
