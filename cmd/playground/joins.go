@@ -29,6 +29,19 @@ func hashKeyFn(getters ...func(tuple) value) func(tuple) indexed {
 	}
 }
 
+func hashAttrs(keyFn func(tuple) indexed, tuples []tuple) map[indexed][]tuple {
+	m := make(map[indexed][]tuple, 0)
+	for _, tuple_ := range tuples {
+		key := keyFn(tuple_)
+		if vals, ok := m[key]; ok {
+			m[key] = append(vals, tuple_)
+		} else {
+			m[key] = []tuple{tuple_}
+		}
+	}
+	return m
+}
+
 func main() {
 	var val value
 	val = 10
