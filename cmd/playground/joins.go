@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type indexed interface {
 	valueAt(idx int) value
 }
@@ -43,14 +47,26 @@ func hashAttrs(keyFn func(tuple) indexed, tuples []tuple) map[indexed][]tuple {
 }
 
 func main() {
-	var val value
-	val = 10
-	println("hi!")
-	println(val)
+	attrs := map[variable]int{
+		"name": 0,
+		"age":  1,
+	}
 
-	println()
-	m := map[indexed][]value{}
-	println(m)
+	tuples := []tuple{
+		tuple{"Jane", 13},
+		tuple{"Alice", 7},
+		tuple{"Fred", 3},
+	}
+
+	getName := getterFn(attrs, "name")
+	getAge := getterFn(attrs, "age")
+	getNameAndAge := hashKeyFn(getName, getAge)
+
+	hash := hashAttrs(getNameAndAge, tuples)
+	for k, v := range hash {
+		fmt.Println(k)
+		fmt.Printf("  %v\n", v)
+	}
 }
 
 func newHashKey(vals []value) indexed {
