@@ -41,6 +41,25 @@ type relation struct {
 	tuples []tuple
 }
 
+// a context contains the context of a running query.
+type context struct {
+	sources map[variable]source
+	rels    []relation
+}
+
+// a source contains the data that will be queried.
+type source interface{}
+
+// a clause selects data from a source.
+type clause interface{} // predicate, fn w/ binding, pattern, rule invocation
+
+// a patternClause is a clause that selects tuples that
+// match the pattern from a source.
+type patternClause struct {
+	source  variable
+	pattern pattern
+}
+
 // getterFn returns a function that extracts the attribute from a tuple.
 func getterFn(attrs map[variable]int, attr variable) func(tuple) value {
 	idx := attrs[attr]
@@ -221,6 +240,23 @@ func collapseRels(rels []relation, newRel relation) []relation {
 		}
 	}
 	return append(newRels, newRel)
+}
+
+// resolveClause returns a new context with relations filtered
+// according to the given clause.
+func resolveClause(context context, clause clause) context {
+	switch clause := clause.(type) {
+	case patternClause:
+		source := context.sources[clause.source]
+		relation := lookupPatternColl(source.([]tuple), clause.pattern)
+		newRels := collapseRels(context.rels, relation)
+
+		newContext := context
+		newContext.rels = newRels
+		return newContext
+	default:
+		panic("invalid clause type")
+	}
 }
 
 func main() {
