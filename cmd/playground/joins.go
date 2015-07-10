@@ -345,12 +345,15 @@ func main() {
 			},
 		},
 	}
-	clause := patternClause{
-		source:  newVar("$"),
-		pattern: pattern{newVar("name"), 13, newVar("likes")},
+	clauses := []clause{
+		patternClause{
+			source:  newVar("$"),
+			pattern: pattern{newVar("name"), 13, newVar("likes")},
+		},
 	}
-	newContext := resolveClause(context, clause)
-	for _, tuple := range newContext.rels[0].tuples {
+	newContext := query(context, clauses)
+	rel := newContext.rels[len(newContext.rels)-1]
+	for _, tuple := range rel.tuples {
 		fmt.Println(tuple)
 	}
 }
