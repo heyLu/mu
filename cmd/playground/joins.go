@@ -418,6 +418,38 @@ func main() {
 	for vals, _ := range res {
 		fmt.Println(vals)
 	}
+
+	ctx = context{
+		sources: map[variable]source{
+			newVar("$"): []tuple{
+				tuple{"Jane", 13},
+				tuple{"Alice", 7},
+				tuple{"Fred", 3},
+				tuple{"Little Fred", 1},
+				tuple{"Judy", 4},
+				tuple{"Jane", "Alice"},
+				tuple{"Jane", "Fred"},
+				tuple{"Little Fred", "Alice"},
+			},
+		},
+	}
+	clauses = []clause{
+		patternClause{
+			source:  newVar("$"),
+			pattern: pattern{"Jane", newVar("friend")},
+		},
+		patternClause{
+			source:  newVar("$"),
+			pattern: pattern{newVar("friend"), newVar("age")},
+		},
+	}
+	newCtx = query(ctx, clauses)
+	vars = []variable{newVar("age"), newVar("friend")}
+	fmt.Println(vars)
+	res = collect(newCtx, vars)
+	for vals, _ := range res {
+		fmt.Println(vals)
+	}
 }
 
 // newVar returns a new variable with the given name and namespace.
