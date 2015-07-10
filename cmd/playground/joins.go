@@ -224,6 +224,24 @@ func main() {
 	for _, tuple := range joined.tuples {
 		fmt.Println(tuple)
 	}
+
+	fmt.Println()
+	fmt.Println("7 years old, likes the stars")
+	age7LikesTheStars := pattern{newVar("name"), 7, "the stars"}
+	for _, tuple := range joined.tuples {
+		if matchesPattern(age7LikesTheStars, tuple) {
+			fmt.Println(tuple)
+		}
+	}
+
+	fmt.Println()
+	fmt.Println("3 years old")
+	age3 := pattern{newVar("name"), 3, newVar("likes")}
+	for _, tuple := range joined.tuples {
+		if matchesPattern(age3, tuple) {
+			fmt.Println(tuple)
+		}
+	}
 }
 
 // variable returns a new variable with the given name and namespace.
