@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 )
 
 // indexed is an interface for values that support access to fields by
@@ -201,12 +202,19 @@ func main() {
 	}
 
 	fmt.Println()
+	u1, _ := url.Parse("http://hel.o")
+	u2, _ := url.Parse("http://hel.o")
+	u3, _ := url.Parse("http://hel.lo")
+	u4, _ := url.Parse("http://hel.lo#yay")
 	vals := map[interface{}]interface{}{
 		3:      4,
 		1:      1,
 		4:      "hey",
 		"hey":  "ho",
 		"heya": "heya",
+		u1:     u2,
+		u3:     u4,
+		u4:     u3,
 	}
 	for k, v := range vals {
 		fmt.Printf("%v == %v: %t\n", k, v, hashEqual(k, v))
