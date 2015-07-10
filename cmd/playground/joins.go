@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 	"reflect"
 )
 
@@ -198,25 +197,6 @@ func main() {
 	fmt.Println(joined.attrs)
 	for _, tuple := range joined.tuples {
 		fmt.Println(tuple)
-	}
-
-	fmt.Println()
-	u1, _ := url.Parse("http://hel.o")
-	u2, _ := url.Parse("http://hel.o")
-	u3, _ := url.Parse("http://hel.lo")
-	u4, _ := url.Parse("http://hel.lo#yay")
-	vals := map[interface{}]interface{}{
-		3:      4,
-		1:      1,
-		4:      "hey",
-		"hey":  "ho",
-		"heya": "heya",
-		u1:     u2,
-		u3:     u4,
-		u4:     u3,
-	}
-	for k, v := range vals {
-		fmt.Printf("%v == %v: %t\n", k, v, hashEqual(k, v))
 	}
 }
 
