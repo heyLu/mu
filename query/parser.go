@@ -58,13 +58,11 @@ func parsePlaceholder(form interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-type variable struct {
-	name edn.Symbol
-}
+//type variable edn.Symbol
 
 func parseVariable(form interface{}) (interface{}, error) {
 	if sym, ok := form.(edn.Symbol); ok && sym.Name[0] == '?' {
-		return variable{name: sym}, nil
+		return variable(sym), nil
 	}
 	return nil, nil
 }
@@ -177,10 +175,10 @@ func (rv ruleVars) flatten() []edn.Symbol {
 	numRequired := len(rv.required)
 	vars := make([]edn.Symbol, numRequired+len(rv.free))
 	for i, v := range rv.required {
-		vars[i] = v.name
+		vars[i] = edn.Symbol(v)
 	}
 	for i, v := range rv.free {
-		vars[numRequired+i] = v.name
+		vars[numRequired+i] = edn.Symbol(v)
 	}
 	return vars
 }
@@ -337,7 +335,7 @@ type findVars interface {
 }
 
 func (v variable) findVars() []edn.Symbol {
-	return []edn.Symbol{v.name}
+	return []edn.Symbol{edn.Symbol(v)}
 }
 
 // TODO Aggregate
@@ -552,7 +550,7 @@ func takeSource(form interface{}) (*srcVar, interface{}) {
 	}
 }
 
-type pattern struct {
+type pattern_ struct {
 	source  srcVar
 	pattern []interface{} // placeholder, variable or constant
 }
@@ -572,7 +570,7 @@ func parsePattern(form interface{}) (interface{}, error) {
 		return nil, fmt.Errorf("empty pattern")
 	}
 
-	return pattern{source: *source, pattern: patternRaw.([]interface{})}, nil
+	return pattern_{source: *source, pattern: patternRaw.([]interface{})}, nil
 }
 
 func parseCall(form interface{}) (interface{}, interface{}) {
