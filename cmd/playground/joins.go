@@ -21,6 +21,13 @@ func (t tuple) valueAt(idx int) value { return t[idx] }
 // a value is any (scalar) value we support in queries.
 type value interface{}
 
+// a pattern is a tuple of variables, placeholders and values.
+type pattern []patternValue
+
+// a patternValue is either a variable, a placeholder or a
+// value (constant).
+type patternValue interface{}
+
 // a variable is a name for values to query for.
 type variable edn.Symbol
 
@@ -156,6 +163,23 @@ func hashJoin(rel1, rel2 relation) relation {
 func hashEqual(a, b interface{}) bool {
 	// TODO: benchmark this, check if map-based comparison is faster
 	return reflect.DeepEqual(a, b)
+}
+
+// matchesPattern checks if the given tuple matches the pattern.
+//
+// A tuple matches a pattern if the constants in the same positions
+// equal.  (I.e. variable in the pattern are ignored.)
+func matchesPattern(pattern pattern, tuple tuple) bool {
+	i := 0
+	for i < len(pattern) && i < len(tuple) {
+		p := pattern[i]
+		t := tuple[i]
+		if _, isVar := p.(variable); !isVar && !hashEqual(p, t) {
+			return false
+		}
+		i += 1
+	}
+	return true
 }
 
 func main() {
