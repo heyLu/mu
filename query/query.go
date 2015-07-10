@@ -45,252 +45,171 @@ package query
 // Onwards!
 
 import (
-	"github.com/heyLu/edn"
 	"reflect"
 
-	"github.com/heyLu/mu/database"
+	"github.com/heyLu/edn"
 )
 
-/// Utilities
-
-func intersectKeys(m1, m2 map[interface{}]int) []interface{} {
-	keys := make([]interface{}, 0)
-	for k1, _ := range m1 {
-		if _, ok := m2[k1]; ok {
-			keys = append(keys, k1)
-		}
-	}
-	return keys
+// indexed is an interface for values that support access to fields by
+// index.
+type indexed interface {
+	valueAt(idx int) value
 }
 
-// TODO concatv
+// a tuple is an indexed collection of values.
+type tuple []value
 
-// TODO looks-like?
+func (t tuple) valueAt(idx int) value { return t[idx] }
 
-func isSource(sym interface{}) bool {
-	if sym, ok := sym.(edn.Symbol); ok {
-		return sym.Name[0] == '$'
-	}
-	return false
-}
+// a value is any (scalar) value we support in queries.
+type value interface{}
 
-func isFreeVar(sym interface{}) bool {
-	if sym, ok := sym.(edn.Symbol); ok {
-		return sym.Name[0] == '?'
-	}
-	return false
-}
+// a pattern is a tuple of variables, placeholders and values.
+type pattern []patternValue
 
-func isAttr(form interface{}) bool {
-	_, ok := form.(database.Keyword)
-	return ok
-}
+// a patternValue is either a variable, a placeholder or a
+// value (constant).
+type patternValue interface{}
 
-func isLookupRef(form interface{}) bool {
-	_, ok := form.(database.HasLookup)
-	return ok
-}
+// a variable is a name for values to query for.
+type variable edn.Symbol
 
-/// Relation algebra
-
-type relation struct {
-	attrs  map[interface{}]int
-	tuples [][]interface{}
-}
-
-// joinTuples selects values at indices ids1 and ids2 in tuples1 and tuples2.
+// a relation contains tuples which have values for a given set of
+// attributes.
 //
-// Returns a slice with the values in the order specified by ids1, ids2.
-func joinTuples(tuples1 []interface{}, ids1 []int, tuples2 []interface{}, ids2 []int) []interface{} {
-	l1 := len(ids1)
-	l2 := len(ids2)
-	res := make([]interface{}, l1+l2)
-
-	for i := 0; i < l1; i++ {
-		res[i] = tuples1[ids1[i]]
-	}
-
-	for i := 0; i < l2; i++ {
-		res[l1+i] = tuples2[ids2[i]]
-	}
-
-	return res
+// the relation knows at which indices the attribute values are stored
+// in the tuples.
+type relation struct {
+	attrs  map[variable]int
+	tuples []tuple
 }
 
-// sumRel returns a new relation with attributes from a and tuples from both.
-func sumRel(a, b relation) relation {
-	return relation{
-		attrs:  a.attrs,
-		tuples: append(a.tuples, b.tuples...),
-	}
+// a context contains the context of a running query.
+type context struct {
+	sources map[variable]source
+	rels    []relation
 }
 
-// prodRel returns the product of the two relations
-func prodRel(rel1, rel2 relation) relation {
-	ids1 := relIds(rel1.attrs)
-	ids2 := relIds(rel2.attrs)
-	attrs := relConcatAttrs(rel1.attrs, rel2.attrs)
-	tuples := make([][]interface{}, 0)
-	for _, t1 := range rel1.tuples {
-		for _, t2 := range rel2.tuples {
-			tuples = append(tuples, joinTuples(t1, ids1, t2, ids2))
-		}
-	}
-	return relation{attrs: attrs, tuples: tuples}
+// a source contains the data that will be queried.
+type source interface{}
+
+// a clause selects data from a source.
+type clause interface{} // predicate, fn w/ binding, pattern, rule invocation
+
+// a patternClause is a clause that selects tuples that
+// match the pattern from a source.
+type patternClause struct {
+	source  variable
+	pattern pattern
 }
 
-func relIds(attrs map[interface{}]int) []int {
-	ids := make([]int, len(attrs))
-	i := 0
-	for _, v := range attrs {
-		ids[i] = v
-		i += 1
-	}
-	return ids
-}
-
-func relAttrsKeys(attrs map[interface{}]int) []interface{} {
-	keys := make([]interface{}, len(attrs))
-	i := 0
-	for k, _ := range attrs {
-		keys[i] = k
-		i += 1
-	}
-	return keys
-}
-
-func relConcatAttrs(attrs1, attrs2 map[interface{}]int) map[interface{}]int {
-	attrs := make(map[interface{}]int, len(attrs1)+len(attrs2))
-	i := 0
-	for k, _ := range attrs1 {
-		attrs[k] = i
-		i += 1
-	}
-	for k, _ := range attrs2 {
-		attrs[k] = i
-		i += 1
-	}
-	return attrs
-}
-
-/// Built-ins
-
-func differ(xs ...interface{}) bool {
-	l := len(xs)
-	// FIXME: should use index.Value#Compare here?
-	return reflect.DeepEqual(xs[0:(l/2)], xs[(l/2):])
-}
-
-// TODO getElse
-
-// TODO getSome
-
-// TODO isMissing
-
-var builtIns map[interface{}]func(xs []interface{}) interface{}
-
-// TODO builtInAggregates
-
-///
-
-// TODO parseRules
-
-func bindableToSeq(x interface{}) bool {
-	_, ok := x.([]interface{})
-	return ok
-}
-
-func emptyRel(binding interface{}) relation {
-	// FIXME: collect vars from binding, create rel with those as attributes
-	return relation{}
-}
-
-// TODO IBinding + impls
-
-// TODO resolveIns (should be done in parser?)
-
-var lookupAttrs map[interface{}]bool
-var lookupSource interface{}
-
-func getterFn(attrs map[interface{}]int, attr interface{}) func([]interface{}) interface{} {
+// getterFn returns a function that extracts the attribute from a tuple.
+func getterFn(attrs map[variable]int, attr variable) func(tuple) value {
 	idx := attrs[attr]
-	if _, ok := lookupAttrs[attr]; ok {
-		return func(tuple []interface{}) interface{} {
-			eid := tuple[idx]
-			if eid, ok := eid.(int); ok {
-				return eid
-			} else {
-				panic("not implemented")
-				return -1
-			}
-		}
-	} else {
-		return func(tuple []interface{}) interface{} {
-			return tuple[idx]
-		}
+	return func(tuple tuple) value {
+		return tuple.valueAt(idx)
 	}
 }
 
-func tupleKeyFn(getters ...func([]interface{}) interface{}) func([]interface{}) interface{} {
-	if len(getters) == 1 {
-		return getters[0]
-	} else {
-		return func(tuple []interface{}) interface{} {
-			res := make([]interface{}, len(getters))
-			for i, getter := range getters {
-				res[i] = getter(tuple)
-			}
-			return res
+// hashKeyFn returns a function that given a tuple returns the
+// values the getters return for it in a slice.
+func hashKeyFn(getters ...func(tuple) value) func(tuple) indexed {
+	return func(tuple tuple) indexed {
+		vals := make([]value, len(getters))
+		for i, getter := range getters {
+			vals[i] = getter(tuple)
 		}
+		return newHashKey(vals)
 	}
 }
 
-func hashAttrs(keyFn func([]interface{}) interface{}, tuples [][]interface{}) map[interface{}][]interface{} {
-	m := make(map[interface{}][]interface{}, 0)
-	for _, tuple := range tuples {
-		key := keyFn(tuple)
-		vals, ok := m[key]
-		if ok {
-			m[key] = append(vals, key)
+// hashAttrs groups the tuples using the key from KeyFn.
+func hashAttrs(keyFn func(tuple) indexed, tuples []tuple) map[indexed][]tuple {
+	m := make(map[indexed][]tuple, 0)
+	for _, tuple_ := range tuples {
+		key := keyFn(tuple_)
+		if vals, ok := m[key]; ok {
+			m[key] = append(vals, tuple_)
 		} else {
-			m[key] = []interface{}{key}
+			m[key] = []tuple{tuple_}
 		}
 	}
 	return m
 }
 
+// intersectKeys returns a slice of keys that exist in both maps.
+func intersectKeys(attrs1, attrs2 map[variable]int) []variable {
+	keys := make([]variable, 0)
+	for attr1, _ := range attrs1 {
+		if _, ok := attrs2[attr1]; ok {
+			keys = append(keys, attr1)
+		}
+	}
+	return keys
+}
+
+// joinTuples returns a new tuple with the values from tuple1 and tuple2 at indexes idxs1 and idxs2, respectively.
+func joinTuples(tuple1 tuple, idxs1 []int, tuple2 tuple, idxs2 []int) tuple {
+	l1 := len(idxs1)
+	l2 := len(idxs2)
+	newTuple := make(tuple, l1+l2)
+	for i, idx := range idxs1 {
+		newTuple[i] = tuple1.valueAt(idx)
+	}
+	for i, idx := range idxs2 {
+		newTuple[l1+i] = tuple2.valueAt(idx)
+	}
+	return newTuple
+}
+
+// hashJoin returns a new relation with tuples that are joined
+// based on the attributes common to both relations.
 func hashJoin(rel1, rel2 relation) relation {
+	// join on the attributes both have in common
 	commonAttrs := intersectKeys(rel1.attrs, rel2.attrs)
-	commonGetters1 := make([]func([]interface{}) interface{}, len(commonAttrs))
-	commonGetters2 := make([]func([]interface{}) interface{}, len(commonAttrs))
+	commonGetters1 := make([]func(tuple) value, len(commonAttrs))
+	commonGetters2 := make([]func(tuple) value, len(commonAttrs))
 	for i, attr := range commonAttrs {
 		commonGetters1[i] = getterFn(rel1.attrs, attr)
 		commonGetters2[i] = getterFn(rel2.attrs, attr)
 	}
-	keepAttrs1 := relAttrsKeys(rel1.attrs)
-	keepIds1 := make([]int, len(keepAttrs1))
-	for i, attr := range keepAttrs1 {
-		keepIds1[i] = rel1.attrs[attr]
+	// take all attributes from rel1
+	keepAttrs1 := make([]variable, len(rel1.attrs))
+	keepIdxs1 := make([]int, len(rel1.attrs))
+	i := 0
+	for attr, idx := range rel1.attrs {
+		keepAttrs1[i] = attr
+		keepIdxs1[i] = idx
+		i += 1
 	}
-	keepAttrs2 := relAttrsDifference(rel2.attrs, rel1.attrs)
-	keepIds2 := make([]int, len(keepAttrs2))
-	for i, attr := range keepAttrs2 {
-		keepIds2[i] = rel2.attrs[attr]
+	// only keep attrs not in rel1 from rel2
+	keepAttrs2 := make([]variable, 0)
+	keepIdxs2 := make([]int, 0)
+	for attr, idx := range rel2.attrs {
+		if _, ok := rel1.attrs[attr]; !ok {
+			keepAttrs2 = append(keepAttrs2, attr)
+			keepIdxs2 = append(keepIdxs2, idx)
+		}
 	}
-	keyFn1 := tupleKeyFn(commonGetters1...)
+	// construct functions to get the "join key" from tuple
+	keyFn1 := hashKeyFn(commonGetters1...)
+	keyFn2 := hashKeyFn(commonGetters2...)
+	// collect tuples from rel1 by "join key"
 	hash := hashAttrs(keyFn1, rel1.tuples)
-	keyFn2 := tupleKeyFn(commonGetters2...)
-	newTuples := make([][]interface{}, 0)
+	// join tuples with a matching join key
+	newTuples := make([]tuple, 0)
 	for _, tuple2 := range rel2.tuples {
 		key := keyFn2(tuple2)
 		if tuples1, ok := hash[key]; ok {
 			for _, tuple1 := range tuples1 {
-				newTuples = append(newTuples, joinTuples(tuple1.([]interface{}), keepIds1, tuple2, keepIds2))
+				joinTuple := joinTuples(tuple1, keepIdxs1, tuple2, keepIdxs2)
+				newTuples = append(newTuples, joinTuple)
 			}
 		}
 	}
-	newAttrs := make(map[interface{}]int, len(keepAttrs1)+len(keepAttrs2))
-	i := 0
+	// return the new relation
+	newAttrs := make(map[variable]int, 0)
+	i = 0
 	for _, attr := range keepAttrs1 {
 		newAttrs[attr] = i
 		i += 1
@@ -302,230 +221,222 @@ func hashJoin(rel1, rel2 relation) relation {
 	return relation{attrs: newAttrs, tuples: newTuples}
 }
 
-func relAttrsDifference(attrs1, attrs2 map[interface{}]int) []interface{} {
-	keys := make([]interface{}, 0)
-	for k1, _ := range attrs1 {
-		if _, ok := attrs2[k1]; !ok {
-			keys = append(keys, k1)
-		}
-	}
-	return keys
+// hashEqual compares two hashable values for equality.
+func hashEqual(a, b interface{}) bool {
+	// TODO: benchmark this, check if map-based comparison is faster
+	return reflect.DeepEqual(a, b)
 }
 
-// TODO lookupPatternDb
-
-func matchesPattern(pattern, tuple []interface{}) bool {
+// matchesPattern checks if the given tuple matches the pattern.
+//
+// A tuple matches a pattern if the constants in the same positions
+// equal.  (I.e. variable in the pattern are ignored.)
+func matchesPattern(pattern pattern, tuple tuple) bool {
 	i := 0
 	for i < len(pattern) && i < len(tuple) {
-		if _, ok := pattern[i].(edn.Symbol); ok || reflect.DeepEqual(tuple[i], pattern[i]) {
-			i += 1
-		} else {
+		p := pattern[i]
+		t := tuple[i]
+		if _, isVar := p.(variable); !isVar && !hashEqual(p, t) {
 			return false
 		}
+		i += 1
 	}
 	return true
 }
 
-func lookupPatternColl(coll [][]interface{}, pattern []interface{}) relation {
-	data := make([][]interface{}, 0)
+// lookupPatternColl returns a relation containing all the tuples in
+// the collection that match the pattern.
+//
+// The relation contains the variables from the pattern.
+func lookupPatternColl(coll []tuple, pattern pattern) relation {
+	data := make([]tuple, 0)
 	for _, tuple := range coll {
 		if matchesPattern(pattern, tuple) {
 			data = append(data, tuple)
 		}
 	}
-	attrs := make(map[interface{}]int, len(pattern))
-	i := 0
-	for _, p := range pattern {
-		if isFreeVar(p) {
-			attrs[p] = i
+	attrs := make(map[variable]int, 0)
+	for i, val := range pattern {
+		if variable, ok := val.(variable); ok {
+			attrs[variable] = i
 		}
-		i += 1
 	}
 	return relation{attrs: attrs, tuples: data}
 }
 
-func normalizePatternClause(clause []interface{}) []interface{} {
-	if isSource(clause[0]) {
-		return clause
-	} else {
-		return append([]interface{}{edn.Symbol{Name: "$"}}, clause...)
-	}
-}
-
-func lookupPattern(source interface{}, pattern []interface{}) relation {
-	return lookupPatternColl(source.([][]interface{}), pattern)
-}
-
+// collapseRels joins relations that share variables with newRel.
 func collapseRels(rels []relation, newRel relation) []relation {
-	res := make([]relation, 0, len(rels))
+	newRels := make([]relation, 0)
 	for _, rel := range rels {
-		if len(intersectKeys(newRel.attrs, rel.attrs)) != 0 {
+		sharesVars := false
+		for attr, _ := range newRel.attrs {
+			if _, ok := rel.attrs[attr]; ok {
+				sharesVars = true
+				break
+			}
+		}
+
+		if sharesVars {
 			newRel = hashJoin(rel, newRel)
 		} else {
-			res = append(res, rel)
+			newRels = append(newRels, rel)
 		}
 	}
-	return append(res, newRel)
+	return append(newRels, newRel)
 }
 
-type context struct {
-	rels    []relation
-	sources map[interface{}]source
-}
+// resolveClause returns a new context with relations filtered
+// according to the given clause.
+func resolveClause(context context, clause clause) context {
+	switch clause := clause.(type) {
+	case patternClause:
+		source := context.sources[clause.source]
+		relation := lookupPatternColl(source.([]tuple), clause.pattern)
+		newRels := collapseRels(context.rels, relation)
 
-type source struct{}
-
-func contextResolveVal(context context, sym interface{}) interface{} {
-	var rel *relation
-	for _, r := range context.rels {
-		if _, ok := r.attrs[sym]; ok {
-			rel = &r
-			break
-		}
+		newContext := context
+		newContext.rels = newRels
+		return newContext
+	default:
+		panic("invalid clause type")
 	}
-	if rel == nil || len(rel.tuples) == 0 {
-		return nil
-	}
-	return rel.tuples[0][rel.attrs[sym]]
 }
 
-func relContainsAttrs(rel relation, attrs []interface{}) bool {
-	for _, attr := range attrs {
-		if _, ok := rel.attrs[attr]; !ok {
-			return false
-		}
+// query resolves the clauses sequentially.
+func query(context context, clauses []clause) context {
+	for _, clause := range clauses {
+		context = resolveClause(context, clause)
 	}
-	return true
+	return context
 }
 
-func relProdByAttrs(context context, attrs []interface{}) (context, relation) {
-	rels := make([]relation, 0)
-	remainingRels := make([]relation, 0)
+// cloneSlice returns a new slice with the values from the original.
+func cloneSlice(vals []value) []value {
+	newVals := make([]value, len(vals))
+	copy(newVals, vals)
+	return newVals
+}
+
+// internalCollect collects the bindings for the given symbols from the context.
+func internalCollect(context context, symbols []variable) [][]value {
+	acc := [][]value{make([]value, len(symbols))}
 	for _, rel := range context.rels {
-		if relContainsAttrs(rel, attrs) {
-			rels = append(rels, rel)
-		} else {
-			remainingRels = append(remainingRels, rel)
-		}
-	}
-	if len(rels) == 0 {
-		return context, relation{}
-	}
-	prod := rels[0]
-	for _, rel := range rels[1:] {
-		prod = prodRel(prod, rel)
-	}
-	newContext := context
-	newContext.rels = remainingRels
-	return newContext, prod
-}
-
-func callFn(context context, rel relation, f interface{}, args []interface{}) func([]interface{}) interface{} {
-	return func(tuple []interface{}) interface{} {
-		resolvedArgs := make([]reflect.Value, len(args))
-		for i, arg := range args {
-			var val interface{}
-			if _, ok := arg.(edn.Symbol); ok {
-				source, ok := context.sources[arg]
-				if ok {
-					val = source
-				} else {
-					val = tuple[rel.attrs[arg]]
-				}
+		keepAttrs := make(map[variable]int, 0)
+		keepIdxs := make([]int, len(symbols))
+		for i, symbol := range symbols {
+			if idx, ok := rel.attrs[symbol]; ok {
+				keepAttrs[symbol] = idx
+				keepIdxs[i] = idx
 			} else {
-				val = arg
+				keepIdxs[i] = -1 // not in this rel
 			}
-			resolvedArgs[i] = reflect.ValueOf(val)
 		}
-		res := reflect.ValueOf(f).Call(resolvedArgs)
-		if len(res) != 1 {
-			panic("invalid return value")
+
+		if len(keepAttrs) == 0 {
+			continue
 		}
-		return res[0].Interface()
+
+		newAcc := make([][]value, 0, len(acc))
+		for _, t1 := range acc {
+			for _, t2 := range rel.tuples {
+				res := cloneSlice(t1)
+				for i := 0; i < len(symbols); i++ {
+					if idx := keepIdxs[i]; idx != -1 {
+						res[i] = t2[idx]
+					}
+				}
+				newAcc = append(newAcc, res)
+			}
+		}
+		acc = newAcc
+	}
+	return acc
+}
+
+// collect collects the symbols from the context, returning a set of
+// result values.
+func collect(context context, symbols []variable) map[indexed]bool {
+	m := make(map[indexed]bool, 0)
+	res := internalCollect(context, symbols)
+	for _, vals := range res {
+		key := newHashKey(vals)
+		m[key] = true
+	}
+	return m
+}
+
+// newVar returns a new variable with the given name and namespace.
+//
+// If no name is given, the namespace will be empty.  If more than two
+// arguments are given, newVar will panic.
+func newVar(namespace string, name ...string) variable {
+	switch len(name) {
+	case 0:
+		return variable(edn.Symbol{Namespace: "", Name: namespace})
+	case 1:
+		return variable(edn.Symbol{Namespace: namespace, Name: name[0]})
+	default:
+		panic("newVar only takes one or two arguments")
 	}
 }
 
-func filterByPred(context context, clause []interface{}) context {
-	predicate := clause[0].([]interface{})
-	f := predicate[0]
-	args := predicate[1:]
-
-	var pred func([]interface{}) interface{}
-	pred, ok := builtIns[f]
-	if !ok {
-		pred = contextResolveVal(context, f).(func([]interface{}) interface{})
+// newHashKey returns a value implementing indexed that contains
+// the given values.
+//
+// For now the maximum number of values supported is three.  This limit
+// is arbitrary and can easily be changed.  We will change it based on
+// how much joins queries need in practice.
+func newHashKey(vals []value) indexed {
+	switch len(vals) {
+	case 1:
+		return key1{val1: vals[0]}
+	case 2:
+		return key2{val1: vals[0], val2: vals[1]}
+	case 3:
+		return key3{val1: vals[0], val2: vals[1], val3: vals[2]}
+	default:
+		panic("unsupported join arity")
 	}
-
-	symbolArgs := make([]interface{}, 0)
-	for _, arg := range args {
-		if _, ok := arg.(edn.Symbol); ok {
-			symbolArgs = append(symbolArgs, arg)
-		}
-	}
-	context, prod := relProdByAttrs(context, symbolArgs)
-	if pred != nil {
-		tuplePred := callFn(context, prod, pred, args)
-		newTuples := make([][]interface{}, 0)
-		for _, tuple := range prod.tuples {
-			if tuplePred(tuple).(bool) {
-				newTuples = append(newTuples, tuple)
-			}
-		}
-		prod.tuples = newTuples
-	} else {
-		prod.tuples = nil
-	}
-
-	newContext := context
-	newContext.rels = append(newContext.rels, prod)
-	return newContext
 }
 
-// TODO bind-by-fn
+type key1 struct{ val1 value }
 
-/// Rules
+func (j key1) valueAt(idx int) value {
+	switch idx {
+	case 1:
+		return j.val1
+	default:
+		panic("invalid index")
+	}
+}
 
-// TODO expand-rule
+type key2 struct{ val1, val2 value }
 
-// TODO remove-pairs
+func (j key2) valueAt(idx int) value {
+	switch idx {
+	case 1:
+		return j.val1
+	case 2:
+		return j.val2
+	default:
+		panic("invalid index")
+	}
+}
 
-// TODO rule-gen-guards
+type key3 struct{ val1, val2, val3 value }
 
-// TODO walk-collect
-
-// TODO split-guards
-
-// TODO solve-rule
-
-// TODO resolve-pattern-lookup-refs
-
-// TODO dynamic-lookup-attrs
-
-// TODO -resolve-clause
-
-// TODO resolve-clause
-
-// TODO -q
-
-// TODO -collect
-
-// TODO collect
-
-// TODO IContextResolve
-
-// TODO -aggregate
-
-// TODO idxs-of
-
-// TODO aggregate
-
-// TODO IPostProcess
-
-// TODO pull
-
-// TODO memoized-parse-query
-
-// TODO q
+func (j key3) valueAt(idx int) value {
+	switch idx {
+	case 1:
+		return j.val1
+	case 2:
+		return j.val2
+	case 3:
+		return j.val3
+	default:
+		panic("invalid index")
+	}
+}
 
 type Query struct{}
 
