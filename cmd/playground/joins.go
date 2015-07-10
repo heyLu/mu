@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"reflect"
 )
 
 // indexed is an interface for values that support access to fields by
@@ -152,6 +153,14 @@ func hashJoin(rel1, rel2 relation) relation {
 
 // hashEqual compares two hashable values for equality.
 func hashEqual(a, b interface{}) bool {
+	typeA := reflect.TypeOf(a)
+	typeB := reflect.TypeOf(b)
+	if typeA != typeB {
+		return false
+	} else if typeA.Kind() == reflect.Ptr {
+		return reflect.DeepEqual(a, b)
+	}
+
 	m := make(map[interface{}]bool, 1)
 	m[a] = true
 	_, ok := m[b]
