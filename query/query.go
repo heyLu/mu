@@ -336,8 +336,8 @@ func resolveClause(context context, clause clause) context {
 	}
 }
 
-// query resolves the clauses sequentially.
-func query(context context, clauses []clause) context {
+// runQuery resolves the clauses sequentially.
+func runQuery(context context, clauses []clause) context {
 	for _, clause := range clauses {
 		context = resolveClause(context, clause)
 	}
@@ -414,8 +414,107 @@ func newVar(namespace string, name ...string) variable {
 	}
 }
 
-type Query struct{}
+// toQueryMap parses a list of keywords and values into a query map.
+func toQueryMap(queryList []interface{}) map[interface{}]interface{} {
+	key := edn.Keyword{}
+	vals := make([]interface{}, 0)
+	queryMap := make(map[interface{}]interface{}, 0)
+	for _, val := range queryList {
+		if kw, ok := val.(edn.Keyword); ok {
+			if len(vals) != 0 {
+				queryMap[key] = vals
+			}
+			vals = make([]interface{}, 0)
+			key = kw
+		}
+	}
+	return queryMap
+}
 
-func Q(query Query, inputs ...interface{}) (interface{}, error) {
-	return nil, nil
+// isSource returns true if the value is a symbol beginning with "$"
+func isSource(val interface{}) bool {
+	if sym, ok := val.(edn.Symbol); ok && sym.Name[0] == '$' {
+		return true
+	}
+	return false
+}
+
+// isVariable returns true if the value is a symbol beginning with "?".
+func isVariable(val interface{}) bool {
+	if sym, ok := val.(edn.Symbol); ok && sym.Name[0] == '?' {
+		return true
+	}
+	return false
+}
+
+// parseQuery parses a query from untyped data.
+func parseQuery(rawQuery interface{}) (*query, error) {
+	var queryMap map[interface{}]interface{}
+	if queryList, ok := rawQuery.([]interface{}); ok {
+		queryMap = toQueryMap(queryList)
+	} else {
+		queryMap = rawQuery.(map[interface{}]interface{})
+	}
+
+	rawFindVars := queryMap[edn.Keyword{Namespace: "", Name: "find"}].([]interface{})
+	findVars := make([]variable, len(rawFindVars))
+	for i, findVar := range rawFindVars {
+		findVars[i] = variable(findVar.(edn.Symbol))
+	}
+
+	rawClauses := queryMap[edn.Keyword{Namespace: "", Name: "where"}].([]interface{})
+	clauses := make([]clause, len(rawClauses))
+	for i, rawClause := range rawClauses {
+		rawClause := rawClause.([]interface{})
+		clause := patternClause{}
+		var rawPattern []interface{}
+		if isSource(rawClause[0]) {
+			clause.source = variable(rawClause[0].(edn.Symbol))
+			rawPattern = rawClause[1:]
+		} else {
+			clause.source = variable(edn.Symbol{Namespace: "", Name: "$"})
+			rawPattern = rawClause
+		}
+		pattern := make(pattern, len(rawPattern))
+		clause.pattern = pattern
+
+		for i, rawValue := range rawPattern {
+			if isVariable(rawValue) {
+				pattern[i] = variable(rawValue.(edn.Symbol))
+			} else {
+				pattern[i] = rawValue
+			}
+		}
+
+		clauses[i] = clause
+	}
+
+	return &query{
+		find:  findVars,
+		in:    []variable{variable(edn.Symbol{Namespace: "", Name: "$"})},
+		where: clauses,
+	}, nil
+}
+
+type query struct {
+	find  []variable
+	in    []variable
+	where []clause
+}
+
+func Q(query interface{}, inputs ...interface{}) (interface{}, error) {
+	q, err := parseQuery(query)
+	if err != nil {
+		return nil, err
+	}
+
+	sources := make(map[variable]source, 0)
+	for i, in := range q.in {
+		sources[in] = source(inputs[i])
+	}
+
+	context := context{sources: sources}
+	context = runQuery(context, q.where)
+	res := collect(context, q.find)
+	return res, nil
 }

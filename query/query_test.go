@@ -2,7 +2,10 @@ package query
 
 import (
 	"fmt"
+	tu "github.com/klingtnet/gol/util/testing"
 	"testing"
+
+	"github.com/heyLu/edn"
 )
 
 func TestExamples(t *testing.T) {
@@ -94,7 +97,7 @@ func TestExamples(t *testing.T) {
 			pattern: pattern{newVar("name"), "pancakes"},
 		},
 	}
-	newCtx := query(ctx, clauses)
+	newCtx := runQuery(ctx, clauses)
 	vars := []variable{newVar("name")}
 	fmt.Println(vars)
 	res := collect(newCtx, vars)
@@ -126,11 +129,38 @@ func TestExamples(t *testing.T) {
 			pattern: pattern{newVar("friend"), newVar("age")},
 		},
 	}
-	newCtx = query(ctx, clauses)
+	newCtx = runQuery(ctx, clauses)
 	vars = []variable{newVar("age"), newVar("friend")}
 	fmt.Println(vars)
 	res = collect(newCtx, vars)
 	for vals, _ := range res {
 		fmt.Println(vals)
+	}
+}
+
+func TestQ(t *testing.T) {
+	data := []tuple{
+		tuple{"Jane", 13},
+		tuple{"Alice", 7},
+		tuple{"Fred", 3},
+		tuple{"Little Fred", 1},
+		tuple{"Judy", 4},
+		tuple{"Jane", "Alice"},
+		tuple{"Jane", "Fred"},
+		tuple{"Little Fred", "Alice"},
+	}
+
+	query, err := edn.DecodeString(`
+{:find [?age ?friend]
+ :where [["Jane" ?friend]
+         [?friend ?age]]}
+`)
+	tu.ExpectNil(t, err)
+
+	res, err := Q(query, data)
+	tu.ExpectNil(t, err)
+
+	for res, _ := range res.(map[indexed]bool) {
+		fmt.Println(res)
 	}
 }
