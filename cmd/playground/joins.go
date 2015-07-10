@@ -400,9 +400,11 @@ func main() {
 		},
 	}
 	newContext := query(context, clauses)
-	rel := newContext.rels[len(newContext.rels)-1]
-	for _, tuple := range rel.tuples {
-		fmt.Println(tuple)
+	vars := []variable{newVar("name")}
+	fmt.Println(vars)
+	res := collect(newContext, vars)
+	for _, vals := range res {
+		fmt.Println(vals)
 	}
 }
 
