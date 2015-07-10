@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/heyLu/edn"
 )
 
 // indexed is an interface for values that support access to fields by
@@ -20,7 +22,7 @@ func (t tuple) valueAt(idx int) value { return t[idx] }
 type value interface{}
 
 // a variable is a name for values to query for.
-type variable interface{}
+type variable edn.Symbol
 
 // a relation contains tuples which have values for a given set of
 // attributes.
@@ -158,8 +160,8 @@ func hashEqual(a, b interface{}) bool {
 
 func main() {
 	attrs := map[variable]int{
-		"name": 0,
-		"age":  1,
+		newVar("name"): 0,
+		newVar("age"):  1,
 	}
 
 	tuples := []tuple{
@@ -168,8 +170,8 @@ func main() {
 		tuple{"Fred", 3},
 	}
 
-	getName := getterFn(attrs, "name")
-	getAge := getterFn(attrs, "age")
+	getName := getterFn(attrs, newVar("name"))
+	getAge := getterFn(attrs, newVar("age"))
 	getNameAndAge := hashKeyFn(getName, getAge)
 
 	hash := hashAttrs(getNameAndAge, tuples)
@@ -179,8 +181,8 @@ func main() {
 	}
 
 	likesAttrs := map[variable]int{
-		"name":  0,
-		"likes": 1,
+		newVar("name"):  0,
+		newVar("likes"): 1,
 	}
 	likesTuples := []tuple{
 		tuple{"Jane", "pancakes"},
@@ -197,6 +199,21 @@ func main() {
 	fmt.Println(joined.attrs)
 	for _, tuple := range joined.tuples {
 		fmt.Println(tuple)
+	}
+}
+
+// variable returns a new variable with the given name and namespace.
+//
+// If no name is given, the namespace will be empty.  If more than two
+// arguments are given, newVar will panic.
+func newVar(namespace string, name ...string) variable {
+	switch len(name) {
+	case 0:
+		return variable(edn.Symbol{Namespace: "", Name: namespace})
+	case 1:
+		return variable(edn.Symbol{Namespace: namespace, Name: name[0]})
+	default:
+		panic("newVar only takes one or two arguments")
 	}
 }
 
