@@ -274,8 +274,8 @@ func cloneSlice(vals []value) []value {
 	return newVals
 }
 
-// collect collects the bindings for the given symbols from the context.
-func collect(context context, symbols []variable) [][]value {
+// internalCollect collects the bindings for the given symbols from the context.
+func internalCollect(context context, symbols []variable) [][]value {
 	acc := [][]value{make([]value, len(symbols))}
 	for _, rel := range context.rels {
 		keepAttrs := make(map[variable]int, 0)
@@ -308,6 +308,18 @@ func collect(context context, symbols []variable) [][]value {
 		acc = newAcc
 	}
 	return acc
+}
+
+// collect collects the symbols from the context, returning a set of
+// result values.
+func collect(context context, symbols []variable) map[indexed]bool {
+	m := make(map[indexed]bool, 0)
+	res := internalCollect(context, symbols)
+	for _, vals := range res {
+		key := newHashKey(vals)
+		m[key] = true
+	}
+	return m
 }
 
 func main() {
@@ -403,7 +415,7 @@ func main() {
 	vars := []variable{newVar("name")}
 	fmt.Println(vars)
 	res := collect(newContext, vars)
-	for _, vals := range res {
+	for vals, _ := range res {
 		fmt.Println(vals)
 	}
 }
