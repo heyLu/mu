@@ -267,6 +267,49 @@ func query(context context, clauses []clause) context {
 	return context
 }
 
+// cloneSlice returns a new slice with the values from the original.
+func cloneSlice(vals []value) []value {
+	newVals := make([]value, len(vals))
+	copy(newVals, vals)
+	return newVals
+}
+
+// collect collects the bindings for the given symbols from the context.
+func collect(context context, symbols []variable) [][]value {
+	acc := [][]value{make([]value, len(symbols))}
+	for _, rel := range context.rels {
+		keepAttrs := make(map[variable]int, 0)
+		keepIdxs := make([]int, len(symbols))
+		for i, symbol := range symbols {
+			if idx, ok := rel.attrs[symbol]; ok {
+				keepAttrs[symbol] = idx
+				keepIdxs[i] = idx
+			} else {
+				keepIdxs[i] = -1 // not in this rel
+			}
+		}
+
+		if len(keepAttrs) == 0 {
+			continue
+		}
+
+		newAcc := make([][]value, 0, len(acc))
+		for _, t1 := range acc {
+			for _, t2 := range rel.tuples {
+				res := cloneSlice(t1)
+				for i := 0; i < len(symbols); i++ {
+					if idx := keepIdxs[i]; idx != -1 {
+						res[i] = t2[idx]
+					}
+				}
+				newAcc = append(newAcc, res)
+			}
+		}
+		acc = newAcc
+	}
+	return acc
+}
+
 func main() {
 	attrs := map[variable]int{
 		newVar("name"): 0,
