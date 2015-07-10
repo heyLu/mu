@@ -388,7 +388,7 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("13 years old, likes pancakes")
-	context := context{
+	ctx := context{
 		sources: map[variable]source{
 			newVar("$"): []tuple{
 				tuple{"Jane", 13},
@@ -411,10 +411,10 @@ func main() {
 			pattern: pattern{newVar("name"), "pancakes"},
 		},
 	}
-	newContext := query(context, clauses)
+	newCtx := query(ctx, clauses)
 	vars := []variable{newVar("name")}
 	fmt.Println(vars)
-	res := collect(newContext, vars)
+	res := collect(newCtx, vars)
 	for vals, _ := range res {
 		fmt.Println(vals)
 	}
