@@ -182,6 +182,26 @@ func matchesPattern(pattern pattern, tuple tuple) bool {
 	return true
 }
 
+// lookupPatternColl returns a relation containing all the tuples in
+// the collection that match the pattern.
+//
+// The relation contains the variables from the pattern.
+func lookupPatternColl(coll []tuple, pattern pattern) relation {
+	data := make([]tuple, 0)
+	for _, tuple := range coll {
+		if matchesPattern(pattern, tuple) {
+			data = append(data, tuple)
+		}
+	}
+	attrs := make(map[variable]int, 0)
+	for i, val := range pattern {
+		if variable, ok := val.(variable); ok {
+			attrs[variable] = i
+		}
+	}
+	return relation{attrs: attrs, tuples: data}
+}
+
 func main() {
 	attrs := map[variable]int{
 		newVar("name"): 0,
