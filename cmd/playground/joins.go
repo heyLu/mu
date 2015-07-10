@@ -149,6 +149,14 @@ func hashJoin(rel1, rel2 relation) relation {
 	return relation{attrs: newAttrs, tuples: newTuples}
 }
 
+// hashEqual compares two hashable values for equality.
+func hashEqual(a, b interface{}) bool {
+	m := make(map[interface{}]bool, 1)
+	m[a] = true
+	_, ok := m[b]
+	return ok
+}
+
 func main() {
 	attrs := map[variable]int{
 		"name": 0,
@@ -190,6 +198,18 @@ func main() {
 	fmt.Println(joined.attrs)
 	for _, tuple := range joined.tuples {
 		fmt.Println(tuple)
+	}
+
+	fmt.Println()
+	vals := map[interface{}]interface{}{
+		3:      4,
+		1:      1,
+		4:      "hey",
+		"hey":  "ho",
+		"heya": "heya",
+	}
+	for k, v := range vals {
+		fmt.Printf("%v == %v: %t\n", k, v, hashEqual(k, v))
 	}
 }
 
