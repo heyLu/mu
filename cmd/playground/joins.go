@@ -202,6 +202,27 @@ func lookupPatternColl(coll []tuple, pattern pattern) relation {
 	return relation{attrs: attrs, tuples: data}
 }
 
+// collapseRels joins relations that share variables with newRel.
+func collapseRels(rels []relation, newRel relation) []relation {
+	newRels := make([]relation, 0)
+	for _, rel := range rels {
+		sharesVars := false
+		for attr, _ := range newRel.attrs {
+			if _, ok := rel.attrs[attr]; ok {
+				sharesVars = true
+				break
+			}
+		}
+
+		if sharesVars {
+			newRel = hashJoin(rel, newRel)
+		} else {
+			newRels = append(newRels, rel)
+		}
+	}
+	return append(newRels, newRel)
+}
+
 func main() {
 	attrs := map[variable]int{
 		newVar("name"): 0,
