@@ -355,7 +355,7 @@ func main() {
 	}
 }
 
-// variable returns a new variable with the given name and namespace.
+// newVar returns a new variable with the given name and namespace.
 //
 // If no name is given, the namespace will be empty.  If more than two
 // arguments are given, newVar will panic.
