@@ -61,7 +61,7 @@ Thanks for your interest!  Please take the following things into consideration:
 
 - all contributors are expected to follow our [Code of Conduct]
 - some areas for improvements:
-    - compatibility with Datomic's API
+    - compatibility with Datomics API
     - documentation and examples
     - extensive testing
     - performance
