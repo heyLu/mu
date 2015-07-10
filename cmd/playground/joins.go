@@ -153,6 +153,7 @@ func hashJoin(rel1, rel2 relation) relation {
 
 // hashEqual compares two hashable values for equality.
 func hashEqual(a, b interface{}) bool {
+	// TODO: benchmark this, check if reflect.DeepEqual for everything is good enough.
 	typeA := reflect.TypeOf(a)
 	typeB := reflect.TypeOf(b)
 	if typeA != typeB {
