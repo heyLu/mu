@@ -322,6 +322,29 @@ func main() {
 		}
 		fmt.Println()
 	}
+
+	fmt.Println()
+	context := context{
+		sources: map[variable]source{
+			newVar("$"): []tuple{
+				tuple{"Jane", 13},
+				tuple{"Alice", 7},
+				tuple{"Fred", 3},
+				tuple{"Jane", "pancakes"},
+				tuple{"Alice", "the stars"},
+				tuple{"Fred", "Alice"},
+				tuple{"Fred", "Little Fred"},
+			},
+		},
+	}
+	clause := patternClause{
+		source:  newVar("$"),
+		pattern: pattern{newVar("name"), 13, newVar("likes")},
+	}
+	newContext := resolveClause(context, clause)
+	for _, tuple := range newContext.rels[0].tuples {
+		fmt.Println(tuple)
+	}
 }
 
 // variable returns a new variable with the given name and namespace.
