@@ -248,19 +248,22 @@ func main() {
 	fmt.Println()
 	fmt.Println("7 years old, likes the stars")
 	age7LikesTheStars := pattern{newVar("name"), 7, "the stars"}
-	for _, tuple := range joined.tuples {
-		if matchesPattern(age7LikesTheStars, tuple) {
-			fmt.Println(tuple)
+	starGazers := lookupPatternColl(joined.tuples, age7LikesTheStars)
+	for _, tuple := range starGazers.tuples {
+		for attr, idx := range starGazers.attrs {
+			fmt.Printf("%v -> %v\n", attr, tuple[idx])
 		}
 	}
 
 	fmt.Println()
 	fmt.Println("3 years old")
 	age3 := pattern{newVar("name"), 3, newVar("likes")}
-	for _, tuple := range joined.tuples {
-		if matchesPattern(age3, tuple) {
-			fmt.Println(tuple)
+	threeYearOlds := lookupPatternColl(joined.tuples, age3)
+	for _, tuple := range threeYearOlds.tuples {
+		for attr, idx := range threeYearOlds.attrs {
+			fmt.Printf("%v -> %v\t\t", attr, tuple[idx])
 		}
+		fmt.Println()
 	}
 }
 
