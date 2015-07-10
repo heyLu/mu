@@ -332,6 +332,7 @@ func main() {
 	}
 
 	fmt.Println()
+	fmt.Println("13 years old, likes pancakes")
 	context := context{
 		sources: map[variable]source{
 			newVar("$"): []tuple{
@@ -348,7 +349,11 @@ func main() {
 	clauses := []clause{
 		patternClause{
 			source:  newVar("$"),
-			pattern: pattern{newVar("name"), 13, newVar("likes")},
+			pattern: pattern{newVar("name"), 13},
+		},
+		patternClause{
+			source:  newVar("$"),
+			pattern: pattern{newVar("name"), "pancakes"},
 		},
 	}
 	newContext := query(context, clauses)
