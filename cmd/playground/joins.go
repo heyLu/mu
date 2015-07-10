@@ -259,6 +259,14 @@ func resolveClause(context context, clause clause) context {
 	}
 }
 
+// query resolves the clauses sequentially.
+func query(context context, clauses []clause) context {
+	for _, clause := range clauses {
+		context = resolveClause(context, clause)
+	}
+	return context
+}
+
 func main() {
 	attrs := map[variable]int{
 		newVar("name"): 0,
