@@ -49,7 +49,7 @@ interface.
 Note that the following are *not* implemented right now.  (Which may be
 considered as "the interesting parts" of Datomic.)
 
-- queries (planned.  for now you will have to use the raw index for queries)
+- queries (in progress.)
 - pull api (planned.)
 - indexing (in progress.  as of now, we can only read segmented indexes.)
 - proper schema support (in progress.  attribute changes are currently
