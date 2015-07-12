@@ -91,6 +91,10 @@ var (
 )
 
 func NewValue(val interface{}) Value {
+	if val == nil {
+		return Value{String, ""}
+	}
+
 	// TODO: implement more types
 	switch val.(type) {
 	case bool:
