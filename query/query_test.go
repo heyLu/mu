@@ -160,7 +160,7 @@ func TestQ(t *testing.T) {
 	res, err := Q(query, data)
 	tu.ExpectNil(t, err)
 
-	for res, _ := range res.(map[Indexed]bool) {
+	for res, _ := range res {
 		fmt.Println(res)
 	}
 }
