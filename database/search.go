@@ -56,6 +56,13 @@ func (db *Db) Search(pattern Pattern) index.Iterator {
 		})
 	case e___:
 		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+	case _a_t:
+		iter = db.Aevt().DatomsAt(minDatom, maxDatom)
+		iter = index.FilterIterator(iter, func(d *index.Datom) bool {
+			return d.Tx() == minDatom.Tx()
+		})
+	case _a__:
+		iter = db.Aevt().DatomsAt(minDatom, maxDatom)
 	default:
 		panic("unknown datom pattern")
 	}
