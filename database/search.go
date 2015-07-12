@@ -51,3 +51,43 @@ func (p Pattern) toNum() int {
 	}
 	return n
 }
+
+var (
+	minE = index.MinDatom.E()
+	maxE = index.MaxDatom.E()
+	minA = index.MinDatom.A()
+	maxA = index.MaxDatom.A()
+	minV = index.MinDatom.V()
+	maxV = index.MaxDatom.V()
+	// FIXME: fix .Tx() on MinDatom and MaxDatom
+	minTx    = index.MaxDatom.Tx()
+	maxTx    = index.MinDatom.Tx()
+	minAdded = index.MinDatom.Added()
+	maxAdded = index.MaxDatom.Added()
+)
+
+func (p Pattern) bounds(db *Db) (index.Datom, index.Datom) {
+	minE, maxE := minE, maxE
+	minA, maxA := minA, maxA
+	minV, maxV := minV, maxV
+	minTx, maxTx := minTx, maxTx
+	if p.e != nil {
+		e, _ := p.e.Lookup(db)
+		minE, maxE = e, e
+	}
+	if p.a != nil {
+		a, _ := p.a.Lookup(db)
+		minA, maxA = a, a
+	}
+	if p.v != nil {
+		v := index.NewValue(p.v)
+		minV, maxV = v, v
+	}
+	if p.tx != nil {
+		tx, _ := p.tx.Lookup(db)
+		minTx, maxTx = tx, tx
+	}
+	minDatom := index.NewDatom(minE, minA, minV, minTx, minAdded)
+	maxDatom := index.NewDatom(maxE, maxA, maxV, maxTx, maxAdded)
+	return minDatom, maxDatom
+}
