@@ -146,7 +146,9 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Println(res)
+		for tuple, _ := range res {
+			fmt.Println(tuple)
+		}
 
 	default:
 		fmt.Println("unknown command:", cmd)
