@@ -15,9 +15,9 @@ func TestExamples(t *testing.T) {
 	}
 
 	tuples := []tuple{
-		tuple{"Jane", 13},
-		tuple{"Alice", 7},
-		tuple{"Fred", 3},
+		sliceTuple{"Jane", 13},
+		sliceTuple{"Alice", 7},
+		sliceTuple{"Fred", 3},
 	}
 
 	getName := getterFn(attrs, newVar("name"))
@@ -35,10 +35,10 @@ func TestExamples(t *testing.T) {
 		newVar("likes"): 1,
 	}
 	likesTuples := []tuple{
-		tuple{"Jane", "pancakes"},
-		tuple{"Alice", "the stars"},
-		tuple{"Fred", "Alice"},
-		tuple{"Fred", "Little Fred"},
+		sliceTuple{"Jane", "pancakes"},
+		sliceTuple{"Alice", "the stars"},
+		sliceTuple{"Fred", "Alice"},
+		sliceTuple{"Fred", "Little Fred"},
 	}
 
 	namesAndAges := relation{attrs: attrs, tuples: tuples}
@@ -57,7 +57,7 @@ func TestExamples(t *testing.T) {
 	starGazers := lookupPatternColl(joined.tuples, age7LikesTheStars)
 	for _, tuple := range starGazers.tuples {
 		for attr, idx := range starGazers.attrs {
-			fmt.Printf("%v -> %v\n", attr, tuple[idx])
+			fmt.Printf("%v -> %v\n", attr, tuple.valueAt(idx))
 		}
 	}
 
@@ -67,7 +67,7 @@ func TestExamples(t *testing.T) {
 	threeYearOlds := lookupPatternColl(joined.tuples, age3)
 	for _, tuple := range threeYearOlds.tuples {
 		for attr, idx := range threeYearOlds.attrs {
-			fmt.Printf("%v -> %v\t\t", attr, tuple[idx])
+			fmt.Printf("%v -> %v\t\t", attr, tuple.valueAt(idx))
 		}
 		fmt.Println()
 	}
@@ -77,13 +77,13 @@ func TestExamples(t *testing.T) {
 	ctx := context{
 		sources: map[variable]source{
 			newVar("$"): []tuple{
-				tuple{"Jane", 13},
-				tuple{"Alice", 7},
-				tuple{"Fred", 3},
-				tuple{"Jane", "pancakes"},
-				tuple{"Alice", "the stars"},
-				tuple{"Fred", "Alice"},
-				tuple{"Fred", "Little Fred"},
+				sliceTuple{"Jane", 13},
+				sliceTuple{"Alice", 7},
+				sliceTuple{"Fred", 3},
+				sliceTuple{"Jane", "pancakes"},
+				sliceTuple{"Alice", "the stars"},
+				sliceTuple{"Fred", "Alice"},
+				sliceTuple{"Fred", "Little Fred"},
 			},
 		},
 	}
@@ -108,14 +108,14 @@ func TestExamples(t *testing.T) {
 	ctx = context{
 		sources: map[variable]source{
 			newVar("$"): []tuple{
-				tuple{"Jane", 13},
-				tuple{"Alice", 7},
-				tuple{"Fred", 3},
-				tuple{"Little Fred", 1},
-				tuple{"Judy", 4},
-				tuple{"Jane", "Alice"},
-				tuple{"Jane", "Fred"},
-				tuple{"Little Fred", "Alice"},
+				sliceTuple{"Jane", 13},
+				sliceTuple{"Alice", 7},
+				sliceTuple{"Fred", 3},
+				sliceTuple{"Little Fred", 1},
+				sliceTuple{"Judy", 4},
+				sliceTuple{"Jane", "Alice"},
+				sliceTuple{"Jane", "Fred"},
+				sliceTuple{"Little Fred", "Alice"},
 			},
 		},
 	}
@@ -140,14 +140,14 @@ func TestExamples(t *testing.T) {
 
 func TestQ(t *testing.T) {
 	data := []tuple{
-		tuple{"Jane", 13},
-		tuple{"Alice", 7},
-		tuple{"Fred", 3},
-		tuple{"Little Fred", 1},
-		tuple{"Judy", 4},
-		tuple{"Jane", "Alice"},
-		tuple{"Jane", "Fred"},
-		tuple{"Little Fred", "Alice"},
+		sliceTuple{"Jane", 13},
+		sliceTuple{"Alice", 7},
+		sliceTuple{"Fred", 3},
+		sliceTuple{"Little Fred", 1},
+		sliceTuple{"Judy", 4},
+		sliceTuple{"Jane", "Alice"},
+		sliceTuple{"Jane", "Fred"},
+		sliceTuple{"Little Fred", "Alice"},
 	}
 
 	query, err := edn.DecodeString(`

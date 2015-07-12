@@ -91,9 +91,15 @@ type indexed interface {
 }
 
 // a tuple is an indexed collection of values.
-type tuple []value
+type tuple interface {
+	indexed
+	length() int
+}
 
-func (t tuple) valueAt(idx int) value { return t[idx] }
+type sliceTuple []value
+
+func (t sliceTuple) length() int           { return len(t) }
+func (t sliceTuple) valueAt(idx int) value { return t[idx] }
 
 // a value is any (scalar) value we support in queries.
 type value interface{}
@@ -186,7 +192,7 @@ func intersectKeys(attrs1, attrs2 map[variable]int) []variable {
 func joinTuples(tuple1 tuple, idxs1 []int, tuple2 tuple, idxs2 []int) tuple {
 	l1 := len(idxs1)
 	l2 := len(idxs2)
-	newTuple := make(tuple, l1+l2)
+	newTuple := make(sliceTuple, l1+l2)
 	for i, idx := range idxs1 {
 		newTuple[i] = tuple1.valueAt(idx)
 	}
@@ -267,9 +273,9 @@ func hashEqual(a, b interface{}) bool {
 // equal.  (I.e. variable in the pattern are ignored.)
 func matchesPattern(pattern pattern, tuple tuple) bool {
 	i := 0
-	for i < len(pattern) && i < len(tuple) {
+	for i < len(pattern) && i < tuple.length() {
 		p := pattern[i]
-		t := tuple[i]
+		t := tuple.valueAt(i)
 		if _, isVar := p.(variable); !isVar && !hashEqual(p, t) {
 			return false
 		}
@@ -376,7 +382,7 @@ func internalCollect(context context, symbols []variable) [][]value {
 				res := cloneSlice(t1)
 				for i := 0; i < len(symbols); i++ {
 					if idx := keepIdxs[i]; idx != -1 {
-						res[i] = t2[idx]
+						res[i] = t2.valueAt(idx)
 					}
 				}
 				newAcc = append(newAcc, res)
