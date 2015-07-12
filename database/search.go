@@ -4,18 +4,6 @@ import (
 	"github.com/heyLu/mu/index"
 )
 
-func (db *Db) Search(pattern Pattern) index.Iterator {
-	panic("not implemented")
-}
-
-type Pattern struct {
-	e     HasLookup
-	a     HasLookup
-	v     interface{}
-	tx    HasLookup
-	added *bool
-}
-
 const (
 	eavt = (1 << 3) + (1 << 2) + (1 << 1) + (1 << 0)
 	eav_ = (1 << 3) + (1 << 2) + (1 << 1) + (0 << 0)
@@ -34,6 +22,18 @@ const (
 	___t = (0 << 3) + (0 << 2) + (0 << 1) + (1 << 0)
 	____ = (0 << 3) + (0 << 2) + (0 << 1) + (0 << 0)
 )
+
+func (db *Db) Search(pattern Pattern) index.Iterator {
+	panic("not implemented")
+}
+
+type Pattern struct {
+	e     HasLookup
+	a     HasLookup
+	v     interface{}
+	tx    HasLookup
+	added *bool
+}
 
 func (p Pattern) toNum() int {
 	n := 0
