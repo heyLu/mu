@@ -79,9 +79,13 @@ package query
 // - or maybe avoid the map completely
 
 import (
+	"fmt"
+	"github.com/heyLu/edn"
+	"github.com/heyLu/fressian"
 	"reflect"
 
-	"github.com/heyLu/edn"
+	"github.com/heyLu/mu/database"
+	"github.com/heyLu/mu/index"
 )
 
 // indexed is an interface for values that support access to fields by
@@ -265,6 +269,76 @@ func hashJoin(rel1, rel2 relation) relation {
 func hashEqual(a, b interface{}) bool {
 	// TODO: benchmark this, check if map-based comparison is faster
 	return reflect.DeepEqual(a, b)
+}
+
+// indexedDatom is a proxy that implements the tuple interface for datoms.
+type indexedDatom index.Datom
+
+func (id indexedDatom) length() int { return 5 }
+
+func (id indexedDatom) valueAt(idx int) value {
+	d := index.Datom(id)
+	switch idx {
+	case 0:
+		return d.Entity()
+	case 1:
+		return d.Attribute()
+	case 2:
+		return d.Value().Val()
+	case 3:
+		return d.Transaction()
+	case 4:
+		return d.Added()
+	default:
+		panic("invalid index")
+	}
+}
+
+// lookupPatternDb returns a relation containing the datoms from the db
+// that match the pattern.
+func lookupPatternDb(db *database.Db, pattern pattern) relation {
+	dbPattern := database.Pattern{}
+	attrs := make(map[variable]int, 0)
+	for i, val := range pattern {
+		if sym, ok := val.(variable); ok {
+			attrs[sym] = i
+			continue
+		}
+
+		switch i {
+		case 0, 1, 3: // e, a, tx (lookups)
+			var lookup database.HasLookup
+			switch val := val.(type) {
+			case int:
+				lookup = database.Id(val)
+			case edn.Keyword:
+				lookup = database.Keyword{fressian.Keyword{Namespace: val.Namespace, Name: val.Name}}
+			default:
+				panic(fmt.Sprintf("can't convert %#v to database.HasLookup", val))
+			}
+
+			if i == 0 {
+				dbPattern.E = lookup
+			} else if i == 1 {
+				dbPattern.A = lookup
+			} else {
+				dbPattern.Tx = lookup
+			}
+		case 2: // v
+			dbPattern.V = val
+		case 4: // added
+			v := val.(bool)
+			dbPattern.Added = &v
+		}
+	}
+
+	datoms := make([]tuple, 0)
+	iter := db.Search(dbPattern)
+	for datom := iter.Next(); datom != nil; datom = iter.Next() {
+		datoms = append(datoms, indexedDatom(*datom))
+	}
+
+	return relation{attrs: attrs, tuples: datoms}
 }
 
 // matchesPattern checks if the given tuple matches the pattern.
