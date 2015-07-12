@@ -378,6 +378,19 @@ func lookupPatternColl(coll []tuple, pattern pattern) relation {
 	return relation{attrs: attrs, tuples: data}
 }
 
+// lookupPattern returns a relation containing the tuples matching the
+// pattern from the source.
+func lookupPattern(source source, pattern pattern) relation {
+	switch source := source.(type) {
+	case *database.Db:
+		return lookupPatternDb(source, pattern)
+	case []tuple:
+		return lookupPatternColl(source, pattern)
+	default:
+		panic("invalid source")
+	}
+}
+
 // collapseRels joins relations that share variables with newRel.
 func collapseRels(rels []relation, newRel relation) []relation {
 	newRels := make([]relation, 0)
@@ -405,7 +418,7 @@ func resolveClause(context context, clause clause) context {
 	switch clause := clause.(type) {
 	case patternClause:
 		source := context.sources[clause.source]
-		relation := lookupPatternColl(source.([]tuple), clause.pattern)
+		relation := lookupPattern(source, clause.pattern)
 		newRels := collapseRels(context.rels, relation)
 
 		newContext := context
