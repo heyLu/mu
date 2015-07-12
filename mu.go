@@ -211,6 +211,6 @@ func PartEnd(part int) int {
 	return (part + 1) * (1 << 42)
 }
 
-func Q(q interface{}, inputs ...interface{}) (interface{}, error) {
+func Q(q interface{}, inputs ...interface{}) (map[query.Indexed]bool, error) {
 	return query.Q(q, inputs...)
 }

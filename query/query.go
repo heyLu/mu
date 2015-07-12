@@ -608,7 +608,7 @@ type query struct {
 	where []clause
 }
 
-func Q(query interface{}, inputs ...interface{}) (interface{}, error) {
+func Q(query interface{}, inputs ...interface{}) (map[Indexed]bool, error) {
 	q, err := parseQuery(query)
 	if err != nil {
 		return nil, err
