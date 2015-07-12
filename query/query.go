@@ -294,6 +294,15 @@ func (id indexedDatom) valueAt(idx int) value {
 	}
 }
 
+var placeHolder = edn.Symbol{Namespace: "", Name: "_"}
+
+// isPlaceHolder chesk if the value is the symbol _.
+func isPlaceHolder(val interface{}) bool {
+	val, ok := val.(edn.Symbol)
+	return ok && val == placeHolder
+
+}
+
 // lookupPatternDb returns a relation containing the datoms from the db
 // that match the pattern.
 func lookupPatternDb(db *database.Db, pattern pattern) relation {
@@ -302,6 +311,10 @@ func lookupPatternDb(db *database.Db, pattern pattern) relation {
 	for i, val := range pattern {
 		if sym, ok := val.(variable); ok {
 			attrs[sym] = i
+			continue
+		}
+
+		if isPlaceHolder(val) {
 			continue
 		}
 
