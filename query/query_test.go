@@ -57,7 +57,7 @@ func TestExamples(t *testing.T) {
 	starGazers := lookupPatternColl(joined.tuples, age7LikesTheStars)
 	for _, tuple := range starGazers.tuples {
 		for attr, idx := range starGazers.attrs {
-			fmt.Printf("%v -> %v\n", attr, tuple.valueAt(idx))
+			fmt.Printf("%v -> %v\n", attr, tuple.ValueAt(idx))
 		}
 	}
 
@@ -67,7 +67,7 @@ func TestExamples(t *testing.T) {
 	threeYearOlds := lookupPatternColl(joined.tuples, age3)
 	for _, tuple := range threeYearOlds.tuples {
 		for attr, idx := range threeYearOlds.attrs {
-			fmt.Printf("%v -> %v\t\t", attr, tuple.valueAt(idx))
+			fmt.Printf("%v -> %v\t\t", attr, tuple.ValueAt(idx))
 		}
 		fmt.Println()
 	}
@@ -160,7 +160,7 @@ func TestQ(t *testing.T) {
 	res, err := Q(query, data)
 	tu.ExpectNil(t, err)
 
-	for res, _ := range res.(map[indexed]bool) {
+	for res, _ := range res.(map[Indexed]bool) {
 		fmt.Println(res)
 	}
 }

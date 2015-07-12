@@ -6,7 +6,7 @@ package query
 // For now the maximum number of values supported is three.  This limit
 // is arbitrary and can easily be changed.  We will change it based on
 // how much joins queries need in practice.
-func newHashKey(vals []value) indexed {
+func newHashKey(vals []value) Indexed {
 	switch len(vals) {
 	case 1:
 		return key1{val1: vals[0]}
@@ -21,7 +21,7 @@ func newHashKey(vals []value) indexed {
 
 type key1 struct{ val1 value }
 
-func (j key1) valueAt(idx int) value {
+func (j key1) ValueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
@@ -32,7 +32,7 @@ func (j key1) valueAt(idx int) value {
 
 type key2 struct{ val1, val2 value }
 
-func (j key2) valueAt(idx int) value {
+func (j key2) ValueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
@@ -45,7 +45,7 @@ func (j key2) valueAt(idx int) value {
 
 type key3 struct{ val1, val2, val3 value }
 
-func (j key3) valueAt(idx int) value {
+func (j key3) ValueAt(idx int) value {
 	switch idx {
 	case 1:
 		return j.val1
