@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/heyLu/edn"
 	"log"
 	"os"
 
@@ -129,6 +130,23 @@ func main() {
 			}
 			fmt.Println()
 		}
+
+	case "query":
+		if flag.NArg() < 3 {
+			log.Fatal("missing query")
+		}
+
+		q, err := edn.DecodeString(flag.Arg(2))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		res, err := mu.Q(q, db)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(res)
 
 	default:
 		fmt.Println("unknown command:", cmd)
