@@ -24,7 +24,43 @@ const (
 )
 
 func (db *Db) Search(pattern Pattern) index.Iterator {
-	panic("not implemented")
+	var iter index.Iterator
+	minDatom, maxDatom := pattern.bounds(db)
+	switch pattern.toNum() {
+	case eavt:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+	case eav_:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+	case ea_t:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+		iter = index.FilterIterator(iter, func(d *index.Datom) bool {
+			return d.Tx() == minDatom.Tx()
+		})
+	case ea__:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+	case e_vt:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+		iter = index.FilterIterator(iter, func(d *index.Datom) bool {
+			return d.Tx() == minDatom.Tx() &&
+				d.V().Compare(minDatom.V()) == 0
+		})
+	case e_v_:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+		iter = index.FilterIterator(iter, func(d *index.Datom) bool {
+			return d.V().Compare(minDatom.V()) == 0
+		})
+	case e__t:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+		iter = index.FilterIterator(iter, func(d *index.Datom) bool {
+			return d.Tx() == minDatom.Tx()
+		})
+	case e___:
+		iter = db.Eavt().DatomsAt(minDatom, maxDatom)
+	default:
+		panic("unknown datom pattern")
+	}
+	// TODO: handle p.added != nil
+	return iter
 }
 
 type Pattern struct {
