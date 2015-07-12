@@ -1,5 +1,9 @@
 package query
 
+import (
+	"fmt"
+)
+
 // newHashKey returns a value implementing indexed that contains
 // the given values.
 //
@@ -30,6 +34,10 @@ func (k key1) ValueAt(idx int) value {
 	}
 }
 
+func (k key1) String() string {
+	return fmt.Sprintf("[%v]", k.val1)
+}
+
 type key2 struct{ val1, val2 value }
 
 func (k key2) ValueAt(idx int) value {
@@ -41,6 +49,10 @@ func (k key2) ValueAt(idx int) value {
 	default:
 		panic("invalid index")
 	}
+}
+
+func (k key2) String() string {
+	return fmt.Sprintf("[%v %v]", k.val1, k.val2)
 }
 
 type key3 struct{ val1, val2, val3 value }
@@ -56,4 +68,8 @@ func (k key3) ValueAt(idx int) value {
 	default:
 		panic("invalid index")
 	}
+}
+
+func (k key3) String() string {
+	return fmt.Sprintf("[%v %v %v]", k.val1, k.val2, k.val3)
 }
