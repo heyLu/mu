@@ -71,25 +71,25 @@ func (db *Db) Search(pattern Pattern) index.Iterator {
 }
 
 type Pattern struct {
-	e     HasLookup
-	a     HasLookup
-	v     interface{}
-	tx    HasLookup
-	added *bool
+	E     HasLookup
+	A     HasLookup
+	V     interface{}
+	Tx    HasLookup
+	Added *bool
 }
 
 func (p Pattern) toNum() int {
 	n := 0
-	if p.e != nil {
+	if p.E != nil {
 		n ^= 1 << 3
 	}
-	if p.a != nil {
+	if p.A != nil {
 		n ^= 1 << 2
 	}
-	if p.v != nil {
+	if p.V != nil {
 		n ^= 1 << 1
 	}
-	if p.tx != nil {
+	if p.Tx != nil {
 		n ^= 1 << 0
 	}
 	return n
@@ -114,20 +114,20 @@ func (p Pattern) bounds(db *Db) (index.Datom, index.Datom) {
 	minA, maxA := minA, maxA
 	minV, maxV := minV, maxV
 	minTx, maxTx := minTx, maxTx
-	if p.e != nil {
-		e, _ := p.e.Lookup(db)
+	if p.E != nil {
+		e, _ := p.E.Lookup(db)
 		minE, maxE = e, e
 	}
-	if p.a != nil {
-		a, _ := p.a.Lookup(db)
+	if p.A != nil {
+		a, _ := p.A.Lookup(db)
 		minA, maxA = a, a
 	}
-	if p.v != nil {
-		v := index.NewValue(p.v)
+	if p.V != nil {
+		v := index.NewValue(p.V)
 		minV, maxV = v, v
 	}
-	if p.tx != nil {
-		tx, _ := p.tx.Lookup(db)
+	if p.Tx != nil {
+		tx, _ := p.Tx.Lookup(db)
 		minTx, maxTx = tx, tx
 	}
 	minDatom := index.NewDatom(minE, minA, minV, minTx, minAdded)
