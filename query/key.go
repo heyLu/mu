@@ -21,10 +21,10 @@ func newHashKey(vals []value) Indexed {
 
 type key1 struct{ val1 value }
 
-func (j key1) ValueAt(idx int) value {
+func (k key1) ValueAt(idx int) value {
 	switch idx {
 	case 1:
-		return j.val1
+		return k.val1
 	default:
 		panic("invalid index")
 	}
@@ -32,12 +32,12 @@ func (j key1) ValueAt(idx int) value {
 
 type key2 struct{ val1, val2 value }
 
-func (j key2) ValueAt(idx int) value {
+func (k key2) ValueAt(idx int) value {
 	switch idx {
 	case 1:
-		return j.val1
+		return k.val1
 	case 2:
-		return j.val2
+		return k.val2
 	default:
 		panic("invalid index")
 	}
@@ -45,14 +45,14 @@ func (j key2) ValueAt(idx int) value {
 
 type key3 struct{ val1, val2, val3 value }
 
-func (j key3) ValueAt(idx int) value {
+func (k key3) ValueAt(idx int) value {
 	switch idx {
 	case 1:
-		return j.val1
+		return k.val1
 	case 2:
-		return j.val2
+		return k.val2
 	case 3:
-		return j.val3
+		return k.val3
 	default:
 		panic("invalid index")
 	}
