@@ -608,6 +608,10 @@ type query struct {
 	where []clause
 }
 
+// Q parses the query and runs it given the inputs.
+//
+// Inputs can be collections of type []interface{} or databases
+// (*database.Db).
 func Q(query interface{}, inputs ...interface{}) (map[Indexed]bool, error) {
 	q, err := parseQuery(query)
 	if err != nil {
