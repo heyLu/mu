@@ -240,10 +240,13 @@ func datumValueFromValue(val interface{}) (*Value, error) {
 	}
 }
 
+// FIXME: use a lock to access this
+var nextTempid int64 = -1000000
+
 func idFromValue(id edn.Tagged) (database.HasLookup, error) {
 	val, ok := id.Value.([]interface{})
-	if !ok || len(val) != 2 {
-		return nil, fmt.Errorf("db id must be of the form #db/id [part id], but was #db/id %v", id.Value)
+	if !ok || len(val) == 0 || len(val) > 2 {
+		return nil, fmt.Errorf("db id must be of the form #db/id [part id?], but was #db/id %v", id.Value)
 	}
 
 	partKw, ok := val[0].(edn.Keyword)
@@ -263,9 +266,15 @@ func idFromValue(id edn.Tagged) (database.HasLookup, error) {
 		return nil, fmt.Errorf("unknown partition %v", partKw)
 	}
 
-	eid, ok := val[1].(int64)
-	if !ok || eid >= 0 {
-		return nil, fmt.Errorf("db id value must be an negative integer, but was %v", val[1])
+	var eid int64
+	if len(val) == 2 {
+		eid, ok = val[1].(int64)
+		if !ok || eid >= 0 {
+			return nil, fmt.Errorf("db id value must be an negative integer, but was %v", val[1])
+		}
+	} else {
+		eid = nextTempid
+		nextTempid -= 1
 	}
 
 	return database.Id(-(part*(1<<42) - int(eid))), nil
