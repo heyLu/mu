@@ -2,6 +2,7 @@
 package mu
 
 import (
+	"github.com/heyLu/edn"
 	"github.com/heyLu/fressian"
 	"net/url"
 
@@ -213,4 +214,13 @@ func PartEnd(part int) int {
 
 func Q(q interface{}, inputs ...interface{}) (map[query.Indexed]bool, error) {
 	return query.Q(q, inputs...)
+}
+
+func QString(queryEDN string, inputs ...interface{}) (map[query.Indexed]bool, error) {
+	q, err := edn.DecodeString(queryEDN)
+	if err != nil {
+		return nil, err
+	}
+
+	return Q(q, inputs...)
 }
