@@ -116,7 +116,17 @@ func assignIds(txState *txState, db *database.Db, origDatoms []RawDatum) []index
 			entity = txState.resolveTempid(entity)
 		}
 
-		newDatom := index.NewDatom(entity, datom.A, datom.V.Val(), txState.tx, datom.Op)
+		value := datom.V.Val()
+		if db.Attribute(datom.A).Type() == index.Ref {
+			v := datom.V.Val().(int)
+			if v < 0 {
+				value = txState.resolveTempid(datom.V.Val().(int))
+			} else {
+				value = v
+			}
+		}
+
+		newDatom := index.NewDatom(entity, datom.A, value, txState.tx, datom.Op)
 		//log.Println("adding", newDatom)
 		datoms = append(datoms, newDatom)
 	}
