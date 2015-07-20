@@ -2,6 +2,7 @@ package transactor
 
 import (
 	"fmt"
+	"github.com/heyLu/fressian"
 	"net/url"
 
 	"github.com/heyLu/mu/database"
@@ -60,7 +61,14 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 	if err != nil {
 		return nil, err
 	}
-	aid, err := d.A.Lookup(db)
+
+	isReverseAttr := false
+	a := d.A
+	if attr, ok := d.A.(database.Keyword); ok && attr.Name[0] == '_' {
+		isReverseAttr = true
+		a = database.Keyword{fressian.Keyword{Namespace: attr.Namespace, Name: attr.Name[1:]}}
+	}
+	aid, err := a.Lookup(db)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +93,12 @@ func (d Datum) Resolve(db *database.Db) ([]RawDatum, error) {
 		}
 		*val = index.NewValue(u)
 	}
-	return []RawDatum{RawDatum{d.Op, eid, aid, *val}}, nil
+
+	rawDatum := RawDatum{d.Op, eid, aid, *val}
+	if isReverseAttr {
+		rawDatum = RawDatum{d.Op, val.Val().(int), aid, index.NewRef(eid)}
+	}
+	return []RawDatum{rawDatum}, nil
 }
 
 type Value struct {
@@ -135,14 +148,8 @@ func (m TxMap) Resolve(db *database.Db) ([]RawDatum, error) {
 
 	datums := make([]RawDatum, 0, len(m.Attributes))
 	for k, vs := range m.Attributes {
-		attrId, err := k.Lookup(db)
-		if err != nil {
-			return nil, err
-		}
-		rAttrId := resolvedId(attrId)
-
 		for _, v := range vs {
-			datum := Datum{Op: Assert, E: rId, A: rAttrId, V: v}
+			datum := Datum{Op: Assert, E: rId, A: k, V: v}
 			rawDatum, err := datum.Resolve(db)
 			if err != nil {
 				return nil, err
