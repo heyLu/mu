@@ -6,6 +6,15 @@
 
 .next
 
+- some more ideas
+  - fix tempid (make Id consist of partition + id), use it
+  - add a `bolt` backend
+  - no stores by default (?)
+  - more of the query api (rules, bindings, functions/predicates)
+  - pull api
+  - think about:
+    - make the api untyped?  (or provide helpers?)
+      - in general, the api needs some sketches & experiments
 - some ideas
   - tests!  (we really need those, at least "api-level" tests, that
     ensure our public interfaces don't break.  unused things tend
