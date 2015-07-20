@@ -92,17 +92,17 @@ import (
 // index.
 type Indexed interface {
 	ValueAt(idx int) value
+	Length() int
 }
 
 // a tuple is an indexed collection of values.
 type tuple interface {
 	Indexed
-	length() int
 }
 
 type sliceTuple []value
 
-func (t sliceTuple) length() int           { return len(t) }
+func (t sliceTuple) Length() int           { return len(t) }
 func (t sliceTuple) ValueAt(idx int) value { return t[idx] }
 
 // a value is any (scalar) value we support in queries.
@@ -274,7 +274,7 @@ func hashEqual(a, b interface{}) bool {
 // indexedDatom is a proxy that implements the tuple interface for datoms.
 type indexedDatom index.Datom
 
-func (id indexedDatom) length() int { return 5 }
+func (id indexedDatom) Length() int { return 5 }
 
 func (id indexedDatom) ValueAt(idx int) value {
 	d := index.Datom(id)
@@ -360,7 +360,7 @@ func lookupPatternDb(db *database.Db, pattern pattern) relation {
 // equal.  (I.e. variable in the pattern are ignored.)
 func matchesPattern(pattern pattern, tuple tuple) bool {
 	i := 0
-	for i < len(pattern) && i < tuple.length() {
+	for i < len(pattern) && i < tuple.Length() {
 		p := pattern[i]
 		t := tuple.ValueAt(i)
 		if _, isVar := p.(variable); !isVar && !hashEqual(p, t) {
