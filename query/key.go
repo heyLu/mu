@@ -27,7 +27,7 @@ type key1 struct{ val1 value }
 
 func (k key1) ValueAt(idx int) value {
 	switch idx {
-	case 1:
+	case 0:
 		return k.val1
 	default:
 		panic("invalid index")
@@ -42,9 +42,9 @@ type key2 struct{ val1, val2 value }
 
 func (k key2) ValueAt(idx int) value {
 	switch idx {
-	case 1:
+	case 0:
 		return k.val1
-	case 2:
+	case 1:
 		return k.val2
 	default:
 		panic("invalid index")
@@ -59,11 +59,11 @@ type key3 struct{ val1, val2, val3 value }
 
 func (k key3) ValueAt(idx int) value {
 	switch idx {
-	case 1:
+	case 0:
 		return k.val1
-	case 2:
+	case 1:
 		return k.val2
-	case 3:
+	case 2:
 		return k.val3
 	default:
 		panic("invalid index")
