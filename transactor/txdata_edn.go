@@ -236,6 +236,14 @@ func datumValueFromValue(val interface{}) (*Value, error) {
 		v := NewValue(fressian.UUID{Msb: val.Msb, Lsb: val.Lsb})
 		return &v, nil
 	default:
+		if tagged, ok := val.(edn.Tagged); ok && tagged.Tag == dbIdSym {
+			lookup, err := idFromValue(tagged)
+			if err != nil {
+				return nil, err
+			}
+			value := NewValue(lookup)
+			return &value, nil
+		}
 		return nil, fmt.Errorf("invalid value %v", val)
 	}
 }
