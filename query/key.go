@@ -18,6 +18,8 @@ func newHashKey(vals []value) Indexed {
 		return key2{val1: vals[0], val2: vals[1]}
 	case 3:
 		return key3{val1: vals[0], val2: vals[1], val3: vals[2]}
+	case 4:
+		return key4{val1: vals[0], val2: vals[1], val3: vals[2], val4: vals[3]}
 	default:
 		panic("unsupported join arity")
 	}
@@ -79,3 +81,26 @@ func (k key3) String() string {
 }
 
 func (k key3) Length() int { return 3 }
+
+type key4 struct{ val1, val2, val3, val4 value }
+
+func (k key4) ValueAt(idx int) value {
+	switch idx {
+	case 0:
+		return k.val1
+	case 1:
+		return k.val2
+	case 2:
+		return k.val3
+	case 3:
+		return k.val4
+	default:
+		panic("invalid index")
+	}
+}
+
+func (k key4) Length() int { return 4 }
+
+func (k key4) String() string {
+	return fmt.Sprintf("[%v %v %v %v]", k.val1, k.val2, k.val3, k.val4)
+}
