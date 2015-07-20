@@ -286,6 +286,7 @@ func (e Entity) Get(key Keyword) interface{} {
 		return nil
 	}
 	hasMany := e.db.Attribute(attrId).Cardinality() == CardinalityMany
+	isRef := e.db.Attribute(attrId).Type() == index.Ref
 	vals := []interface{}{}
 
 	// FIXME [perf]: use `.DatomsAt` (or `e.Datoms`)
@@ -293,7 +294,7 @@ func (e Entity) Get(key Keyword) interface{} {
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == e.id && datom.Attribute() == attrId {
 			var val interface{}
-			if datom.Value().Type() == index.Ref {
+			if isRef {
 				val = e.db.Entity(datom.Value().Val().(int))
 			} else {
 				val = datom.Value().Val()
