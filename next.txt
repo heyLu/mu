@@ -15,6 +15,16 @@
   - think about:
     - make the api untyped?  (or provide helpers?)
       - in general, the api needs some sketches & experiments
+      - "untyped" could mean pseudo-types (aliases for `interface{}`)
+        and panic'ing if unsupported types are passed.  however, this
+        would be very unidiomatic, and not really fun to develop.  if
+        we do this we might as well use "dynamically typed go", but
+        then we're building an ad-hoc, bug-ridden, slow implementation
+        of clojure.  so maybe not?  but still... it would give us a
+        more convenient interface.
+
+        well, the summary is still "need some sketches & experiments",
+        as detailed above.
 - some ideas
   - tests!  (we really need those, at least "api-level" tests, that
     ensure our public interfaces don't break.  unused things tend
