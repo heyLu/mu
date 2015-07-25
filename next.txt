@@ -64,12 +64,7 @@
     - maybe do this in `fressian`, instead of here?  e.g. `NewWriterWithCompress` or similar?  (`NewGzipWriter` sounds better...)
 - notes
     - add a `server` subcommand (a smallish http server that provides an api and a simple web interface)
-- mu cli
-    - `init` (initialize a db with the default datoms, possibly do this automatically?)
-    - `datoms`, `seek-datoms` (specify index and leading components, get datoms)
-        - maybe this should be the default command, like `eavt` is now?
-    - `q` (or `query`) (possibly later)
-    - `transact` (read tx from edn on stdin, report results)
+- mu cli improvements (better help, better support for `create-database`, ...)
 
 .log
 
