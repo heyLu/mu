@@ -68,6 +68,8 @@
 
 .log
 
+- proper support for ref-typed attributes
+- simple (conjunctive) queries
 - transaction validation
 - reading tx data from edn
 - first attempts at creating new dbs with log & segments
