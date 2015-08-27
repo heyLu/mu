@@ -9,8 +9,11 @@ give feedback), but don't expect that it won't mess up things.*
 `mu` is a database that stores tuples, with a lightweight schema mechanism
 and a design that will support a powerful query language in the future.
 
-It is inspired by [Datomic](http://datomic.com) and [DataScript](https://github.com/tonsky/datascript)
-and follows Datomic's API closely.
+It is inspired by [Datomic][] and [DataScript][] and follows Datomic's
+API closely.
+
+[Datomic]: http://datomic.com
+[DataScript]: https://github.com/tonsky/datascript
 
 `mu` is intended to be used in places where `sqlite` is used, but where a
 more flexible schema and (in the future) more powerful queries and/or immutable
@@ -37,7 +40,8 @@ func main() {
 }
 ```
 
-For a more detailed example, take a look at the [`notes` example application](./cmd/notes/notes.go).
+For a more detailed example, take a look at the `notes`
+[example application](./cmd/notes/notes.go).
 
 ## Documentation
 
