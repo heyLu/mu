@@ -46,7 +46,7 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 		// FIXME: remove this as soon as possible
 		switch rawId := tx[fressian.Keyword{"", "id"}].(type) {
 		case fressian.UUID:
-			*id = rawId
+			id = &rawId
 		case string:
 			id, _ = fressian.NewUUIDFromString(rawId)
 		default:

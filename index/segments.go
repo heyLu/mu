@@ -69,10 +69,14 @@ var SegmentReadHandlers = map[string]fressian.ReadHandler{
 		for i, tx := range txs.([]int) {
 			transactions[i] = 3*(1<<42) + tx
 		}
+		var values []interface{}
+		if values != nil {
+			values = vs.([]interface{})
+		}
 		return TransposedData{
 			entities:     es.([]int),
 			attributes:   as.([]int),
-			values:       vs.([]interface{}),
+			values:       values,
 			transactions: transactions,
 			addeds:       addeds.([]bool),
 		}
