@@ -262,8 +262,15 @@ func CurrentDb(store store.Store, indexRootId, logRootId string, logTail []byte)
 			/*for _, datom := range tx.Datoms {
 				fmt.Println(datom)
 			}*/
-			basisT = nextT
+			// TODO: check if basisT/nextT from index root is higher
+			basisT = tx.T
 			nextT = tx.T
+			for _, datom := range tx.Datoms {
+				tPart := datom.E() % (1 << 42)
+				if tPart > nextT {
+					nextT = tPart
+				}
+			}
 			db = db.WithDatoms(tx.Datoms)
 		}
 	}
