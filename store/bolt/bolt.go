@@ -72,25 +72,21 @@ type boltStore struct {
 
 func (s *boltStore) Get(id string) ([]byte, error) {
 	var data []byte
-	fmt.Println("get", id)
 	err := s.db.View(func(tx *bolt.Tx) error {
 		data = tx.Bucket([]byte("mu_kvs")).Get([]byte(id))
 		if data == nil {
 			return fmt.Errorf("key does not exist")
 		}
-		fmt.Println(data)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(data)
 	return data, nil
 }
 
 func (s *boltStore) Put(id string, data []byte) error {
-	fmt.Println("put", id, data)
 	err := s.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket([]byte("mu_kvs")).Put([]byte(id), data)
 	})
