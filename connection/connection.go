@@ -3,7 +3,6 @@ package connection
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 
 	"github.com/heyLu/mu/database"
@@ -25,7 +24,7 @@ var registeredConnectors = map[string]Connector{}
 
 func Register(name string, connector Connector) {
 	if _, ok := registeredConnectors[name]; ok {
-		log.Fatal("duplicate connector for ", name)
+		panic(fmt.Sprint("duplicate connector for ", name))
 	}
 
 	registeredConnectors[name] = connector

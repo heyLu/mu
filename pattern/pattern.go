@@ -1,8 +1,6 @@
 package pattern
 
 import (
-	"log"
-
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
 )
@@ -89,8 +87,7 @@ func Datoms(db *database.Db, pattern Pattern) (index.Iterator, error) {
 		}
 		idx = db.Aevt()
 	default:
-		log.Fatal("invalid index type")
-		return nil, nil
+		panic("invalid index type")
 	}
 
 	return idx.DatomsAt(

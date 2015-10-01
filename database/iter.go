@@ -1,8 +1,6 @@
 package database
 
 import (
-	"log"
-
 	"github.com/heyLu/mu/index"
 )
 
@@ -25,7 +23,7 @@ func (i *noRetractionsIterator) Next() *index.Datom {
 	for datom == nil || !datom.Added() {
 		datom = i.iter.Next()
 		if datom == nil {
-			log.Fatal("retraction without a value")
+			panic("retraction without a value")
 		}
 
 		datom = i.iter.Next()

@@ -1,8 +1,8 @@
 package database
 
 import (
+	"fmt"
 	"github.com/heyLu/fressian"
-	"log"
 	"time"
 
 	"github.com/heyLu/mu/index"
@@ -262,7 +262,7 @@ func (e Entity) Keys() []Keyword {
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		kw := e.db.Ident(datom.Attribute())
 		if kw == nil {
-			log.Fatal("attribute has no `:db/ident`:", datom.Attribute())
+			panic(fmt.Sprint("attribute has no `:db/ident`:", datom.Attribute()))
 		}
 		if _, ok := prevKeys[*kw]; ok {
 			continue
@@ -322,7 +322,7 @@ func (e Entity) Touch() {
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		kw := e.db.Ident(datom.Attribute())
 		if kw == nil {
-			log.Fatal("attribute has no `:db/ident`:", datom.Attribute())
+			panic(fmt.Sprint("attribute has no `:db/ident`:", datom.Attribute()))
 		}
 		e.attributeCache[*kw] = datom.Value().Val()
 	}

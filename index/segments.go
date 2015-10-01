@@ -1,8 +1,8 @@
 package index
 
 import (
+	"fmt"
 	"github.com/heyLu/fressian"
-	"log"
 
 	"github.com/heyLu/mu/comparable"
 	"github.com/heyLu/mu/store"
@@ -118,8 +118,7 @@ func compareValue(a, b interface{}) int {
 			return 1
 		}
 	default:
-		log.Fatal("compareValue: not implemented (compare ", a, ", ", b, ")")
-		return -1
+		panic(fmt.Sprint("compareValue: not implemented (compare ", a, ", ", b, ")"))
 	}
 }
 

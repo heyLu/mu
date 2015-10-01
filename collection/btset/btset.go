@@ -2,8 +2,6 @@
 package btset
 
 import (
-	"log"
-
 	c "github.com/heyLu/mu/comparable"
 )
 
@@ -437,8 +435,7 @@ func (n *pointerNode) conj(key interface{}, compare c.CompareFn) []anyNode {
 		}
 	}
 
-	log.Fatal("unreachable")
-	return nil
+	panic("unreachable")
 }
 
 func (n *pointerNode) merge(next anyNode) anyNode {
@@ -534,8 +531,7 @@ func (n *leafNode) conj(key interface{}, compare c.CompareFn) []anyNode {
 		return []anyNode{&leafNode{splice(n.keys, idx, idx, []interface{}{key})}}
 	}
 
-	log.Fatal("unreachable")
-	return nil
+	panic("unreachable")
 }
 
 func (n *leafNode) merge(next anyNode) anyNode {
@@ -621,8 +617,7 @@ func internalNextPath(node anyNode, path int, level int) int {
 		}
 	}
 
-	log.Fatal("unreachable")
-	return -1
+	panic("unreachable")
 }
 
 func nextPath(set *Set, path int) int {
@@ -888,8 +883,7 @@ func Slice(set *Set, keys ...interface{}) SetIter {
 	case 2:
 		return internalSlice(set, keys[0], keys[1])
 	default:
-		log.Fatal("keys must be one or two integers")
-		return nil
+		panic("keys must be one or two integers")
 	}
 }
 

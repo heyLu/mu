@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"github.com/heyLu/fressian"
-	"log"
 	"time"
 
 	"github.com/heyLu/mu/index"
@@ -36,7 +36,7 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 	r := fressian.NewReader(bytes.NewBuffer(logTail), ReadHandlers)
 	tailRaw, err := r.ReadValue()
 	if err != nil && tailRaw == nil {
-		log.Fatal("[log] FromStore: ", err)
+		panic(err)
 	}
 	tail := tailRaw.([]interface{})
 	txs := make([]LogTx, len(tail))
@@ -50,7 +50,7 @@ func FromStore(store store.Store, logRootId string, logTail []byte) *Log {
 		case string:
 			id, _ = fressian.NewUUIDFromString(rawId)
 		default:
-			log.Fatal("invalid log id: ", rawId)
+			panic(fmt.Sprint("invalid log id: ", rawId))
 		}
 		t := tx[fressian.Keyword{"", "t"}].(int)
 		dataRaw := tx[fressian.Keyword{"", "data"}].([]interface{})
@@ -96,7 +96,7 @@ func Squuid() fressian.UUID {
 	binary.BigEndian.PutUint32(bs[0:4], now)
 	_, err := rand.Read(bs[4:])
 	if err != nil {
-		log.Fatal("squuid (rand.Read): ", err)
+		panic(err)
 	}
 	return fressian.NewUUIDFromBytes(bs)
 }

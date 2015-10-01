@@ -2,7 +2,6 @@ package store
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 )
 
@@ -25,7 +24,7 @@ var registry = map[string]store{}
 
 func Register(name string, create CreateFn, open OpenFn) {
 	if _, ok := registry[name]; ok {
-		log.Fatal("[store] duplicate store: ", name)
+		panic(fmt.Sprint("duplicate store ", name))
 	}
 
 	registry[name] = store{create: create, open: open}

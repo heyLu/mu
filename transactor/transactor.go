@@ -1,7 +1,7 @@
 package transactor
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/heyLu/mu/database"
@@ -95,7 +95,7 @@ func (txState *txState) resolveTempid(entity int) int {
 		case DbPartTx:
 			newEntity = txState.tx
 		default:
-			log.Fatal("unknown partition:", Part(entity))
+			panic(fmt.Sprint("unknown partition:", Part(entity)))
 		}
 		txState.newEntityCache[entity] = newEntity
 		return newEntity

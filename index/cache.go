@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"github.com/heyLu/fressian"
-	"log"
 
 	"github.com/heyLu/mu/store"
 )
@@ -35,24 +34,20 @@ func GetFromCache(store store.Store, id string) interface{} {
 		return val
 	}
 
-	//log.Println("[cache] get:", id)
 	data, err := store.Get(id)
 	if err != nil {
-		log.Fatal("[cache] store.Get: ", err)
-		return nil
+		panic(err)
 	}
 
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		log.Fatal("[cache] gzip.NewReader: ", err)
-		return nil
+		panic(err)
 	}
 
 	r := fressian.NewReader(gz, SegmentReadHandlers)
 	val, err := r.ReadValue()
 	if err != nil {
-		log.Fatal("[cache] r.ReadValue: ", err)
-		return nil
+		panic(err)
 	}
 
 	cache.Put(id, val)

@@ -3,7 +3,6 @@ package index
 import (
 	"fmt"
 	"github.com/heyLu/fressian"
-	"log"
 	"math/big"
 	"net/url"
 	"time"
@@ -122,8 +121,7 @@ func NewValue(val interface{}) Value {
 	case Value:
 		return val.(Value)
 	default:
-		log.Fatalf("invalid datom value: %#v\n", val)
-		return Value{-1, nil}
+		panic(fmt.Sprintf("invalid datom value: %#v", val))
 	}
 }
 
@@ -229,8 +227,7 @@ func (v Value) Compare(ovc comparable.Comparable) int {
 		case Max:
 			return 1
 		default:
-			log.Fatal("invalid values: ", v, ", ", ov)
-			return 0
+			panic(fmt.Sprint("invalid values: ", v, ", ", ov))
 		}
 	} else if v.ty < ov.ty {
 		return -1
