@@ -13,6 +13,7 @@ import (
 	"github.com/heyLu/mu/transactor"
 
 	_ "github.com/heyLu/mu/store/bolt"
+	_ "github.com/heyLu/mu/store/sqlite"
 )
 
 var config struct {
