@@ -60,3 +60,7 @@ func (s fileStore) Put(id string, data []byte) error {
 func (s fileStore) Delete(id string) error {
 	return os.Remove(s.blobPath(id))
 }
+
+func (s fileStore) Close() error {
+	return nil
+}

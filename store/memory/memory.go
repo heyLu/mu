@@ -47,3 +47,7 @@ func (s *memoryStore) Delete(id string) error {
 	delete(s.store, id)
 	return nil
 }
+
+func (s *memoryStore) Close() error {
+	return nil
+}
