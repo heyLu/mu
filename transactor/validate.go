@@ -122,8 +122,8 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 
 func existsUniqueValue(db *database.Db, attrId int, val index.Value) (*index.Datom, bool) {
 	iter := db.Avet().DatomsAt(
-		index.NewDatom(0, attrId, val, 0, true),
-		index.NewDatom(index.MaxDatom.E(), attrId, val, index.MaxDatom.Tx(), true))
+		index.NewDatom(index.MaxDatom.E(), attrId, val, 0, true),
+		index.NewDatom(index.MinDatom.E(), attrId, val, index.MaxDatom.Tx(), true))
 	datom := iter.Next()
 	log.Println("exists unique value?", attrId, val, datom)
 	return datom, datom != nil
