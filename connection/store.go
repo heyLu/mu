@@ -165,6 +165,7 @@ func CreateDatabase(u *url.URL) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	defer store.Close()
 
 	dbName := u.Query().Get("name")
 	if dbName == "" {
