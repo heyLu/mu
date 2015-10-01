@@ -11,6 +11,8 @@ import (
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
 	"github.com/heyLu/mu/transactor"
+
+	_ "github.com/heyLu/mu/store/bolt"
 )
 
 var config struct {
