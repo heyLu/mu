@@ -42,6 +42,11 @@ func create(u *url.URL) (bool, error) {
 		return false, err
 	}
 
+	_, err = db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS mu_kvs_id_index ON mu_kvs ( id )")
+	if err != nil {
+		return false, err
+	}
+
 	return isNew, nil
 }
 
