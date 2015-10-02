@@ -35,7 +35,7 @@ func create(u *url.URL) (bool, error) {
 	defer db.Close()
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS mu_kvs (
-	id TEXT NOT NULL PRIMARY KEY,
+	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	data BLOB
 )`)
 	if err != nil {
