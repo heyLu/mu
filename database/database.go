@@ -249,7 +249,9 @@ func (db *Db) Entity(id int) Entity {
 
 // Datoms returns an iterator over all datoms for this entity.
 func (e Entity) Datoms() index.Iterator {
-	return e.db.Eavt().DatomsAt(index.NewDatom(e.id, -1, "", -1, false), index.NewDatom(e.id, index.MaxDatom.A(), "", -1, false))
+	return e.db.Eavt().DatomsAt(
+		index.NewDatom(e.id, index.MinDatom.A(), index.MinValue, index.MaxDatom.Tx(), false),
+		index.NewDatom(e.id, index.MaxDatom.A(), index.MaxValue, index.MinDatom.Tx(), true))
 }
 
 // Keys returns a slice of all attributes of this entity.
