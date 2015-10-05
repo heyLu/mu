@@ -140,8 +140,8 @@ func findMaxEntity(db *database.Db, part int) int {
 	end := (part + 1) * (1 << 42)
 	// FIXME [perf]: implement `.Reverse()` for iterators
 	iter := db.Eavt().DatomsAt(
-		index.NewDatom(start, -1, "", -1, true),
-		index.NewDatom(end, -1, "", -1, true))
+		index.NewDatom(start, index.MinDatom.A(), index.MinValue, index.MaxDatom.Tx(), false),
+		index.NewDatom(end, index.MaxDatom.A(), index.MaxValue, index.MinDatom.Tx(), true))
 	for datom := iter.Next(); datom != nil; datom = iter.Next() {
 		if datom.Entity() > maxEntity {
 			maxEntity = datom.Entity()
@@ -159,7 +159,9 @@ func findMaxEntity(db *database.Db, part int) int {
 func previousValue(db *database.Db, datom RawDatum) (*index.Datom, bool) {
 	// FIXME [perf]: this shouldn't be necessary.  indexes should know how to do this.
 	//               probably...
-	iter := db.Eavt().DatomsAt(index.NewDatom(datom.E, datom.A, "", -1, true), index.MaxDatom)
+	iter := db.Eavt().DatomsAt(
+		index.NewDatom(datom.E, datom.A, index.MinValue, index.MaxDatom.Tx(), false),
+		index.NewDatom(datom.E, datom.A, index.MaxValue, index.MinDatom.Tx(), true))
 	prev := iter.Next()
 	if prev == nil {
 		return nil, false

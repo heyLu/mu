@@ -122,8 +122,8 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 
 func existsUniqueValue(db *database.Db, attrId int, val index.Value) (*index.Datom, bool) {
 	iter := db.Avet().DatomsAt(
-		index.NewDatom(index.MaxDatom.E(), attrId, val, 0, true),
-		index.NewDatom(index.MinDatom.E(), attrId, val, index.MaxDatom.Tx(), true))
+		index.NewDatom(index.MinDatom.E(), attrId, val, index.MaxDatom.Tx(), false),
+		index.NewDatom(index.MaxDatom.E(), attrId, val, index.MinDatom.Tx(), true))
 	datom := iter.Next()
 	log.Println("exists unique value?", attrId, val, datom)
 	return datom, datom != nil
@@ -158,8 +158,8 @@ func alreadyExists(db *database.Db, datum RawDatum) bool {
 	}
 
 	iter := db.Eavt().DatomsAt(
-		index.NewDatom(datum.E, datum.A, datum.V, 0, true),
-		index.NewDatom(datum.E, datum.A, datum.V, index.MaxDatom.Tx(), true))
+		index.NewDatom(datum.E, datum.A, datum.V, index.MaxDatom.Tx(), false),
+		index.NewDatom(datum.E, datum.A, datum.V, index.MinDatom.Tx(), true))
 	datom := iter.Next()
 	log.Println("alreadyExists?", datom, datum)
 	return datom != nil
@@ -212,8 +212,8 @@ func existingAttribute(db *database.Db, entity int, attribute int) *index.Datom 
 	}
 
 	iter := db.Eavt().DatomsAt(
-		index.NewDatom(entity, attribute, index.MinValue, 0, true),
-		index.NewDatom(entity, attribute, index.MaxValue, index.MaxDatom.Tx(), true))
+		index.NewDatom(entity, attribute, index.MinValue, index.MaxDatom.Tx(), false),
+		index.NewDatom(entity, attribute, index.MaxValue, index.MinDatom.Tx(), true))
 	datom := iter.Next()
 	log.Println("existingAttribute", datom)
 	return datom

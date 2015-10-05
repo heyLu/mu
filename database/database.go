@@ -184,7 +184,7 @@ const dbTxInstant = 50
 // transaction, it returns db.NextT().
 func (db *Db) tAtTime(t time.Time) int {
 	iter := db.Avet().DatomsAt(
-		index.NewDatom(index.MinDatom.E(), dbTxInstant, t, index.MaxDatom.Tx(), true),
+		index.NewDatom(index.MinDatom.E(), dbTxInstant, t, index.MaxDatom.Tx(), false),
 		index.NewDatom(index.MaxDatom.E(), dbTxInstant, index.MaxValue, index.MinDatom.Tx(), true))
 	datom := iter.Next()
 	if datom == nil {
@@ -400,8 +400,8 @@ func (db *Db) Attribute(id int) *Attribute {
 		return &attr
 	} else {
 		iter := db.Eavt().DatomsAt(
-			index.NewDatom(id, 0, index.MinValue, 0, true),
-			index.NewDatom(id, index.MaxDatom.A(), index.MaxValue, index.MaxDatom.Tx(), true))
+			index.NewDatom(id, 0, index.MinValue, index.MaxDatom.Tx(), false),
+			index.NewDatom(id, index.MaxDatom.A(), index.MaxValue, index.MinDatom.Tx(), true))
 		found := false
 		attr = Attribute{
 			id: id,
