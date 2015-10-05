@@ -33,6 +33,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	isNew, err := mu.CreateDatabase(flag.Arg(0))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if isNew {
+		fmt.Println("created new database", flag.Arg(0))
+	}
+
 	conn, err := mu.Connect(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
