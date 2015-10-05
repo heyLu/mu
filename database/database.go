@@ -289,23 +289,23 @@ func (e Entity) Get(key Keyword) interface{} {
 	isRef := e.db.Attribute(attrId).Type() == index.Ref
 	vals := []interface{}{}
 
-	// FIXME [perf]: use `.DatomsAt` (or `e.Datoms`)
-	datoms := e.db.eavt.Datoms()
+	min, max := index.MinDatom, index.MaxDatom
+	datoms := e.db.eavt.DatomsAt(
+		index.NewDatom(e.id, attrId, min.V(), max.Tx(), min.Added()),
+		index.NewDatom(e.id, attrId, max.V(), min.Tx(), max.Added()))
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
-		if datom.Entity() == e.id && datom.Attribute() == attrId {
-			var val interface{}
-			if isRef {
-				val = e.db.Entity(datom.Value().Val().(int))
-			} else {
-				val = datom.Value().Val()
-			}
+		var val interface{}
+		if isRef {
+			val = e.db.Entity(datom.Value().Val().(int))
+		} else {
+			val = datom.Value().Val()
+		}
 
-			if hasMany {
-				vals = append(vals, val)
-			} else {
-				e.attributeCache[key] = val
-				return val
-			}
+		if hasMany {
+			vals = append(vals, val)
+		} else {
+			e.attributeCache[key] = val
+			return val
 		}
 	}
 
