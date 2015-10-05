@@ -224,7 +224,7 @@ func (db *Db) Entid(lookup HasLookup) int {
 
 func (db *Db) Ident(entity int) *Keyword {
 	// FIXME [perf]: use `.DatomsAt` and/or caching (datomic does this on `connect`)
-	datoms := db.aevt.Datoms()
+	datoms := db.Aevt().Datoms()
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
 		if datom.Entity() == entity && datom.Attribute() == 10 {
 			key := datom.Value().Val().(fressian.Keyword)
@@ -292,7 +292,7 @@ func (e Entity) Get(key Keyword) interface{} {
 	vals := []interface{}{}
 
 	min, max := index.MinDatom, index.MaxDatom
-	datoms := e.db.eavt.DatomsAt(
+	datoms := e.db.Eavt().DatomsAt(
 		index.NewDatom(e.id, attrId, min.V(), max.Tx(), min.Added()),
 		index.NewDatom(e.id, attrId, max.V(), min.Tx(), max.Added()))
 	for datom := datoms.Next(); datom != nil; datom = datoms.Next() {
