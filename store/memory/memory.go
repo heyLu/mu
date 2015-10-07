@@ -12,17 +12,23 @@ func init() {
 }
 
 func open(u *url.URL) (store.Store, error) {
-	return &memoryStore{map[string][]byte{}}, nil
+	name := u.Host + u.Path
+	store, ok := dbs[name]
+	if ok {
+		return store, nil
+	}
+
+	return nil, fmt.Errorf("'%s' does not exist", name)
 }
 
-var dbs = map[string]bool{}
+var dbs = map[string]*memoryStore{}
 
 func create(u *url.URL) (bool, error) {
 	name := u.Host + u.Path
 	if _, ok := dbs[name]; ok {
 		return false, nil
 	}
-	dbs[name] = true
+	dbs[name] = &memoryStore{map[string][]byte{}}
 	return true, nil
 }
 
