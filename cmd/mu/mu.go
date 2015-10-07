@@ -21,6 +21,7 @@ var config struct {
 	since      int
 	useHistory bool
 	reverse    bool
+	create     bool
 }
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 	flag.IntVar(&config.since, "since", -1, "the t of the database to begin")
 	flag.BoolVar(&config.useHistory, "history", false, "whether to include the history")
 	flag.BoolVar(&config.reverse, "reverse", false, "whether to reverse order of the datoms")
+	flag.BoolVar(&config.create, "create", true, "whether to create the database if it does not exist")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -35,12 +37,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	isNew, err := mu.CreateDatabase(flag.Arg(0))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if isNew {
-		fmt.Println("created new database", flag.Arg(0))
+	if config.create {
+		isNew, err := mu.CreateDatabase(flag.Arg(0))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if isNew {
+			fmt.Println("created new database", flag.Arg(0))
+		}
 	}
 
 	conn, err := mu.Connect(flag.Arg(0))
