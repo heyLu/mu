@@ -38,6 +38,10 @@ func (it *btsetIterator) Next() *Datom {
 	}
 }
 
+func (it *btsetIterator) Reverse() Iterator {
+	return &btsetIterator{it.iter.Reverse()}
+}
+
 func (mi MemoryIndex) Datoms() Iterator {
 	return mi.DatomsAt(MinDatom, MaxDatom)
 }

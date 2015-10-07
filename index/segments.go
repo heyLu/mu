@@ -284,6 +284,10 @@ func (i emptyIterator) Next() *Datom {
 	return nil
 }
 
+func (i emptyIterator) Reverse() Iterator {
+	return i
+}
+
 type indexIterator struct {
 	rootIdx, rootStart, rootEnd          int
 	dirIdx, dirStart, dirEnd             int
@@ -345,6 +349,54 @@ func (i *indexIterator) Next() *Datom {
 	return &datom
 }
 
+func (i *indexIterator) Reverse() Iterator {
+	directory := getDirectory(i.store, i.root.directories[i.rootEnd])
+	iter := *i
+	iter.rootIdx = i.rootEnd
+	iter.dirIdx = i.dirEnd
+	iter.segmentIdx = i.segmentEnd
+	iter.directory = getDirectory(i.store, i.root.directories[i.rootEnd])
+	iter.segment = getSegment(i.store, directory.segments[i.dirEnd])
+	return &reverseIndexIterator{iter}
+}
+
+type reverseIndexIterator struct {
+	indexIterator
+}
+
+func (i *reverseIndexIterator) atEnd() bool {
+	return i.rootStart <= i.rootIdx && i.dirStart <= i.dirIdx && i.segmentStart <= i.segmentIdx
+}
+
+func (i *reverseIndexIterator) Next() *Datom {
+	if i.atEnd() {
+		return nil
+	}
+
+	if i.segmentIdx > 0 {
+		i.segmentIdx -= 1
+	} else if i.dirIdx > 0 {
+		i.dirIdx -= 1
+		i.segment = getSegment(i.store, i.directory.segments[i.dirIdx])
+		i.segmentIdx = len(i.segment.entities) - 1
+	} else if i.rootIdx > 0 {
+		i.rootIdx -= 1
+		i.directory = getDirectory(i.store, i.root.directories[i.rootIdx])
+		i.dirIdx = len(i.directory.segments) - 1
+		i.segment = getSegment(i.store, i.directory.segments[i.dirIdx])
+		i.segmentIdx = len(i.segment.entities) - 1
+	} else {
+		return nil
+	}
+
+	datom := i.segment.DatomAt(i.segmentIdx)
+	return &datom
+}
+
+func (i *reverseIndexIterator) Reverse() Iterator {
+	panic("not implemented")
+}
+
 type mergeIterator struct {
 	compare comparable.CompareFn
 	iter1   Iterator
@@ -391,6 +443,10 @@ func (i *mergeIterator) Next() *Datom {
 	}
 }
 
+func (i *mergeIterator) Reverse() Iterator {
+	return newMergeIterator(i.compare, i.iter1.Reverse(), i.iter2.Reverse())
+}
+
 type filterIterator struct {
 	pred func(datom *Datom) bool
 	iter Iterator
@@ -411,4 +467,11 @@ func (i *filterIterator) Next() *Datom {
 	}
 
 	return datom
+}
+
+func (i *filterIterator) Reverse() Iterator {
+	return &filterIterator{
+		pred: i.pred,
+		iter: i.iter.Reverse(),
+	}
 }

@@ -22,6 +22,7 @@ type Index interface {
 
 type Iterator interface {
 	Next() *Datom
+	Reverse() Iterator
 }
 
 type SegmentedIndex struct {

@@ -31,3 +31,7 @@ func (i *noRetractionsIterator) Next() *index.Datom {
 
 	return datom
 }
+
+func (i *noRetractionsIterator) Reverse() index.Iterator {
+	panic("not implemented")
+}
