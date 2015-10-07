@@ -156,6 +156,10 @@ func connectToStore(u *url.URL) (Connection, error) {
 }
 
 func CreateDatabase(u *url.URL) (bool, error) {
+	if u.Scheme == "backup" {
+		return false, nil
+	}
+
 	_, err := store.Create(u)
 	if err != nil {
 		return false, err
