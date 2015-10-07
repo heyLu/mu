@@ -20,12 +20,14 @@ var config struct {
 	asOf       int
 	since      int
 	useHistory bool
+	reverse    bool
 }
 
 func main() {
 	flag.IntVar(&config.asOf, "asof", -1, "the t of the database to go back to (-1 means current)")
 	flag.IntVar(&config.since, "since", -1, "the t of the database to begin")
 	flag.BoolVar(&config.useHistory, "history", false, "whether to include the history")
+	flag.BoolVar(&config.reverse, "reverse", false, "whether to reverse order of the datoms")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
@@ -64,7 +66,11 @@ func main() {
 
 	switch cmd {
 	case "eavt", "aevt", "avet", "vaet":
-		printDatoms(getIndex(db, cmd).Datoms())
+		iter := getIndex(db, cmd).Datoms()
+		if config.reverse {
+			iter = iter.Reverse()
+		}
+		printDatoms(iter)
 
 	case "create-database":
 		isNew, err := mu.CreateDatabase(flag.Arg(0))
@@ -90,6 +96,9 @@ func main() {
 		iter, err := mu.DatomsString(db, flag.Arg(2))
 		if err != nil {
 			log.Fatal(err)
+		}
+		if config.reverse {
+			iter = iter.Reverse()
 		}
 
 		for datom := iter.Next(); datom != nil; datom = iter.Next() {
