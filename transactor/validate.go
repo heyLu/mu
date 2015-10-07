@@ -112,7 +112,7 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 		attr := db.Attribute(datum.A)
 		if attr.Type() == index.Ref {
 			if id, ok := mergedIds[datum.V.Val().(int)]; ok {
-				datums[i].V = index.NewRef(id)
+				datums[i].V = index.NewValue(id)
 			}
 		}
 	}
