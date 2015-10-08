@@ -54,12 +54,12 @@ func NewInMemory(eavt, aevt, avet, vaet *index.MemoryIndex) *Db {
 		index.NewMergedIndex(vaet, empty, index.CompareVaet))
 }
 
-func (db *Db) Eavt() index.Index { return db.index(db.eavt) }
-func (db *Db) Aevt() index.Index { return db.index(db.aevt) }
-func (db *Db) Avet() index.Index { return db.index(db.avet) }
-func (db *Db) Vaet() index.Index { return db.index(db.vaet) }
+func (db *Db) Eavt() EavtIndex { return EavtIndex{db.index(db.eavt)} }
+func (db *Db) Aevt() AevtIndex { return AevtIndex{db.index(db.aevt)} }
+func (db *Db) Avet() AvetIndex { return AvetIndex{db.index(db.avet)} }
+func (db *Db) Vaet() VaetIndex { return VaetIndex{db.index(db.vaet)} }
 
-func (db *Db) index(index index.Index) index.Index {
+func (db *Db) index(index index.Index) *dbIndex {
 	return &dbIndex{
 		db:    db,
 		index: index,
@@ -105,6 +105,118 @@ func (i *dbIndex) DatomsAt(start, end index.Datom) index.Iterator {
 		iter = index.FilterIterator(iter, filter)
 	}
 	return iter
+}
+
+type EavtIndex struct {
+	*dbIndex
+}
+
+func (i EavtIndex) Datoms2(entity HasLookup, attribute HasLookup, value interface{}) index.Iterator {
+	minE, maxE := index.MinDatom.E(), index.MaxDatom.E()
+	if entity != nil {
+		e := i.db.Entid(entity)
+		minE, maxE = e, e
+	}
+
+	minA, maxA := index.MinDatom.A(), index.MaxDatom.A()
+	if attribute != nil {
+		a := i.db.Entid(attribute)
+		minA, maxA = a, a
+	}
+
+	minV, maxV := index.MinDatom.V(), index.MaxDatom.V()
+	if value != nil {
+		v := index.NewValue(value)
+		minV, maxV = v, v
+	}
+
+	return i.DatomsAt(
+		index.NewDatom(minE, minA, minV, index.MaxDatom.Tx(), index.MinDatom.Added()),
+		index.NewDatom(maxE, maxA, maxV, index.MinDatom.Tx(), index.MaxDatom.Added()))
+}
+
+type AevtIndex struct {
+	*dbIndex
+}
+
+func (i AevtIndex) Datoms2(attribute HasLookup, entity HasLookup, value interface{}) index.Iterator {
+	minA, maxA := index.MinDatom.A(), index.MaxDatom.A()
+	if attribute != nil {
+		a := i.db.Entid(attribute)
+		minA, maxA = a, a
+	}
+
+	minE, maxE := index.MinDatom.E(), index.MaxDatom.E()
+	if entity != nil {
+		e := i.db.Entid(entity)
+		minE, maxE = e, e
+	}
+
+	minV, maxV := index.MinDatom.V(), index.MaxDatom.V()
+	if value != nil {
+		v := index.NewValue(value)
+		minV, maxV = v, v
+	}
+
+	return i.DatomsAt(
+		index.NewDatom(minE, minA, minV, index.MaxDatom.Tx(), index.MinDatom.Added()),
+		index.NewDatom(maxE, maxA, maxV, index.MinDatom.Tx(), index.MaxDatom.Added()))
+}
+
+type AvetIndex struct {
+	*dbIndex
+}
+
+func (i AvetIndex) Datoms2(attribute HasLookup, value interface{}, entity HasLookup) index.Iterator {
+	minA, maxA := index.MinDatom.A(), index.MaxDatom.A()
+	if attribute != nil {
+		a := i.db.Entid(attribute)
+		minA, maxA = a, a
+	}
+
+	minV, maxV := index.MinDatom.V(), index.MaxDatom.V()
+	if value != nil {
+		v := index.NewValue(value)
+		minV, maxV = v, v
+	}
+
+	minE, maxE := index.MinDatom.E(), index.MaxDatom.E()
+	if entity != nil {
+		e := i.db.Entid(entity)
+		minE, maxE = e, e
+	}
+
+	return i.DatomsAt(
+		index.NewDatom(minE, minA, minV, index.MaxDatom.Tx(), index.MinDatom.Added()),
+		index.NewDatom(maxE, maxA, maxV, index.MinDatom.Tx(), index.MaxDatom.Added()))
+}
+
+type VaetIndex struct {
+	*dbIndex
+}
+
+func (i VaetIndex) Datoms2(value HasLookup, attribute HasLookup, entity HasLookup) index.Iterator {
+	minV, maxV := index.MinDatom.V(), index.MaxDatom.V()
+	if value != nil {
+		v := index.NewValue(i.db.Entid(value))
+		minV, maxV = v, v
+	}
+
+	minA, maxA := index.MinDatom.A(), index.MaxDatom.A()
+	if attribute != nil {
+		a := i.db.Entid(attribute)
+		minA, maxA = a, a
+	}
+
+	minE, maxE := index.MinDatom.E(), index.MaxDatom.E()
+	if entity != nil {
+		e := i.db.Entid(entity)
+		minE, maxE = e, e
+	}
+
+	return i.DatomsAt(
+		index.NewDatom(minE, minA, minV, index.MaxDatom.Tx(), index.MinDatom.Added()),
+		index.NewDatom(maxE, maxA, maxV, index.MinDatom.Tx(), index.MaxDatom.Added()))
 }
 
 func (db *Db) History() *Db {
