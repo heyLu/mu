@@ -883,7 +883,7 @@ func Slice(set *Set, keys ...interface{}) SetIter {
 	case 2:
 		return internalSlice(set, keys[0], keys[1])
 	default:
-		panic("keys must be one or two integers")
+		panic("keys must be one or two values")
 	}
 }
 
