@@ -88,7 +88,7 @@ func validateUniqueness(db *database.Db, datums []RawDatum) error {
 			if datum.E < 0 {
 				prev, ok := existsUniqueValue(db, datum.A, datum.V)
 				if ok {
-					log.Printf("merging %d with %d\n", datum.E, prev.E())
+					//log.Printf("merging %d with %d\n", datum.E, prev.E())
 					mergedIds[datum.E] = prev.E()
 					datums[i].E = prev.E()
 				}
@@ -125,7 +125,7 @@ func existsUniqueValue(db *database.Db, attrId int, val index.Value) (*index.Dat
 		index.NewDatom(index.MinDatom.E(), attrId, val, index.MaxDatom.Tx(), false),
 		index.NewDatom(index.MaxDatom.E(), attrId, val, index.MinDatom.Tx(), true))
 	datom := iter.Next()
-	log.Println("exists unique value?", attrId, val, datom)
+	//log.Println("exists unique value?", attrId, val, datom)
 	return datom, datom != nil
 }
 
@@ -161,7 +161,7 @@ func alreadyExists(db *database.Db, datum RawDatum) bool {
 		index.NewDatom(datum.E, datum.A, datum.V, index.MaxDatom.Tx(), false),
 		index.NewDatom(datum.E, datum.A, datum.V, index.MinDatom.Tx(), true))
 	datom := iter.Next()
-	log.Println("alreadyExists?", datom, datum)
+	//log.Println("alreadyExists?", datom, datum)
 	return datom != nil
 }
 
@@ -215,7 +215,7 @@ func existingAttribute(db *database.Db, entity int, attribute int) *index.Datom 
 		index.NewDatom(entity, attribute, index.MinValue, index.MaxDatom.Tx(), false),
 		index.NewDatom(entity, attribute, index.MaxValue, index.MinDatom.Tx(), true))
 	datom := iter.Next()
-	log.Println("existingAttribute", datom)
+	//log.Println("existingAttribute", datom)
 	return datom
 }
 
