@@ -21,7 +21,7 @@ storage are desired.
 
 ## Quickstart
 
-Using `mu` currently means using it's Go API.  Here's a small example:
+Using `mu` currently means using its Go API.  Here's a small example:
 
 ```go
 import (
