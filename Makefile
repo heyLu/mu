@@ -9,10 +9,12 @@ help:
 cmds: mu notes
 
 mu:
-	GOPATH=$(GOPATH) go build ./cmd/mu/mu.go
+	GOPATH=$(GOPATH) go install -v github.com/heyLu/mu/cmd/mu
+	@cp $(GOPATH)/bin/mu .
 
 notes:
-	GOPATH=$(GOPATH) go build cmd/notes/notes.go
+	GOPATH=$(GOPATH) go install -v github.com/heyLu/mu/cmd/notes
+	@cp $(GOPATH)/bin/notes .
 
 test:
 	go test ./...
