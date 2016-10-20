@@ -15,7 +15,7 @@ func TestReadWrite(t *testing.T) {
 		RootId: "",
 		Tail: []LogTx{
 			LogTx{
-				Id: "1",
+				Id: fressian.NewUUIDFromBytes([]byte("2a0a1982-96b6-11e6-bf91-02423fefa4c2")),
 				T:  0,
 				Datoms: []index.Datom{
 					index.NewDatom(0, 1, "Jane", 3*(1<<42)+1, true),

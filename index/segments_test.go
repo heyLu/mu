@@ -26,6 +26,10 @@ func (i *sliceIterator) Next() *Datom {
 	return nil
 }
 
+func (i *sliceIterator) Reverse() Iterator {
+	panic("not implemented")
+}
+
 func TestSliceIterator(t *testing.T) {
 	iter := newSliceIterator(
 		NewDatom(0, 1, "Jane", 0, true),
