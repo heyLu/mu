@@ -17,6 +17,6 @@ notes:
 	@cp $(GOPATH)/bin/notes .
 
 test:
-	go test ./...
+	GOPATH=$(GOPATH) go test ./...
 
 .PHONY: help cmds mu notes test
