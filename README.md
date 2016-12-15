@@ -98,7 +98,7 @@ In no particular order:
     tools like the `notes` example.  DataScript, on the other hand, is
     written in JavaScript and intended for use in web applications and
     does not support some Datomic features that we'd like to have, notably
-    the reified schema and history, which we hope to add in the future.
+    the reified schema and history.
 - When should I use it?
 
     First of all, if you're already happy with Datomic and/or DataScript,
