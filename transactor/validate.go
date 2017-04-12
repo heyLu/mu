@@ -2,7 +2,7 @@ package transactor
 
 import (
 	"fmt"
-	"log"
+	//"log"
 
 	"github.com/heyLu/mu/database"
 	"github.com/heyLu/mu/index"
@@ -145,7 +145,7 @@ func removeNoops(db *database.Db, datums []RawDatum) ([]RawDatum, error) {
 		} else if datum.Op == Retract && exists {
 			newDatums = append(newDatums, datum)
 		} else {
-			log.Println("noop", datum)
+			//log.Println("noop", datum)
 		}
 	}
 
