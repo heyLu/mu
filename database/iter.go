@@ -20,7 +20,7 @@ func (i *noRetractionsIterator) Next() *index.Datom {
 
 	// The index is sorted such that retractions appear immediately
 	// before the datom they are retracting.
-	for datom == nil || !datom.Added() {
+	for datom != nil && !datom.Added() {
 		datom = i.iter.Next()
 		if datom == nil {
 			panic("retraction without a value")
